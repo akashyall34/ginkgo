@@ -83,6 +83,25 @@ public enum GeminiWire {
         return (content, ModelTurn(calls: calls, text: texts.isEmpty ? nil : texts.joined()))
     }
 
+    // MARK: - One-shot JSON calls with images (the parts reader, the chatbot baseline)
+
+    /// A photo inside a message, sent inline as base64.
+    public static func imagePart(data: Data, mimeType: String) -> JSON {
+        ["inlineData": ["mimeType": .string(mimeType), "data": .string(data.base64EncodedString())]]
+    }
+
+    /// One user message made of several parts, for example text and a photo.
+    public static func userParts(_ parts: [JSON]) -> JSON {
+        ["role": "user", "parts": .array(parts)]
+    }
+
+    /// A request whose answer must be JSON matching `schema` (Gemini's structured output). No tools.
+    public static func jsonRequest(contents: [JSON], schema output: ParamSchema, thinkingLevel: String?) -> JSON {
+        var config: [String: JSON] = ["responseMimeType": "application/json", "responseSchema": schema(output)]
+        if let thinkingLevel { config["thinkingConfig"] = ["thinkingLevel": .string(thinkingLevel)] }
+        return ["contents": .array(contents), "generationConfig": .object(config)]
+    }
+
     /// The `id` of each function call in a model message, in order (nil when Gemini sent none).
     public static func callIDs(in modelContent: JSON) -> [String?] {
         (modelContent["parts"]?.arrayValue ?? []).compactMap { part in
