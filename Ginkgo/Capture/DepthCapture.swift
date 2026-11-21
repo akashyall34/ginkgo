@@ -64,3 +64,8 @@ final class DepthCapture {
         return .success(CapturedFrame(image: UIImage(cgImage: photo), confidenceOverlay: overlay, snapshot: snapshot))
     }
 }
+
+extension DepthCapture: FrameSource {
+    var isSupported: Bool { Self.isSupported }
+    var previewSession: ARSession? { session }
+}

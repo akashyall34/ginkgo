@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// The first screen: what Ginkgo does, and the way in.
 struct HomeView: View {
     @State private var selectedTab = 0
 
