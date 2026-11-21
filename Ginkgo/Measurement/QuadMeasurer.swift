@@ -1,7 +1,7 @@
 import simd
 
 /// Width and height of a rectangular face found from its four corners.
-struct QuadResult: Equatable {
+struct QuadResult: Equatable, Codable {
     /// Average of the top and bottom edges, in meters.
     let width: Float
     /// Average of the left and right edges, in meters.

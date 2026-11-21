@@ -1,7 +1,7 @@
 import simd
 
 /// Camera intrinsics for the full-resolution captured image, in pixels.
-struct Intrinsics: Equatable {
+struct Intrinsics: Equatable, Codable {
     var fx: Float
     var fy: Float
     var cx: Float
