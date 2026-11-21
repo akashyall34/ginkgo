@@ -1,3 +1,4 @@
+import GinkgoCore
 import UIKit
 import XCTest
 @testable import Ginkgo

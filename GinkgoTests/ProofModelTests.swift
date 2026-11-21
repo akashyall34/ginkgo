@@ -1,3 +1,4 @@
+import GinkgoCore
 import XCTest
 @testable import Ginkgo
 
@@ -68,8 +69,9 @@ final class ProofModelTests: XCTestCase {
     func testSagRowsShowShareOfTheLimit() throws {
         let seat = try XCTUnwrap(try proven().sagRows.first)
         XCTAssertEqual(seat.name, "Seat")
-        XCTAssertEqual(seat.shareOfLimit, 0.7, accuracy: 1e-9)
-        XCTAssertEqual(seat.summary, "0.42 of 0.60 mm allowed")
+        // Vivek's validator: 0.386 mm of the 0.60 mm allowed.
+        XCTAssertEqual(seat.shareOfLimit, 0.6436, accuracy: 1e-4)
+        XCTAssertEqual(seat.summary, "0.39 of 0.60 mm allowed")
         XCTAssertTrue(seat.passes)
         let failing = try XCTUnwrap(try chatbot().sagRows.first)
         XCTAssertGreaterThan(failing.shareOfLimit, 1)
@@ -92,13 +94,14 @@ final class ProofModelTests: XCTestCase {
 
     func testChecksAreTightestFirst() throws {
         XCTAssertEqual(try proven().checksBeforeCutting, [
-            "Check the top's width: 12 mm to spare.",
-            "Check the left side's height: 25 mm to spare.",
+            "Check the top's width: 52 mm to spare.",
+            "Check the top's height: 62 mm to spare.",
+            "Check the left side's width: 72 mm to spare.",
         ])
     }
 
     func testReuseText() throws {
-        XCTAssertEqual(try proven().reuse, "72% of the wood reused")
+        XCTAssertEqual(try proven().reuse, "52% of the wood reused")
     }
 
     // MARK: names and loading

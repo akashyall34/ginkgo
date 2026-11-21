@@ -1,3 +1,4 @@
+import GinkgoCore
 import Foundation
 
 /// Everything the Proof screen shows, worked out from a plan, its validation result
@@ -112,8 +113,13 @@ extension ProofModel {
             return try? JSONDecoder().decode(T.self, from: data)
         }
         guard let plan = load("plan_bench", as: Plan.self),
-              let result = load(chatbot ? "validation_chatbot" : "validation_bench", as: ValidationResult.self),
               let inventory = load("inventory", as: Inventory.self) else { return nil }
-        return ProofModel(plan: plan, result: result, inventory: inventory)
+        if chatbot {
+            // Until the chatbot's own plan is in examples/, its recorded result is shown.
+            guard let result = load("validation_chatbot", as: ValidationResult.self) else { return nil }
+            return ProofModel(plan: plan, result: result, inventory: inventory)
+        }
+        return ProofModel(plan: plan, result: Validator.validate(plan: plan, inventory: inventory, limits: nil),
+                          inventory: inventory)
     }
 }
