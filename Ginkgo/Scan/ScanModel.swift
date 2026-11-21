@@ -1,5 +1,6 @@
 import CoreGraphics
 import Observation
+import UIKit
 
 /// Everything the Scan screen does, without any drawing: capture a frame, find the
 /// faces in it, let the person pick or place a face's corners, and measure it.
@@ -26,11 +27,19 @@ final class ScanModel {
     /// The corners being measured, normalized on the portrait photo; nil until a face is picked.
     private(set) var corners: [CGPoint]?
     private(set) var status: Status = .aiming
+    /// Where measurements are kept; nil keeps nothing (previews).
+    let store: ScanStore?
+    /// The saved scan for the current capture; every new measurement of it replaces the save.
+    private(set) var savedScanID: UUID?
+    /// True when the last measurement couldn't be saved. The measurement itself still stands.
+    private(set) var saveFailed = false
+    private var photoData: Data?
 
     static let crossedCornersMessage = "The corners cross. Drag them back into a four-sided shape."
 
-    init(source: FrameSource) {
+    init(source: FrameSource, store: ScanStore? = nil) {
         self.source = source
+        self.store = store
     }
 
     var instruction: String { instruction(for: status) }
@@ -50,6 +59,9 @@ final class ScanModel {
         switch source.capture() {
         case .success(let captured):
             frame = captured
+            savedScanID = nil
+            photoData = nil
+            saveFailed = false
             faces = captured.image.cgImage.map(RectangleDetector.detect) ?? []
             corners = nil
             status = faces.isEmpty ? .noFaceFound : .chooseFace
@@ -87,6 +99,9 @@ final class ScanModel {
 
     func retake() {
         frame = nil
+        savedScanID = nil
+        photoData = nil
+        saveFailed = false
         faces = []
         corners = nil
         status = .aiming
@@ -100,8 +115,24 @@ final class ScanModel {
             return
         }
         switch QuadMeasurer.measure(corners: face.rawCorners, in: frame.snapshot) {
-        case .success(let result): status = .measured(result)
+        case .success(let result):
+            status = .measured(result)
+            save(result, frame: frame, corners: corners)
         case .failure(let error): status = .problem(error.explanation)
+        }
+    }
+
+    private func save(_ result: QuadResult, frame: CapturedFrame, corners: [CGPoint]) {
+        guard let store else { return }
+        let id = savedScanID ?? UUID()
+        do {
+            guard let photo = photoData ?? frame.image.heicData() else { throw ScanStoreError.unreadable("photo") }
+            photoData = photo
+            try store.save(ScanCapture(photo: photo, snapshot: frame.snapshot, corners: corners, result: result), id: id, date: Date())
+            savedScanID = id
+            saveFailed = false
+        } catch {
+            saveFailed = true
         }
     }
 }

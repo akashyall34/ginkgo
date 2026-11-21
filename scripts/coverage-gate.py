@@ -16,6 +16,7 @@ EXEMPT_FILES = {
     "GinkgoApp.swift": "app entry point; exercised by every launch",
     "GeminiClient.swift": "network glue; covered by scripts/check-live-ai.sh",
     "DepthCapture.swift": "ARKit session glue; needs LiDAR, checked on a real iPhone",
+    "MeshCapture.swift": "ARKit mesh glue; needs LiDAR, checked on a real iPhone",
     "CameraPreview.swift": "ARKit camera view; needs LiDAR, checked on a real iPhone",
 }
 

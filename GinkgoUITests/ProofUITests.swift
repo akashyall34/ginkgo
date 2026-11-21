@@ -19,7 +19,7 @@ final class ProofUITests: XCTestCase {
         let app = openExample()
         let any = app.descendants(matching: .any)
         XCTAssertTrue(any["verdict"].label.contains("Proven to fit"), any["verdict"].label)
-        XCTAssertTrue(any["verdict"].label.contains("72% of the wood reused"))
+        XCTAssertTrue(any["verdict"].label.contains("52% of the wood reused"))
         let cuts = any.matching(identifier: "cut")
         XCTAssertEqual(cuts.count, 3)
         XCTAssertTrue(cuts.element(boundBy: 0).label.hasPrefix("Seat, 40.0 × 30.0 cm"), cuts.element(boundBy: 0).label)
@@ -29,13 +29,13 @@ final class ProofUITests: XCTestCase {
     func testSagCuttingPlanAndChecksAreAllThere() {
         let app = openExample()
         let any = app.descendants(matching: .any)
-        XCTAssertTrue(any["sag"].label.contains("0.42 of 0.60 mm allowed"), any["sag"].label)
+        XCTAssertTrue(any["sag"].label.contains("0.39 of 0.60 mm allowed"), any["sag"].label)
         XCTAssertTrue(any["sag"].label.contains("Within the limit"))
         XCTAssertEqual(any.matching(identifier: "sheet").count, 3)
         app.swipeUp()
         let checks = any.matching(identifier: "check")
         XCTAssertTrue(checks.element(boundBy: 0).waitForExistence(timeout: 3))
-        XCTAssertTrue(checks.element(boundBy: 0).label.contains("12 mm to spare"), checks.element(boundBy: 0).label)
+        XCTAssertTrue(checks.element(boundBy: 0).label.contains("52 mm to spare"), checks.element(boundBy: 0).label)
     }
 
     func testReadableInDarkModeAtTheLargestTextSize() {

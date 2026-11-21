@@ -1,3 +1,4 @@
+import GinkgoCore
 import SwiftUI
 
 /// The Proof screen: whether a plan fits, piece by piece, with sag and a cutting diagram.
