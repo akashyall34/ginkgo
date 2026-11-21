@@ -1,0 +1,18 @@
+{
+  "plan_id": "plan-bench-1",
+  "passes": true,
+  "violations": [],
+  "placements": [
+    { "new_part": "seat", "source_part_id": "top", "x_mm": 30, "y_mm": 50, "width_mm": 400, "height_mm": 300, "rotated": false },
+    { "new_part": "leg_left", "source_part_id": "side_left", "x_mm": 40, "y_mm": 90, "width_mm": 300, "height_mm": 380, "rotated": false },
+    { "new_part": "leg_right", "source_part_id": "side_right", "x_mm": 40, "y_mm": 90, "width_mm": 300, "height_mm": 380, "rotated": false }
+  ],
+  "sag": [
+    { "new_part": "seat", "span_mm": 360, "deflection_mm": 0.42, "limit_mm": 0.6, "passes": true }
+  ],
+  "reuse_percent": 72,
+  "verify": [
+    { "source_part_id": "top", "dimension": "width", "margin_mm": 12 },
+    { "source_part_id": "side_left", "dimension": "height", "margin_mm": 25 }
+  ]
+}

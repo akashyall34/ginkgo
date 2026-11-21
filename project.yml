@@ -22,6 +22,9 @@ targets:
     platform: iOS
     sources:
       - path: Ginkgo
+      # The sample nightstand data, bundled for "See an example" and demo mode.
+      - path: examples
+        buildPhase: resources
     # The Firebase config is not committed (see .gitignore), so it is copied in only when
     # present. A fresh clone still builds; AI features then show their unavailable state.
     postBuildScripts:

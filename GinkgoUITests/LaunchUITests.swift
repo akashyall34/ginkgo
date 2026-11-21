@@ -24,8 +24,9 @@ final class LaunchUITests: XCTestCase {
 
     @MainActor
     func testHomeWorksInDarkMode() {
+        XCUIDevice.shared.appearance = .dark
+        addTeardownBlock { @MainActor in XCUIDevice.shared.appearance = .light }
         let app = XCUIApplication()
-        app.launchArguments += ["-AppleInterfaceStyle", "Dark"]
         app.launch()
         XCTAssertTrue(app.staticTexts["appTitle"].waitForExistence(timeout: 10))
     }

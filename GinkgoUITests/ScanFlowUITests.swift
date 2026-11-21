@@ -11,9 +11,8 @@ final class ScanFlowUITests: XCTestCase {
     /// Launches with the demo scene and opens the Scan screen.
     private func openScan(_ extraArguments: [String] = []) -> ScanScreen {
         let app = XCUIApplication()
-        app.launchArguments = ["-demoScene"] + extraArguments
+        app.launchArguments = ["-demoScene", "-openScreen", "scan"] + extraArguments
         app.launch()
-        app.buttons["scanButton"].tap()
         XCTAssertTrue(app.buttons["capture"].waitForExistence(timeout: 5))
         return ScanScreen(app: app, test: self)
     }

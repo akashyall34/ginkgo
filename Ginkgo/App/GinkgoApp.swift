@@ -10,7 +10,26 @@ struct GinkgoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            switch LaunchRoute(arguments: ProcessInfo.processInfo.arguments) {
+            case .home:
+                HomeView()
+            case .scan:
+                NavigationStack { ScanView(source: FrameSources.makeDefault()) }
+            case .example:
+                NavigationStack { ExampleProofView() }
+            }
+        }
+    }
+}
+
+/// The sample nightstand-to-bench plan, or a designed state if it can't be loaded.
+struct ExampleProofView: View {
+    var body: some View {
+        if let example = ProofModel.example() {
+            ProofView(model: example)
+        } else {
+            ContentUnavailableView("Example unavailable", systemImage: "doc.questionmark",
+                                   description: Text("The sample plan couldn't be loaded."))
         }
     }
 }
