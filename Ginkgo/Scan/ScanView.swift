@@ -15,6 +15,7 @@ struct ScanView: View {
         }
         .navigationTitle("Scan")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
         .background(Palette.background)
     }
 

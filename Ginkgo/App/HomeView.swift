@@ -5,46 +5,50 @@ struct HomeView: View {
     @State private var selectedTab = 0
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    header
+        NavigationStack {
+            ZStack(alignment: .bottom) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        header
 
-                    heroTitle
+                        heroTitle
+                            .padding(.top, Spacing.medium)
+
+                        heroPhoto
+                            .padding(.top, Spacing.large)
+
+                        NavigationLink {
+                            ScanView(source: FrameSources.makeDefault())
+                        } label: {
+                            HStack(spacing: Spacing.small) {
+                                Image(systemName: "camera")
+                                    .font(.title3.weight(.semibold))
+                                    .accessibilityHidden(true)
+                                Text("Snap furniture")
+                                    .font(.title3.weight(.semibold))
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 80)
+                            .background(Palette.brand)
+                            .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("snapFurniture")
                         .padding(.top, Spacing.medium)
 
-                    heroPhoto
-                        .padding(.top, Spacing.large)
-
-                    Button {
-                    } label: {
-                        HStack(spacing: Spacing.small) {
-                            Image(systemName: "camera")
-                                .font(.title3.weight(.semibold))
-                                .accessibilityHidden(true)
-                            Text("Snap furniture")
-                                .font(.title3.weight(.semibold))
-                        }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 80)
-                        .background(Palette.brand)
-                        .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                        impactSection
+                            .padding(.top, 36)
+                            .padding(.bottom, 112)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("snapFurniture")
-                    .padding(.top, Spacing.medium)
-
-                    impactSection
-                        .padding(.top, 36)
-                        .padding(.bottom, 112)
+                    .padding(.horizontal, Spacing.large)
                 }
-                .padding(.horizontal, Spacing.large)
-            }
 
-            bottomNavigation
+                bottomNavigation
+            }
+            .background(Palette.background)
+            .toolbar(.hidden, for: .navigationBar)
         }
-        .background(Palette.background)
     }
 
     private var header: some View {
@@ -142,26 +146,23 @@ struct HomeView: View {
             navButton(index: 1, icon: "tray.full", title: "My items")
             navButton(index: 2, icon: "book", title: "Guide")
         }
-        .padding(.top, 10)
-        .padding(.bottom, 18)
-        .frame(maxWidth: .infinity)
-        .background(
-            Rectangle()
-                .fill(Palette.background)
-                .overlay(alignment: .bottom) {
-                    GeometryReader { proxy in
-                        let itemWidth = proxy.size.width / 3
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Palette.brand)
-                            .frame(width: 116, height: 4)
-                            .position(
-                                x: itemWidth * (CGFloat(selectedTab) + 0.5),
-                                y: proxy.size.height - 6
-                            )
+        .padding(8)
+        .background {
+            if #available(iOS 26.0, *) {
+                Capsule()
+                    .fill(.clear)
+                    .glassEffect(.regular, in: Capsule())
+            } else {
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        Capsule()
+                            .strokeBorder(Palette.brand.opacity(0.18), lineWidth: 1)
                     }
-                }
-        )
-        .safeAreaPadding(.bottom)
+            }
+        }
+        .padding(.horizontal, Spacing.large)
+        .padding(.bottom, 8)
         .accessibilityElement(children: .contain)
     }
 
@@ -170,13 +171,20 @@ struct HomeView: View {
             selectedTab = index
         } label: {
             VStack(spacing: 6) {
-                Image(systemName: icon)
+                Image(systemName: selectedTab == index ? "\(icon).fill" : icon)
                     .font(.title3)
                 Text(title)
                     .font(.caption2)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .frame(minHeight: 56)
+            .background {
+                if selectedTab == index {
+                    Capsule()
+                        .fill(Palette.brand.opacity(0.12))
+                        .padding(2)
+                }
+            }
         }
         .foregroundStyle(selectedTab == index ? Palette.brand : Color.secondary)
         .buttonStyle(.plain)

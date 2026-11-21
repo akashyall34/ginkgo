@@ -29,4 +29,13 @@ final class LaunchUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["appTitle"].waitForExistence(timeout: 10))
     }
+
+    @MainActor
+    func testSnapFurnitureOpensScan() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-demoScene"]
+        app.launch()
+        app.buttons["snapFurniture"].tap()
+        XCTAssertTrue(app.navigationBars["Scan"].waitForExistence(timeout: 5))
+    }
 }
