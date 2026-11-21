@@ -132,7 +132,8 @@ extension ToolExecutor {
             // Seats and shelves always get a result; the guard only satisfies the optional.
             let checked = try Sag.check(name: name, role: role, spanMm: span, depthMm: depth, source: part)
             guard let result = checked else { throw ToolInputError("\(context).role must be seat or shelf") }
-            let bend = "\(Format.mm(result.deflectionMm)) of \(Format.mm(result.limitMm)) mm allowed"
+            // Two decimals: sag values are small, and 0.1 mm rounding can make a failure look equal to its limit.
+            let bend = String(format: "%.2f of %.2f mm allowed", result.deflectionMm, result.limitMm)
             return CheckRow(
                 json: ["new_part": .string(name), "deflection_mm": Self.rounded(result.deflectionMm),
                        "limit_mm": Self.rounded(result.limitMm), "passes": .bool(result.passes)],
