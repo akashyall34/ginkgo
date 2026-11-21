@@ -124,7 +124,11 @@
         "source": { "type": "string", "enum": ["ginkgo", "chatbot"] },
         "new_parts": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/NewPart" } },
         "steps": { "type": "array", "items": { "type": "string" } },
-        "hardware": { "type": "array", "items": { "$ref": "#/definitions/HardwareItem" } }
+        "hardware": { "type": "array", "items": { "$ref": "#/definitions/HardwareItem" } },
+        "overall_mm": {
+          "$ref": "#/definitions/Vector3",
+          "description": "Overall size of the assembled build, computed by code (Layout)."
+        }
       }
     },
     "Violation": {
@@ -190,6 +194,63 @@
         "sag": { "type": "array", "items": { "$ref": "#/definitions/SagResult" } },
         "reuse_percent": { "type": "number", "minimum": 0, "maximum": 100 },
         "verify": { "type": "array", "items": { "$ref": "#/definitions/VerifyItem" } }
+      }
+    },
+    "SizeLimits": {
+      "type": "object",
+      "description": "The user's maximum size for the new build. Every limit is optional.",
+      "additionalProperties": false,
+      "properties": {
+        "max_width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "max_height_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "max_depth_mm": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "DraftPart": {
+      "type": "object",
+      "description": "A new part as the AI proposes it. Code adds the position and rotation (Layout).",
+      "additionalProperties": false,
+      "required": ["name", "source_part_id", "width_mm", "height_mm", "role"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "source_part_id": { "type": "string", "minLength": 1 },
+        "width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "height_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "role": {
+          "type": "string",
+          "description": "Shelves and seats carry load and get the sag check.",
+          "enum": ["shelf", "seat", "side", "support", "back", "other"]
+        },
+        "span_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Unsupported span for shelves and seats."
+        }
+      }
+    },
+    "PlanDraft": {
+      "type": "object",
+      "description": "The plan the AI submits. Code lays it out and validates it before anyone sees it.",
+      "additionalProperties": false,
+      "required": ["template", "new_parts", "steps", "hardware"],
+      "properties": {
+        "template": { "type": "string", "enum": ["bench", "bookshelf", "no_cut"] },
+        "new_parts": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/DraftPart" } },
+        "steps": { "type": "array", "items": { "type": "string" } },
+        "hardware": { "type": "array", "items": { "$ref": "#/definitions/HardwareItem" } }
+      }
+    },
+    "AgentStep": {
+      "type": "object",
+      "description": "One row of the on-screen agent trace.",
+      "additionalProperties": false,
+      "required": ["index", "tool", "reason", "summary", "status"],
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "tool": { "type": "string", "enum": ["check_fit", "check_sag", "submit_plan", "note", "fallback"] },
+        "reason": { "type": "string", "description": "The AI's own words: why it made this call." },
+        "summary": { "type": "string", "description": "Written by our code, for example \"seat from top: fits, 52 mm to spare\"." },
+        "status": { "type": "string", "enum": ["pass", "fail", "info", "accepted", "error"] }
       }
     }
   }

@@ -5,12 +5,9 @@ cd "$(dirname "$0")/.."
 SIMULATOR="${SIMULATOR:-iPhone 17}"
 mkdir -p build
 
-echo "== 1. Generated models match the schema"
-TMP=$(mktemp -d)
-quicktype -s schema "schema/ginkgo.schema.json#/definitions/" \
-  -l swift --struct-or-class struct --access-level internal -o "$TMP/GinkgoModels.swift"
-diff -q "$TMP/GinkgoModels.swift" Ginkgo/Models/GinkgoModels.swift
-echo "up to date"
+echo "== 0+1. GinkgoCore package: models match the schema, lint, build (warnings are errors),"
+echo "        unit tests, coverage of at least 85% per logic file"
+scripts/ci-core.sh
 
 echo "== 2. Lint (strict: any warning fails)"
 swiftlint lint --quiet --strict

@@ -8,6 +8,14 @@ xcuserdata/
 # Firebase config holds project identifiers; keep it out of a public repo.
 GoogleService-Info.plist
 
+# Secrets: API keys live in env files, never in git.
+.env
+*.env
+
+# Swift package build output.
+Packages/GinkgoCore/.build/
+.swiftpm/
+
 # Claude Code project instructions: local only, never pushed.
 CLAUDE.md
 
