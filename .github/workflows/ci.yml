@@ -1,0 +1,53 @@
+# Runs scripts/ci.sh, the same command run locally, on every push and pull request.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use the newest Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install tools (versions match the team's Macs)
+        run: |
+          npm install -g quicktype@26.0.0
+          brew install xcodegen
+          curl -sSL -o swiftlint.zip https://github.com/realm/SwiftLint/releases/download/0.65.1/portable_swiftlint.zip
+          unzip -q swiftlint.zip -d "$HOME/swiftlint" && echo "$HOME/swiftlint" >> "$GITHUB_PATH"
+
+      - name: Pick an iPhone simulator
+        run: |
+          name=$(xcrun simctl list devices available | grep -oE 'iPhone [0-9]+( Pro)?' | sort -V | tail -1)
+          echo "Using $name"
+          echo "SIMULATOR=$name" >> "$GITHUB_ENV"
+
+      - name: Generate the Xcode project
+        run: xcodegen generate
+
+      - name: CI (models, lint, build, tests, coverage)
+        run: scripts/ci.sh
+
+      - name: Keep the test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/ci.xcresult
+          if-no-files-found: ignore
