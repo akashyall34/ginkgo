@@ -1,0 +1,113 @@
+{
+  "parts" : [
+    {
+      "damaged" : false,
+      "height_mm" : 330,
+      "id" : "top",
+      "keep_outs" : [
+
+      ],
+      "material" : "plywood",
+      "thickness_mm" : 18,
+      "type" : "top",
+      "width_mm" : 420
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 232,
+      "id" : "leg_1",
+      "keep_outs" : [
+
+      ],
+      "material" : "solid_wood",
+      "thickness_mm" : 70,
+      "type" : "leg",
+      "width_mm" : 70
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 46,
+      "id" : "rail_1",
+      "keep_outs" : [
+
+      ],
+      "material" : "solid_wood",
+      "thickness_mm" : 18,
+      "type" : "rail",
+      "width_mm" : 289
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 40,
+      "id" : "leg_2",
+      "keep_outs" : [
+
+      ],
+      "material" : "solid_wood",
+      "thickness_mm" : 23,
+      "type" : "leg",
+      "width_mm" : 23
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 43,
+      "id" : "leg_3",
+      "keep_outs" : [
+
+      ],
+      "material" : "solid_wood",
+      "thickness_mm" : 24,
+      "type" : "leg",
+      "width_mm" : 24
+    },
+    {
+      "damaged" : true,
+      "height_mm" : 238,
+      "id" : "leg_4",
+      "keep_outs" : [
+
+      ],
+      "material" : "solid_wood",
+      "thickness_mm" : 85,
+      "type" : "leg",
+      "width_mm" : 85
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 60,
+      "id" : "rail_2",
+      "keep_outs" : [
+
+      ],
+      "material" : "solid_wood",
+      "thickness_mm" : 18,
+      "type" : "rail",
+      "width_mm" : 210
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 60,
+      "id" : "rail_3",
+      "keep_outs" : [
+
+      ],
+      "material" : "solid_wood",
+      "thickness_mm" : 18,
+      "type" : "rail",
+      "width_mm" : 210
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 60,
+      "id" : "rail_4",
+      "keep_outs" : [
+
+      ],
+      "material" : "solid_wood",
+      "thickness_mm" : 18,
+      "type" : "rail",
+      "width_mm" : 300
+    }
+  ],
+  "scan_id" : "scan-2"
+}
