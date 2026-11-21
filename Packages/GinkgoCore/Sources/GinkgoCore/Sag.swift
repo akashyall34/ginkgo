@@ -3,10 +3,12 @@ import Foundation
 /// Bad numbers for the sag check. Becomes a violation or a tool error, never a crash or NaN.
 public enum SagError: Error, Equatable, Sendable {
     case invalidSize(String)
+    /// The material isn't load-bearing (plastic, cardboard): no stiffness is used and no sag number is shown.
+    case notLoadBearing(String)
 
     public var message: String {
         switch self {
-        case let .invalidSize(message): return message
+        case let .invalidSize(message), let .notLoadBearing(message): return message
         }
     }
 }
@@ -17,10 +19,9 @@ public enum SagError: Error, Equatable, Sendable {
 public enum Sag {
     static let gravity = 9.81
 
-    /// Stiffness E in N/mm² (MPa). Conservative defaults, kept in this one place.
-    /// Still to do before the demo: cross-check against the Sagulator and the USDA Wood Handbook (CLAUDE.md setup step 9).
-    /// The values and their sources live in `MaterialCatalog`.
-    public static func stiffness(of material: Material) -> Double {
+    /// Stiffness E in N/mm² (MPa), or nil for materials that aren't load-bearing.
+    /// The values, their sources and dates live in `MaterialCatalog`.
+    public static func stiffness(of material: Material) -> Double? {
         MaterialCatalog.info(material).stiffness
     }
 
@@ -56,8 +57,12 @@ public enum Sag {
     public static func check(name: String, role: Role, spanMm: Double, depthMm: Double,
                              source: Part) throws -> SagResult? {
         guard let loadKg = designLoadKg(for: role) else { return nil }
+        guard let modulus = stiffness(of: source.material) else {
+            throw SagError.notLoadBearing("\(source.id) is \(source.material.displayName), which isn't load-bearing, "
+                + "so it can't be a seat or shelf")
+        }
         let bend = try deflection(loadKg: loadKg, spanMm: spanMm, depthMm: depthMm,
-                                  thicknessMm: source.thicknessMm, stiffness: stiffness(of: source.material))
+                                  thicknessMm: source.thicknessMm, stiffness: modulus)
         let allowed = limit(spanMm: spanMm)
         return SagResult(deflectionMm: bend, limitMm: allowed, newPart: name, passes: bend <= allowed, spanMm: spanMm)
     }

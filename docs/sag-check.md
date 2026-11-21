@@ -2,41 +2,42 @@
 
 Ginkgo's sag check (`Packages/GinkgoCore/Sources/GinkgoCore/Sag.swift`) uses the standard formula for a
 simply supported board under an even load: δ = 5·w·L⁴ / (384·E·I), with I = b·t³ / 12 and w = load × 9.81 / L.
-A seat or shelf passes when δ ≤ L / 600 (the spec's "0.02 in per foot of span").
-Design loads: seat 100 kg, shelf 30 kg. Stiffness values live in one table, `MaterialCatalog` (`Materials.swift`).
+A seat or shelf passes when δ ≤ L / 600 (the spec's "0.02 in per foot of span", which is also the Sagulator's target).
+Design loads: seat 100 kg, shelf 30 kg. Stiffness values, sources and check dates live in one table,
+`MaterialCatalog` (`Materials.swift`).
 
-## Stiffness values and where they come from
+## Stiffness values and sources
 
-| Material | E used (N/mm²) | Published range | Source |
+| Material | E used (N/mm²) | Source | Cross-check |
 |---|---|---|---|
-| Solid wood | 9,000 | about 8,000–12,000 for common softwoods; hardwoods higher | USDA Wood Handbook (FPL-GTR-282), tables of modulus of elasticity |
-| Plywood | 7,000 | about 7,000–10,000 along the face grain | USDA Wood Handbook, plywood chapter |
-| Particleboard/MDF | 2,500 | MDF about 2,500–4,000; particleboard about 2,000–3,000 | Manufacturer data sheets |
-| Plastic (polypropylene) | 1,200 | about 1,300–1,800 | Polypropylene data sheets; rounded down |
-| Cardboard | 200 | not a structural material | Deliberately low, so cardboard never passes as a seat or shelf |
+| Solid wood | 9,000 | USDA Forest Products Laboratory, *Wood Handbook*, FPL-GTR-282 (2021), ch. 5 | Sagulator, Eastern white pine, 2026-11-21 |
+| Plywood | 7,000 | USDA Forest Products Laboratory, *Wood Handbook*, FPL-GTR-282 (2021) | Sagulator, fir plywood, 2026-11-21 |
+| Particleboard/MDF | 2,500 | ANSI A208.1-2022 / A208.2-2022 MOE grades | Sagulator, M-2 particleboard, 2026-11-21 |
+| Plastic | none | No single stiffness for hollow molded parts | Rule: never a seat or shelf (trust audit, 2026-11-21) |
+| Cardboard | none | Corrugated board's stiffness depends on its flutes, not one constant | Rule: never a seat or shelf (trust audit, 2026-11-21) |
 
-Every value is at or below the low end of its range, so the check is conservative: when in doubt it says "sags".
+Plastic and cardboard have **no stiffness number at all**. A seat or shelf made of them is rejected with
+"isn't load-bearing", and no sag figure is computed or shown.
 
-## The five cases (fill in the Sagulator column)
+## The five cases, run on the Sagulator (woodbin.com) on 2026-11-21
 
-Open the Sagulator (woodbin.com/calcs/sagulator), choose the material closest to ours, enter the same
-span, depth, thickness and load, and write its deflection here. The Sagulator's load box takes pounds and
-inches; the conversions are given.
+Settings: Floating (not attached), total load in kg, uniform load, mm, no edging strip.
 
-| # | Case | Span × depth × thickness | Load | Ginkgo δ | Limit | Ginkgo says | Sagulator δ | Difference |
-|---|---|---|---|---|---|---|---|---|
-| 1 | Sample bench seat, solid wood | 360 × 300 × 19 mm (14.2 × 11.8 × 0.75 in) | 100 kg (220 lb) | 0.386 mm | 0.600 mm | passes | | |
-| 2 | Bigger seat, solid wood | 414 × 392 × 19 mm (16.3 × 15.4 × 0.75 in) | 100 kg (220 lb) | 0.449 mm | 0.690 mm | passes | | |
-| 3 | Fallback seat, solid wood | 414 × 362 × 19 mm (16.3 × 14.3 × 0.75 in) | 100 kg (220 lb) | 0.487 mm | 0.690 mm | passes | | |
-| 4 | Long plywood shelf | 900 × 280 × 18 mm (35.4 × 11.0 × 0.71 in) | 30 kg (66 lb) | 2.933 mm | 1.500 mm | sags | | |
-| 5 | Particleboard shelf | 800 × 300 × 16 mm (31.5 × 11.8 × 0.63 in) | 30 kg (66 lb) | 7.664 mm | 1.333 mm | sags | | |
+| # | Case | Span × depth × thickness (mm) | Load | Ginkgo δ | Sagulator δ | Difference | Verdict |
+|---|---|---|---|---|---|---|---|
+| 1 | Sample bench seat | 360 × 300 × 19, Eastern white pine | 100 kg | 0.386 mm | 0.41 mm | ours 6% lower | both pass |
+| 2 | Bigger seat | 414 × 392 × 19, Eastern white pine | 100 kg | 0.449 mm | 0.47 mm | ours 4% lower | both pass |
+| 3 | Fallback seat | 414 × 362 × 19, Eastern white pine | 100 kg | 0.487 mm | 0.51 mm | ours 5% lower | both pass |
+| 4 | Long plywood shelf | 900 × 280 × 18, fir plywood | 30 kg | 2.933 mm | 2.48 mm | ours 18% higher | both sag |
+| 5 | Particleboard shelf | 800 × 300 × 16, M-2 particleboard | 30 kg | 7.664 mm | 8.68 mm | ours 12% lower | both sag |
 
-Each Ginkgo value is pinned by a known-answer test in `SagTests.swift`, and `scripts/prove-tests-core.sh`
-shows the tests fail if the 1/600 limit is changed.
+## Conclusion
 
-## Conclusion (fill in after the check)
-
-- If the Sagulator's values are within about 25% of ours (it uses species-specific E values), our check is
-  confirmed and conservative.
-- If any case differs by more than 25%, change that E value in `MaterialCatalog`, update the known answers in
-  `SagTests.swift`, and run `scripts/ci-core.sh` and `scripts/prove-tests-core.sh` again.
+- **The verdict matches in all 5 cases.** Every difference is within 18%, inside the 25% bar we set.
+- Our solid wood value (9,000) is slightly stiffer than the Sagulator's Eastern white pine: we predict about 5%
+  less sag. Our particleboard value predicts 12% less sag than M-2 grade. Our plywood value predicts 18% more.
+  So our values are **close, not conservative**, for wood and particleboard. The 1/600 limit and the 25% bar
+  leave room for that, and the margins in real plans are much larger (a typical seat uses 0.4–0.5 of 0.6–0.7 mm).
+- The Sagulator reports initial sag only (its note 2: wood sags about 50% more over time). So does Ginkgo.
+- Each Ginkgo value is pinned by a known-answer test in `SagTests.swift`, and `scripts/prove-tests-core.sh`
+  shows the tests fail if the 1/600 limit is changed.

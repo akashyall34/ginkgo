@@ -162,7 +162,8 @@ public enum Validator {
                 }
             } catch {
                 let message = (error as? SagError)?.message ?? "\(error)"
-                violations.append(Violation(code: .sags, message: "\(newPart.name): can't check sag: \(message).",
+                let prefix = error as? SagError == .notLoadBearing(message) ? "" : "can't check sag: "
+                violations.append(Violation(code: .sags, message: "\(newPart.name): \(prefix)\(message).",
                                             newPart: newPart.name))
             }
         }

@@ -51,8 +51,31 @@ final class MaterialsTests: XCTestCase {
         XCTAssertEqual(Material.plywood.displayName, "plywood")
         XCTAssertEqual(Material.cardboard.whyNotCut, "is too weak to cut into furniture parts")
         XCTAssertEqual(Material.plywood.whyNotCut, "can be cut")
-        XCTAssertEqual(Sag.stiffness(of: .plastic), 1200)
-        XCTAssertEqual(Sag.stiffness(of: .cardboard), 200)
+        XCTAssertNil(Sag.stiffness(of: .plastic), "no sourced stiffness, so no number at all")
+        XCTAssertNil(Sag.stiffness(of: .cardboard))
+        XCTAssertEqual(MaterialCatalog.all.filter(\.loadBearing).map(\.material), [.solidWood, .plywood, .particleboardMDF])
+    }
+
+    func testEveryNumberHasASourceAndACheckDate() {
+        for info in MaterialCatalog.all {
+            XCTAssertFalse(info.source.isEmpty, "\(info.material)")
+            XCTAssertTrue(info.checked.contains("2026-11-21"), "\(info.material) says when it was checked")
+        }
+        XCTAssertTrue(MaterialCatalog.info(.solidWood).source.contains("FPL-GTR-282 (2021)"))
+        XCTAssertTrue(MaterialCatalog.info(.particleboardMDF).source.contains("ANSI A208.1-2022"))
+    }
+
+    func testPlasticCanNeverBeAShelfAndNoSagNumberIsShown() {
+        let shelf = newPart("shelf", "drawer_1", [290, 170], .shelf, span: 290)
+        let result = Validator.validate(plan: plan([shelf], .noCut), inventory: drawerCart, limits: nil)
+        XCTAssertEqual(result.violations.map(\.message),
+                       ["shelf: drawer_1 is plastic, which isn't load-bearing, so it can't be a seat or shelf."])
+        XCTAssertEqual(result.sag, [], "no unsourced sag number reaches the screen")
+        let check = ToolExecutor(inventory: drawerCart, limits: nil).run(ToolCall(name: "check_sag", args: ["items": [
+            ["new_part": "shelf", "source_part_id": "drawer_1", "role": "shelf", "span_mm": 290, "depth_mm": 170],
+        ]]), index: 0)
+        XCTAssertEqual(check.step.summary, "shelf: drawer_1 is plastic, which isn't load-bearing, so it can't be a seat or shelf")
+        XCTAssertNil(check.result.response["results"]?.arrayValue?.first?["deflection_mm"])
     }
 
     func testCuttingTheDrawerCartIsNotAllowed() {
@@ -71,8 +94,10 @@ final class MaterialsTests: XCTestCase {
     func testCardboardCanNeverBeASeat() {
         let seat = newPart("seat", "top", [410, 315], .seat, span: 380)
         let result = Validator.validate(plan: plan([seat], .noCut), inventory: box, limits: nil)
-        XCTAssertEqual(result.violations.map(\.code), [.sags], "whole is allowed, but it bends far too much")
-        XCTAssertGreaterThan(try XCTUnwrap(result.sag.first).deflectionMm, 100)
+        XCTAssertEqual(result.violations, [Violation(
+            code: .sags, message: "seat: top is cardboard, which isn't load-bearing, so it can't be a seat or shelf.",
+            newPart: "seat")], "reusing it whole is allowed, but never as a seat")
+        XCTAssertEqual(result.sag, [])
     }
 
     func testFallbackReusesThePlasticCartWholeWithCableTies() throws {
