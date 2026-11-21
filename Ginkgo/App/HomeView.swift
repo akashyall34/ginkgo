@@ -2,39 +2,194 @@ import SwiftUI
 
 /// The first screen: what Ginkgo does, and the way in.
 struct HomeView: View {
+    @State private var selectedTab = 0
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: Spacing.large) {
-                Spacer()
-                Image(systemName: "leaf.fill")
-                    .font(.system(.largeTitle))
-                    .imageScale(.large)
-                    .foregroundStyle(Palette.brand)
-                    .accessibilityHidden(true)
-                Text("Ginkgo")
-                    .font(.largeTitle.bold())
-                    .accessibilityIdentifier("appTitle")
-                Text("Measure it with your phone. Get a plan that fits.")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .accessibilityIdentifier("tagline")
-                Spacer()
-                NavigationLink {
-                    ScanView(source: FrameSources.makeDefault())
-                } label: {
-                    Label("Scan furniture", systemImage: "viewfinder")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+            ZStack(alignment: .bottom) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        header
+
+                        heroTitle
+                            .padding(.top, Spacing.medium)
+
+                        heroPhoto
+                            .padding(.top, Spacing.large)
+
+                        NavigationLink {
+                            ScanView(source: FrameSources.makeDefault())
+                        } label: {
+                            HStack(spacing: Spacing.small) {
+                                Image(systemName: "camera")
+                                    .font(.title3.weight(.semibold))
+                                    .accessibilityHidden(true)
+                                Text("Snap furniture")
+                                    .font(.title3.weight(.semibold))
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 80)
+                            .background(Palette.brand)
+                            .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("snapFurniture")
+                        .padding(.top, Spacing.medium)
+
+                        impactSection
+                            .padding(.top, 36)
+                            .padding(.bottom, 112)
+                    }
+                    .padding(.horizontal, Spacing.large)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Palette.brand)
-                .accessibilityIdentifier("scanButton")
+
+                bottomNavigation
             }
-            .padding(Spacing.large)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Palette.background)
+            .toolbar(.hidden, for: .navigationBar)
         }
+    }
+
+    private var header: some View {
+        HStack(alignment: .center, spacing: 7) {
+            Image(systemName: "leaf.fill")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(Palette.brand)
+                .accessibilityHidden(true)
+
+            Text("Ginkgo")
+                .font(.system(size: 23, weight: .heavy))
+                .foregroundStyle(Palette.brand)
+                .accessibilityIdentifier("appTitle")
+        }
+        .padding(.top, 10)
+    }
+
+    private var heroTitle: some View {
+        VStack(alignment: .leading, spacing: Spacing.medium) {
+            Text("A second life starts\nwith a snapshot.")
+                .font(.system(size: 30, weight: .heavy))
+                .foregroundStyle(Palette.brand)
+
+            Text("Snap your furniture. Find the best way\nto repurpose it.")
+                .font(.system(size: 15))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("tagline")
+        }
+    }
+
+    private var heroPhoto: some View {
+        ZStack(alignment: .topLeading) {
+            roomScene
+                .frame(height: 224)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+
+            Text("A fresh start. One snap.")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 15)
+                .padding(.vertical, 10)
+                .background(.white)
+                .clipShape(Capsule())
+                .padding(.top, 20)
+                .padding(.leading, 20)
+        }
+    }
+
+    private var roomScene: some View {
+        Image("PreLovedArmchair")
+            .resizable()
+            .scaledToFill()
+            .accessibilityLabel("Pre-loved wooden armchair")
+    }
+
+    private var impactSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.medium) {
+            Text("Less landfill. More possibility.")
+                .font(.system(size: 19, weight: .heavy))
+                .foregroundStyle(Palette.brand)
+
+            HStack(alignment: .top, spacing: 8) {
+                step(number: "01", title: "Snap it", detail: "Take a clear photo")
+                step(number: "02", title: "Find a way", detail: "Explore your options")
+                step(number: "03", title: "Pass it on", detail: "Give it a new life")
+            }
+        }
+    }
+
+    private func step(number: String, title: String, detail: String) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(number)
+                .font(.caption2.bold())
+                .foregroundStyle(Palette.brand)
+                .frame(width: 32, height: 32)
+                .background(Color(red: 0.79, green: 0.92, blue: 0.75))
+                .clipShape(Capsule())
+
+            Text(title)
+                .font(.caption.bold())
+                .foregroundStyle(.primary)
+
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var bottomNavigation: some View {
+        HStack {
+            navButton(index: 0, icon: "house", title: "Home")
+            navButton(index: 1, icon: "tray.full", title: "My items")
+            navButton(index: 2, icon: "book", title: "Guide")
+        }
+        .padding(8)
+        .background {
+            if #available(iOS 26.0, *) {
+                Capsule()
+                    .fill(.clear)
+                    .glassEffect(.regular, in: Capsule())
+            } else {
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        Capsule()
+                            .strokeBorder(Palette.brand.opacity(0.18), lineWidth: 1)
+                    }
+            }
+        }
+        .padding(.horizontal, Spacing.large)
+        .padding(.bottom, 8)
+        .accessibilityElement(children: .contain)
+    }
+
+    private func navButton(index: Int, icon: String, title: String) -> some View {
+        Button {
+            selectedTab = index
+        } label: {
+            VStack(spacing: 6) {
+                Image(systemName: selectedTab == index ? "\(icon).fill" : icon)
+                    .font(.title3)
+                Text(title)
+                    .font(.caption2)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 56)
+            .background {
+                if selectedTab == index {
+                    Capsule()
+                        .fill(Palette.brand.opacity(0.12))
+                        .padding(2)
+                }
+            }
+        }
+        .foregroundStyle(selectedTab == index ? Palette.brand : Color.secondary)
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityAddTraits(selectedTab == index ? .isSelected : [])
     }
 }
 

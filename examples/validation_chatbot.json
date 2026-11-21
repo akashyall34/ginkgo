@@ -1,0 +1,17 @@
+{
+  "plan_id": "plan-chatbot-1",
+  "passes": false,
+  "violations": [
+    { "code": "does_not_fit", "new_part": "seat", "message": "Seat needs 490 mm, but the top is only 460 mm wide." },
+    { "code": "hits_keep_out", "new_part": "seat", "message": "Seat covers a screw hole near the top's front-left corner." },
+    { "code": "sags", "new_part": "seat", "message": "Seat sags 1.9 mm under load; the limit for a 450 mm span is 0.7 mm." }
+  ],
+  "placements": [
+    { "new_part": "leg_left", "source_part_id": "side_left", "x_mm": 40, "y_mm": 90, "width_mm": 300, "height_mm": 380, "rotated": false }
+  ],
+  "sag": [
+    { "new_part": "seat", "span_mm": 450, "deflection_mm": 1.9, "limit_mm": 0.75, "passes": false }
+  ],
+  "reuse_percent": 54,
+  "verify": []
+}
