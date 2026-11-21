@@ -17,6 +17,7 @@ EXEMPT_FILES = {
     "GeminiClient.swift": "network glue; covered by scripts/check-live-ai.sh",
     "DepthCapture.swift": "ARKit session glue; needs LiDAR, checked on a real iPhone",
     "MeshCapture.swift": "ARKit mesh glue; needs LiDAR, checked on a real iPhone",
+    "VisionSubjectLifter.swift": "Vision subject lifting; needs the Neural Engine, checked on a real iPhone",
     "CameraPreview.swift": "ARKit camera view; needs LiDAR, checked on a real iPhone",
 }
 

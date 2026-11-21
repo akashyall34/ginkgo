@@ -45,7 +45,7 @@ struct WalkAroundView: View {
                 Text(WalkAroundModel.summary(box))
                     .font(.title2.weight(.semibold).monospacedDigit())
                     .accessibilityIdentifier("walkAroundResult")
-                Text("Width × height × depth").font(.footnote).foregroundStyle(.secondary)
+                Text("Length × width × height").font(.footnote).foregroundStyle(.secondary)
                 NavigationLink {
                     LiveProofView(box: box)
                 } label: {

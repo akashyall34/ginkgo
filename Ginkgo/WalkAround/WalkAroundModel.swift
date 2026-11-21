@@ -60,9 +60,9 @@ final class WalkAroundModel {
         }
     }
 
-    /// "46.0 × 58.0 × 40.0 cm ± 0.3 cm" as width × height × depth, the order the plan uses.
+    /// "46.0 × 40.0 × 58.0 cm ± 0.3 cm": length × width × height.
     static func summary(_ box: FittedBox) -> String {
-        String(format: "%.1f × %.1f × %.1f cm ± %.1f cm", box.width * 100, box.height * 100, box.depth * 100,
+        String(format: "%.1f × %.1f × %.1f cm ± %.1f cm", box.length * 100, box.width * 100, box.height * 100,
                max(box.uncertainty, 0.001) * 100)
     }
 }

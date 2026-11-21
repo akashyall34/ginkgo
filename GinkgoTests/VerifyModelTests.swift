@@ -5,7 +5,7 @@ import XCTest
 final class VerifyModelTests: XCTestCase {
     /// A proven bench from a typical piece of furniture.
     private func verify() throws -> VerifyModel {
-        let box = FittedBox(width: 0.46, depth: 0.40, height: 0.58, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 5000)
+        let box = FittedBox(length: 0.46, width: 0.40, height: 0.58, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 5000)
         let model = try LivePlan.proof(from: box, scanID: "s").get()
         XCTAssertEqual(model.plan.template, .bench, "These tests are about a plan with cuts")
         return VerifyModel(plan: model.plan, inventory: model.inventory, result: model.result)
@@ -71,7 +71,7 @@ final class VerifyModelTests: XCTestCase {
     func testAWholePartsPlanIsWithdrawnWhenAPanelIsNotTheSizeItAssumed() throws {
         // A dresser-sized box gets the reuse-whole plan; a whole panel that turns out bigger no longer
         // matches the plan, so the plan has to be redone rather than cut.
-        let box = FittedBox(width: 1.2, depth: 0.5, height: 0.85, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 5000)
+        let box = FittedBox(length: 1.2, width: 0.5, height: 0.85, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 5000)
         let model = try LivePlan.proof(from: box, scanID: "s").get()
         XCTAssertEqual(model.plan.template, .noCut)
         var v = VerifyModel(plan: model.plan, inventory: model.inventory, result: model.result)

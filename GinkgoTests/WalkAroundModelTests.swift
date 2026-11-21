@@ -32,8 +32,8 @@ final class WalkAroundModelTests: XCTestCase {
         let model = WalkAroundModel()
         model.finish(points: box, floorY: 0, aim: SIMD3(0, 0.6, 0.2))
         guard case .measured(let result) = model.status else { return XCTFail("\(model.status)") }
-        XCTAssertEqual(result.width, 0.5, accuracy: 0.005)
-        XCTAssertEqual(result.depth, 0.4, accuracy: 0.005)
+        XCTAssertEqual(result.length, 0.5, accuracy: 0.005)
+        XCTAssertEqual(result.width, 0.4, accuracy: 0.005)
         XCTAssertEqual(result.height, 0.6, accuracy: 0.005)
         XCTAssertEqual(model.instruction, "Measured from every side.")
     }
@@ -69,11 +69,11 @@ final class WalkAroundModelTests: XCTestCase {
         XCTAssertEqual(model.status, .scanning)
     }
 
-    func testSummaryIsWidthHeightDepthInCentimeters() {
-        let fitted = FittedBox(width: 0.46, depth: 0.40, height: 0.58, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 900)
-        XCTAssertEqual(WalkAroundModel.summary(fitted), "46.0 × 58.0 × 40.0 cm ± 0.3 cm")
-        let perfect = FittedBox(width: 0.5, depth: 0.4, height: 0.6, baseCenter: .zero, yaw: 0, uncertainty: 0, pointCount: 900)
-        XCTAssertEqual(WalkAroundModel.summary(perfect), "50.0 × 60.0 × 40.0 cm ± 0.1 cm", "Never claims zero error")
+    func testSummaryIsLengthWidthHeightInCentimeters() {
+        let fitted = FittedBox(length: 0.46, width: 0.40, height: 0.58, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 900)
+        XCTAssertEqual(WalkAroundModel.summary(fitted), "46.0 × 40.0 × 58.0 cm ± 0.3 cm")
+        let perfect = FittedBox(length: 0.5, width: 0.4, height: 0.6, baseCenter: .zero, yaw: 0, uncertainty: 0, pointCount: 900)
+        XCTAssertEqual(WalkAroundModel.summary(perfect), "50.0 × 40.0 × 60.0 cm ± 0.1 cm", "Never claims zero error")
     }
 }
 

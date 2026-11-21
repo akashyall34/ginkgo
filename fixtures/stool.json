@@ -1,6 +1,6 @@
 {
   "piece": "vanity stool: padded seat, apron rails, 4 curved legs",
   "photo": "photos/stool_front.jpg",
-  "tape_mm": { "width": 420, "depth": 330, "height": 440 },
-  "note": "Measured by tape on Nov 21, 2026. Width is the long side; height is floor to the top of the cushion."
+  "tape_mm": { "length": 420, "width": 330, "height": 440 },
+  "note": "Measured by tape on Nov 21, 2026. Length is the long side, width the short side; height is floor to the top of the cushion."
 }

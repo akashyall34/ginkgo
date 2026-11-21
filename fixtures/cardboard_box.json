@@ -1,0 +1,6 @@
+{
+  "piece": "cardboard shipping box",
+  "photo": "photos/cardboard_box_front.jpg",
+  "tape_mm": { "length": 410, "width": 315, "height": 310 },
+  "note": "Measured by tape on Nov 21, 2026. Length is the long side, width the short side; height is floor to top."
+}
