@@ -8,18 +8,18 @@ private extension SeededGenerator {
 
 final class BoxFitTests: XCTestCase {
     /// Points on the four sides and the top of an upright box standing on the floor,
-    /// like a mesh scan of a nightstand (the bottom touches the floor and isn't seen).
-    private func boxSurface(width: Float, depth: Float, height: Float, yaw: Float, center: SIMD2<Float> = .zero,
+    /// like a mesh scan of a cabinet (the bottom touches the floor and isn't seen).
+    private func boxSurface(length: Float, width: Float, height: Float, yaw: Float, center: SIMD2<Float> = .zero,
                             floorY: Float = 0, spacing: Float = 0.01, noise: Float = 0,
                             rng: inout SeededGenerator) -> [SIMD3<Float>] {
         var local: [SIMD3<Float>] = []
         func range(_ length: Float) -> [Float] { Swift.stride(from: -length / 2, through: length / 2, by: spacing).map { $0 } }
         let heights = Swift.stride(from: Float(0.02), through: height, by: spacing).map { $0 }
         for y in heights {
-            for u in range(width) { local += [SIMD3(u, y, -depth / 2), SIMD3(u, y, depth / 2)] }
-            for v in range(depth) { local += [SIMD3(-width / 2, y, v), SIMD3(width / 2, y, v)] }
+            for u in range(length) { local += [SIMD3(u, y, -width / 2), SIMD3(u, y, width / 2)] }
+            for v in range(width) { local += [SIMD3(-length / 2, y, v), SIMD3(length / 2, y, v)] }
         }
-        for u in range(width) { for v in range(depth) { local.append(SIMD3(u, height, v)) } }
+        for u in range(length) { for v in range(width) { local.append(SIMD3(u, height, v)) } }
         let (c, s) = (cos(yaw), sin(yaw))
         return local.map { p in
             let jitter = SIMD3(rng.between(-noise, noise), rng.between(-noise, noise), rng.between(-noise, noise))
@@ -40,12 +40,12 @@ final class BoxFitTests: XCTestCase {
 
     // MARK: box fit
 
-    func testANightstandTurnedThirtyDegreesIsMeasuredToTheMillimeter() throws {
+    func testAPieceTurnedThirtyDegreesIsMeasuredToTheMillimeter() throws {
         var rng = SeededGenerator(seed: 1)
-        let points = boxSurface(width: 0.46, depth: 0.40, height: 0.58, yaw: .pi / 6, center: SIMD2(0.3, -0.2), rng: &rng)
+        let points = boxSurface(length: 0.46, width: 0.40, height: 0.58, yaw: .pi / 6, center: SIMD2(0.3, -0.2), rng: &rng)
         let box = try BoxFit.fit(points, floorY: 0)
-        XCTAssertEqual(box.width, 0.46, accuracy: 0.003)
-        XCTAssertEqual(box.depth, 0.40, accuracy: 0.003)
+        XCTAssertEqual(box.length, 0.46, accuracy: 0.003)
+        XCTAssertEqual(box.width, 0.40, accuracy: 0.003)
         XCTAssertEqual(box.height, 0.58, accuracy: 0.003)
         XCTAssertLessThan(angleDifference(box.yaw, .pi / 6), 0.01)
         XCTAssertEqual(box.baseCenter.x, 0.3, accuracy: 0.003)
@@ -56,46 +56,46 @@ final class BoxFitTests: XCTestCase {
     func testSquareOnAndNearlyQuarterTurnAreBothFound() throws {
         for yaw: Float in [0, .pi / 2 - 0.02, 1.2] {
             var rng = SeededGenerator(seed: 2)
-            let box = try BoxFit.fit(boxSurface(width: 0.8, depth: 0.3, height: 1.1, yaw: yaw, rng: &rng), floorY: 0)
-            XCTAssertEqual(box.width, 0.8, accuracy: 0.004, "yaw \(yaw)")
-            XCTAssertEqual(box.depth, 0.3, accuracy: 0.004, "yaw \(yaw)")
+            let box = try BoxFit.fit(boxSurface(length: 0.8, width: 0.3, height: 1.1, yaw: yaw, rng: &rng), floorY: 0)
+            XCTAssertEqual(box.length, 0.8, accuracy: 0.004, "yaw \(yaw)")
+            XCTAssertEqual(box.width, 0.3, accuracy: 0.004, "yaw \(yaw)")
             XCTAssertLessThan(angleDifference(box.yaw, yaw), 0.01, "yaw \(yaw)")
         }
     }
 
-    func testWidthIsAlwaysTheLongerSide() throws {
+    func testLengthIsAlwaysTheLongerSide() throws {
         var rng = SeededGenerator(seed: 3)
-        let box = try BoxFit.fit(boxSurface(width: 0.3, depth: 0.7, height: 0.5, yaw: 0.4, rng: &rng), floorY: 0)
-        XCTAssertEqual(box.width, 0.7, accuracy: 0.004)
-        XCTAssertEqual(box.depth, 0.3, accuracy: 0.004)
-        XCTAssertLessThan(angleDifference(box.yaw, 0.4 + .pi / 2), 0.01, "Yaw follows the long side")
+        let box = try BoxFit.fit(boxSurface(length: 0.3, width: 0.7, height: 0.5, yaw: 0.4, rng: &rng), floorY: 0)
+        XCTAssertEqual(box.length, 0.7, accuracy: 0.004)
+        XCTAssertEqual(box.width, 0.3, accuracy: 0.004)
+        XCTAssertLessThan(angleDifference(box.yaw, 0.4 + .pi / 2), 0.01, "Yaw follows the length")
     }
 
     func testHeightIsMeasuredFromTheFloorNotTheLowestPoint() throws {
         var rng = SeededGenerator(seed: 4)
-        let points = boxSurface(width: 0.5, depth: 0.4, height: 0.6, yaw: 0.2, floorY: -1.3, rng: &rng)
+        let points = boxSurface(length: 0.5, width: 0.4, height: 0.6, yaw: 0.2, floorY: -1.3, rng: &rng)
         XCTAssertEqual(try BoxFit.fit(points, floorY: -1.3).height, 0.6, accuracy: 0.003)
     }
 
     func testSensorNoiseShowsUpInTheUncertaintyNotTheSize() throws {
         var rng = SeededGenerator(seed: 5)
-        let points = boxSurface(width: 0.46, depth: 0.40, height: 0.58, yaw: 0.5, noise: 0.006, rng: &rng)
+        let points = boxSurface(length: 0.46, width: 0.40, height: 0.58, yaw: 0.5, noise: 0.006, rng: &rng)
         let box = try BoxFit.fit(points, floorY: 0)
-        XCTAssertEqual(box.width, 0.46, accuracy: 0.01)
-        XCTAssertEqual(box.depth, 0.40, accuracy: 0.01)
+        XCTAssertEqual(box.length, 0.46, accuracy: 0.01)
+        XCTAssertEqual(box.width, 0.40, accuracy: 0.01)
         XCTAssertGreaterThan(box.uncertainty, 0.002, "Noisy points must not claim millimeter precision")
         XCTAssertLessThan(box.uncertainty, 0.01)
     }
 
     func testAFewStrayPointsDoNotGrowTheBox() throws {
         var rng = SeededGenerator(seed: 6)
-        var points = boxSurface(width: 0.46, depth: 0.40, height: 0.58, yaw: 0.3, rng: &rng)
+        var points = boxSurface(length: 0.46, width: 0.40, height: 0.58, yaw: 0.3, rng: &rng)
         let strays = (0..<points.count / 200).map { _ in
             SIMD3(rng.between(0.5, 0.9), rng.between(0.1, 1.2), rng.between(0.5, 0.9))
         }
         points += strays
         let box = try BoxFit.fit(points, floorY: 0)
-        XCTAssertEqual(box.width, 0.46, accuracy: 0.01)
+        XCTAssertEqual(box.length, 0.46, accuracy: 0.01)
         XCTAssertEqual(box.height, 0.58, accuracy: 0.01)
     }
 
@@ -111,27 +111,27 @@ final class BoxFitTests: XCTestCase {
 
     func testOnlyTheAimedAtFurnitureIsKeptFromARoom() throws {
         var rng = SeededGenerator(seed: 7)
-        let nightstand = boxSurface(width: 0.46, depth: 0.40, height: 0.58, yaw: 0.3, rng: &rng)
-        let chair = boxSurface(width: 0.45, depth: 0.45, height: 0.9, yaw: 0, center: SIMD2(1.0, 0), rng: &rng)
-        let room = floor() + nightstand + chair
+        let piece = boxSurface(length: 0.46, width: 0.40, height: 0.58, yaw: 0.3, rng: &rng)
+        let chair = boxSurface(length: 0.45, width: 0.45, height: 0.9, yaw: 0, center: SIMD2(1.0, 0), rng: &rng)
+        let room = floor() + piece + chair
         let kept = FurnitureIsolation.isolate(room, seed: SIMD3(0, 0.58, 0), floorY: 0)
-        XCTAssertEqual(kept.count, nightstand.filter { $0.y > 0.015 }.count, "Floor and chair are left out")
+        XCTAssertEqual(kept.count, piece.filter { $0.y > 0.015 }.count, "Floor and chair are left out")
         let box = try BoxFit.fit(kept, floorY: 0)
-        XCTAssertEqual(box.width, 0.46, accuracy: 0.004)
+        XCTAssertEqual(box.length, 0.46, accuracy: 0.004)
         XCTAssertEqual(box.height, 0.58, accuracy: 0.004)
     }
 
     func testAimingJustOffTheSurfaceStillFindsIt() {
         var rng = SeededGenerator(seed: 8)
-        let nightstand = boxSurface(width: 0.46, depth: 0.40, height: 0.58, yaw: 0, rng: &rng)
-        let kept = FurnitureIsolation.isolate(nightstand, seed: SIMD3(0, 0.65, 0), floorY: 0)
+        let piece = boxSurface(length: 0.46, width: 0.40, height: 0.58, yaw: 0, rng: &rng)
+        let kept = FurnitureIsolation.isolate(piece, seed: SIMD3(0, 0.65, 0), floorY: 0)
         XCTAssertFalse(kept.isEmpty)
     }
 
     func testAimingAtEmptySpaceFindsNothing() {
         var rng = SeededGenerator(seed: 9)
-        let nightstand = boxSurface(width: 0.46, depth: 0.40, height: 0.58, yaw: 0, rng: &rng)
-        XCTAssertEqual(FurnitureIsolation.isolate(nightstand, seed: SIMD3(2, 1, 2), floorY: 0), [])
+        let piece = boxSurface(length: 0.46, width: 0.40, height: 0.58, yaw: 0, rng: &rng)
+        XCTAssertEqual(FurnitureIsolation.isolate(piece, seed: SIMD3(2, 1, 2), floorY: 0), [])
         XCTAssertEqual(FurnitureIsolation.isolate(floor(), seed: SIMD3(0, 0, 0), floorY: 0), [], "Only floor: nothing")
     }
 

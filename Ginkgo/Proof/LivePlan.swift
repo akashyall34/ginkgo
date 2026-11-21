@@ -17,18 +17,18 @@ enum LivePlan {
         }
     }
 
-    /// A panel piece seen as a box: the top (width × depth) on two sides (depth × height).
+    /// A panel piece seen as a box: the top (length × width) on two sides (width × height).
     static func inventory(from box: FittedBox, scanID: String) -> Inventory {
-        let width = (Double(box.width) * 1000).rounded(), depth = (Double(box.depth) * 1000).rounded()
+        let length = (Double(box.length) * 1000).rounded(), width = (Double(box.width) * 1000).rounded()
         let height = (Double(box.height) * 1000).rounded()
         let t = assumedThicknessMm
         func panel(_ id: String, _ type: TypeEnum, _ w: Double, _ h: Double) -> Part {
             Part(damaged: false, heightMm: h, id: id, keepOuts: [], material: .solidWood, thicknessMm: t, type: type, widthMm: w)
         }
         return Inventory(parts: [
-            panel("top", .top, width, depth),
-            panel("side_left", .side, depth, height - t),
-            panel("side_right", .side, depth, height - t),
+            panel("top", .top, length, width),
+            panel("side_left", .side, width, height - t),
+            panel("side_right", .side, width, height - t),
         ], scanID: scanID)
     }
 

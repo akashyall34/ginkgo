@@ -71,7 +71,7 @@ enum TransformLayout {
                 (position, turn) = (SIMD3(0, size.y / 2, -depth / 2 + t / 2), upright)
             case .shelf:
                 (position, turn) = (SIMD3(0, height / 2, 0), flat)
-            case .drawerBox, .leg:
+            case .drawerBox, .leg, .rail:
                 (position, turn) = (SIMD3(0, size.y / 2, 0), upright)
             }
             poses[part.id] = PanelPose(size: size, position: position, rotation: rotation(degrees: turn))
@@ -98,7 +98,7 @@ enum TransformLayout {
 }
 
 extension TransformLayout {
-    /// The sample nightstand turned into the rule-based bench, whose 3D layout comes from Vivek's Layout code.
+    /// The sample furniture turned into the rule-based bench, whose 3D layout comes from Vivek's Layout code.
     static func example(bundle: Bundle = .main) -> TransformScene? {
         guard let url = bundle.url(forResource: "inventory", withExtension: "json"),
               let data = try? Data(contentsOf: url),

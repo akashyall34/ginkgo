@@ -27,13 +27,15 @@ final class WalkAroundModel {
     }
 
     /// Measures the furniture under the aim point.
-    func finish(points: [SIMD3<Float>], floorY: Float?, aim: SIMD3<Float>?) {
+    /// `cloud` is the raw depth gathered while walking; when there's enough of it the mesh box is re-fitted on it.
+    func finish(points: [SIMD3<Float>], floorY: Float?, aim: SIMD3<Float>?, cloud: [SIMD3<Float>] = []) {
         guard let floorY else { return status = .problem(Self.noFloorMessage) }
         guard let aim else { return status = .problem(Self.noAimMessage) }
         let furniture = FurnitureIsolation.isolate(points, seed: aim, floorY: floorY)
         guard !furniture.isEmpty else { return status = .problem(Self.nothingThereMessage) }
         do {
-            status = .measured(try BoxFit.fit(furniture, floorY: floorY))
+            let coarse = try BoxFit.fit(furniture, floorY: floorY)
+            status = .measured(BoxFit.refine(coarse, cloud: cloud) ?? coarse)
         } catch let error as BoxFitError {
             status = .problem(error.explanation)
         } catch {
@@ -43,9 +45,26 @@ final class WalkAroundModel {
 
     func rescan() { status = .scanning }
 
-    /// "46.0 × 58.0 × 40.0 cm ± 0.3 cm" as width × height × depth, the order the plan uses.
+    /// Mesh points a typical piece of furniture needs before the box fit is dependable.
+    static let readyPoints = 3000
+
+    /// How much has been scanned, 0...1, from the room mesh's size.
+    static func coverage(points: Int) -> Double {
+        min(max(Double(points) / Double(readyPoints), 0), 1)
+    }
+
+    /// What to tell the person while they walk.
+    static func progressText(points: Int) -> String {
+        switch coverage(points: points) {
+        case ..<0.4: return "Keep walking around it"
+        case ..<1: return "Almost there: cover the sides you haven't seen"
+        default: return "Ready: aim the dot at it and tap Done"
+        }
+    }
+
+    /// "46.0 × 40.0 × 58.0 cm ± 0.3 cm": length × width × height.
     static func summary(_ box: FittedBox) -> String {
-        String(format: "%.1f × %.1f × %.1f cm ± %.1f cm", box.width * 100, box.height * 100, box.depth * 100,
+        String(format: "%.1f × %.1f × %.1f cm ± %.1f cm", box.length * 100, box.width * 100, box.height * 100,
                max(box.uncertainty, 0.001) * 100)
     }
 }

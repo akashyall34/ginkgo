@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The judge walkthrough on the sample nightstand, in the order of the pitch, with a reset so
+/// The judge walkthrough on the sample furniture, in the order of the pitch, with a reset so
 /// every judge sees the same run. Works without internet: nothing here calls Gemini.
 struct DemoView: View {
     enum Step: String, CaseIterable, Identifiable {
@@ -19,9 +19,9 @@ struct DemoView: View {
         var detail: String {
             switch self {
             case .measure: return "LiDAR, one tap or walk around"
-            case .contrast: return "Same nightstand, same validator"
+            case .contrast: return "Same furniture, same validator"
             case .proof: return "Every cut, the sag check, the cutting plan"
-            case .transform: return "The nightstand becomes the bench"
+            case .transform: return "The furniture becomes something new"
             }
         }
 

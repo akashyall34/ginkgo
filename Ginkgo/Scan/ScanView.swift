@@ -4,8 +4,11 @@ import SwiftUI
 struct ScanView: View {
     @State private var model: ScanModel
     @State private var showDepthQuality = true
+    /// When set (from Verify), a measured face can be handed back with "Use this measurement".
+    private let onUse: ((QuadResult) -> Void)?
 
-    init(source: FrameSource) {
+    init(source: FrameSource, onUse: ((QuadResult) -> Void)? = nil) {
+        self.onUse = onUse
         _model = State(initialValue: ScanModel(source: source, store: ScanStore.standard(),
                                                  lifter: VisionSubjectLifter()))
     }
@@ -30,6 +33,27 @@ struct ScanView: View {
         .background(Palette.background)
     }
 
+    /// Always takes its space, so the photo above never shrinks when a measurement is saved.
+    private var saveStatus: some View {
+        let measured: Bool = { if case .measured = model.status { return true } else { return false } }()
+        return Group {
+            if measured && model.saveFailed {
+                Label("The latest measurement couldn't be saved on this device.", systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(Palette.fails)
+                    .accessibilityIdentifier("saveFailure")
+            } else if measured && model.savedScanID != nil {
+                Label("Saved to My items", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(Palette.verified)
+                    .accessibilityIdentifier("saveConfirmation")
+            } else {
+                Label("Saved to My items", systemImage: "checkmark.circle.fill").hidden().accessibilityHidden(true)
+            }
+        }
+        .font(.footnote)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+    }
+
     private var unsupported: some View {
         ContentUnavailableView(
             "LiDAR needed",
@@ -43,6 +67,18 @@ struct ScanView: View {
         VStack(spacing: Spacing.medium) {
             photoArea
             MeasurementPanelView(model: model)
+            if let onUse, case .measured(let result) = model.status {
+                Button {
+                    onUse(result)
+                } label: {
+                    Label("Use this measurement", systemImage: "checkmark")
+                        .font(.headline).frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Palette.verified)
+                .accessibilityIdentifier("useMeasurement")
+            }
+            saveStatus
             controls
         }
         .padding(Spacing.medium)
