@@ -1,0 +1,48 @@
+{
+  "scan_id": "scan-nightstand-1",
+  "parts": [
+    {
+      "id": "top",
+      "type": "top",
+      "width_mm": 460,
+      "height_mm": 400,
+      "thickness_mm": 19,
+      "material": "solid_wood",
+      "damaged": false,
+      "keep_outs": [
+        { "x_mm": 20, "y_mm": 20, "width_mm": 10, "height_mm": 10 },
+        { "x_mm": 430, "y_mm": 20, "width_mm": 10, "height_mm": 10 }
+      ]
+    },
+    {
+      "id": "side_left",
+      "type": "side",
+      "width_mm": 380,
+      "height_mm": 560,
+      "thickness_mm": 19,
+      "material": "solid_wood",
+      "damaged": false,
+      "keep_outs": []
+    },
+    {
+      "id": "side_right",
+      "type": "side",
+      "width_mm": 380,
+      "height_mm": 560,
+      "thickness_mm": 19,
+      "material": "solid_wood",
+      "damaged": false,
+      "keep_outs": []
+    },
+    {
+      "id": "drawer_front",
+      "type": "drawer_front",
+      "width_mm": 420,
+      "height_mm": 140,
+      "thickness_mm": 19,
+      "material": "solid_wood",
+      "damaged": true,
+      "keep_outs": []
+    }
+  ]
+}

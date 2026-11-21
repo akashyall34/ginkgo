@@ -1,0 +1,196 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ginkgo.local/schema/ginkgo.schema.json",
+  "title": "Ginkgo data shapes",
+  "description": "One source of truth for the app and the server. Lengths are millimeters, angles are degrees.",
+  "definitions": {
+    "Measurement": {
+      "type": "object",
+      "description": "A measured length with its ± error.",
+      "additionalProperties": false,
+      "required": ["value_mm", "plus_minus_mm"],
+      "properties": {
+        "value_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "plus_minus_mm": { "type": "number", "minimum": 0 }
+      }
+    },
+    "Scan": {
+      "type": "object",
+      "description": "One measured piece of furniture.",
+      "additionalProperties": false,
+      "required": ["id", "method", "width", "height", "depth"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "method": { "type": "string", "enum": ["lidar", "marker", "typed"] },
+        "width": { "$ref": "#/definitions/Measurement" },
+        "height": { "$ref": "#/definitions/Measurement" },
+        "depth": { "$ref": "#/definitions/Measurement" }
+      }
+    },
+    "Rect": {
+      "type": "object",
+      "description": "A rectangle on a part's face, from the part's bottom-left corner.",
+      "additionalProperties": false,
+      "required": ["x_mm", "y_mm", "width_mm", "height_mm"],
+      "properties": {
+        "x_mm": { "type": "number", "minimum": 0 },
+        "y_mm": { "type": "number", "minimum": 0 },
+        "width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "height_mm": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "Part": {
+      "type": "object",
+      "description": "One salvaged part of the original piece, as confirmed by the user.",
+      "additionalProperties": false,
+      "required": ["id", "type", "width_mm", "height_mm", "thickness_mm", "material", "damaged", "keep_outs"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["top", "side", "back", "shelf", "drawer_front", "drawer_box", "leg"] },
+        "width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "height_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "thickness_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "material": { "type": "string", "enum": ["solid_wood", "plywood", "particleboard_mdf"] },
+        "damaged": { "type": "boolean" },
+        "keep_outs": {
+          "type": "array",
+          "description": "Screw holes and damage that no cut may include.",
+          "items": { "$ref": "#/definitions/Rect" }
+        }
+      }
+    },
+    "Inventory": {
+      "type": "object",
+      "description": "The confirmed parts. From here on this is the source of truth, not the model.",
+      "additionalProperties": false,
+      "required": ["scan_id", "parts"],
+      "properties": {
+        "scan_id": { "type": "string", "minLength": 1 },
+        "parts": { "type": "array", "items": { "$ref": "#/definitions/Part" } }
+      }
+    },
+    "Vector3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      }
+    },
+    "NewPart": {
+      "type": "object",
+      "description": "A piece of the new build, cut from one source part.",
+      "additionalProperties": false,
+      "required": ["name", "source_part_id", "width_mm", "height_mm", "role", "position_mm", "rotation_deg"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "source_part_id": { "type": "string", "minLength": 1 },
+        "width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "height_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "role": {
+          "type": "string",
+          "description": "Shelves and seats carry load and get the sag check.",
+          "enum": ["shelf", "seat", "side", "support", "back", "other"]
+        },
+        "span_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Unsupported span for shelves and seats."
+        },
+        "position_mm": { "$ref": "#/definitions/Vector3" },
+        "rotation_deg": { "$ref": "#/definitions/Vector3" }
+      }
+    },
+    "HardwareItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item", "quantity"],
+      "properties": {
+        "item": { "type": "string", "minLength": 1 },
+        "quantity": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "Plan": {
+      "type": "object",
+      "description": "A proposed build, from Ginkgo's planner or the chatbot baseline.",
+      "additionalProperties": false,
+      "required": ["id", "scan_id", "template", "source", "new_parts", "steps", "hardware"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "scan_id": { "type": "string", "minLength": 1 },
+        "template": { "type": "string", "enum": ["bench", "bookshelf", "no_cut"] },
+        "source": { "type": "string", "enum": ["ginkgo", "chatbot"] },
+        "new_parts": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/NewPart" } },
+        "steps": { "type": "array", "items": { "type": "string" } },
+        "hardware": { "type": "array", "items": { "$ref": "#/definitions/HardwareItem" } }
+      }
+    },
+    "Violation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "new_part", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": ["does_not_fit", "hits_keep_out", "part_used_twice", "damaged_part_used", "unknown_part", "sags", "too_large", "cut_not_allowed"]
+        },
+        "new_part": { "type": "string" },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    },
+    "Placement": {
+      "type": "object",
+      "description": "Where a new part is cut from its source part: the cutting diagram.",
+      "additionalProperties": false,
+      "required": ["new_part", "source_part_id", "x_mm", "y_mm", "width_mm", "height_mm", "rotated"],
+      "properties": {
+        "new_part": { "type": "string" },
+        "source_part_id": { "type": "string" },
+        "x_mm": { "type": "number", "minimum": 0 },
+        "y_mm": { "type": "number", "minimum": 0 },
+        "width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "height_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "rotated": { "type": "boolean" }
+      }
+    },
+    "SagResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["new_part", "span_mm", "deflection_mm", "limit_mm", "passes"],
+      "properties": {
+        "new_part": { "type": "string" },
+        "span_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "deflection_mm": { "type": "number", "minimum": 0 },
+        "limit_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "passes": { "type": "boolean" }
+      }
+    },
+    "VerifyItem": {
+      "type": "object",
+      "description": "A measurement the plan depends on most: the smallest safety margins.",
+      "additionalProperties": false,
+      "required": ["source_part_id", "dimension", "margin_mm"],
+      "properties": {
+        "source_part_id": { "type": "string" },
+        "dimension": { "type": "string", "enum": ["width", "height"] },
+        "margin_mm": { "type": "number" }
+      }
+    },
+    "ValidationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan_id", "passes", "violations", "placements", "sag", "reuse_percent", "verify"],
+      "properties": {
+        "plan_id": { "type": "string" },
+        "passes": { "type": "boolean" },
+        "violations": { "type": "array", "items": { "$ref": "#/definitions/Violation" } },
+        "placements": { "type": "array", "items": { "$ref": "#/definitions/Placement" } },
+        "sag": { "type": "array", "items": { "$ref": "#/definitions/SagResult" } },
+        "reuse_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "verify": { "type": "array", "items": { "$ref": "#/definitions/VerifyItem" } }
+      }
+    }
+  }
+}
