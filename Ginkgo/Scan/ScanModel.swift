@@ -41,7 +41,7 @@ final class ScanModel {
         case .chooseFace: return "Tap the outlined face you want to measure."
         case .noFaceFound: return "No face found. Tap Place corners and drag them onto the face's corners."
         case .adjusting: return "Drag the corner onto the face's corner."
-        case .measured: return "Drag any corner to fine-tune."
+        case .measured(let result): return result.misplacedCornerHint ?? "Drag any corner to fine-tune."
         case .problem(let message): return message
         }
     }

@@ -106,6 +106,27 @@ final class QuadMeasurerTests: XCTestCase {
         XCTAssertEqual(r.width, 0.202, accuracy: 1e-3)
     }
 
+    func testEdgeGapsAreReportedPerPair() throws {
+        let wall = Plane(normal: SIMD3(0, 0, 1), offset: 0.5)
+        var c = rectangle(center: SIMD3(0, 0, -0.5), along: SIMD3(1, 0, 0), SIMD3(0, 1, 0), w: 0.2, h: 0.15)
+        c[1].x += 0.006 // top edge 6 mm longer than the bottom
+        let r = try QuadMeasurer.measure(corners: c.map(project), in: planeSnapshot(wall)).get()
+        XCTAssertEqual(r.widthEdgeGap, 0.006, accuracy: 5e-4)
+        XCTAssertEqual(r.heightEdgeGap, 0, accuracy: 5e-4, "Moving a top corner sideways keeps the sides equal")
+    }
+
+    func testMisplacedCornerHintOnlyAboveOneCentimeter() {
+        func result(_ w: Float, _ h: Float) -> QuadResult {
+            QuadResult(width: 0.2, height: 0.1, uncertainty: 0.005, surfacePoints: 400, viewAngleDegrees: 10,
+                       widthEdgeGap: w, heightEdgeGap: h)
+        }
+        XCTAssertNil(result(0.004, 0.009).misplacedCornerHint, "Small gaps are normal noise")
+        XCTAssertNil(result(0.01, 0.01).misplacedCornerHint, "Exactly at the limit is still fine")
+        XCTAssertEqual(result(0.016, 0.002).misplacedCornerHint,
+                       "The top and bottom edges differ by 1.6 cm. A corner is probably off: drag the corners onto the face's corners.")
+        XCTAssertEqual(result(0.003, 0.021).misplacedCornerHint?.hasPrefix("The left and right edges differ by 2.1 cm"), true)
+    }
+
     func testCornerOutsideTheImageIsRejected() {
         let wall = Plane(normal: SIMD3(0, 0, 1), offset: 0.5)
         let corners = [ImagePoint(u: 0.4, v: 0.4), ImagePoint(u: 1.2, v: 0.4),

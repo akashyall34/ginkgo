@@ -10,6 +10,24 @@ struct QuadResult: Equatable {
     let uncertainty: Float
     let surfacePoints: Int
     let viewAngleDegrees: Float
+    /// How much the top and bottom edges disagree, in meters.
+    let widthEdgeGap: Float
+    /// How much the left and right edges disagree, in meters.
+    let heightEdgeGap: Float
+}
+
+extension QuadResult {
+    /// Opposite edges of a real rectangle are equal; a gap bigger than this almost
+    /// always means a corner sits in the wrong place (a hand covering it, a shadow).
+    static let misplacedCornerGap: Float = 0.01
+
+    /// What to check when the edges disagree, or nil when they agree.
+    var misplacedCornerHint: String? {
+        let (edges, gap) = widthEdgeGap >= heightEdgeGap ? ("top and bottom", widthEdgeGap) : ("left and right", heightEdgeGap)
+        guard gap > Self.misplacedCornerGap else { return nil }
+        return String(format: "The %@ edges differ by %.1f cm. A corner is probably off: ", edges, gap * 100)
+            + "drag the corners onto the face's corners."
+    }
 }
 
 enum Polygon {
@@ -90,7 +108,8 @@ enum QuadMeasurer {
         }
         return .success(QuadResult(width: (top + bottom) / 2, height: (left + right) / 2,
                                    uncertainty: uncertainty, surfacePoints: fit.inlierCount,
-                                   viewAngleDegrees: angle))
+                                   viewAngleDegrees: angle,
+                                   widthEdgeGap: abs(top - bottom), heightEdgeGap: abs(left - right)))
     }
 
     static func surfacePoints(inside poly: [SIMD2<Float>], in s: DepthSnapshot) -> [SIMD3<Float>] {

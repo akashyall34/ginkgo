@@ -186,7 +186,8 @@ final class ScanModelTests: XCTestCase {
     }
 
     func testEveryStatusHasAnInstruction() throws {
-        let r = QuadResult(width: 0.2, height: 0.1, uncertainty: 0.002, surfacePoints: 500, viewAngleDegrees: 10)
+        let r = QuadResult(width: 0.2, height: 0.1, uncertainty: 0.002, surfacePoints: 500, viewAngleDegrees: 10,
+                           widthEdgeGap: 0, heightEdgeGap: 0)
         let all: [ScanModel.Status] = [.aiming, .chooseFace, .noFaceFound, .adjusting, .measured(r), .problem("Fix it.")]
         let model = ScanModel(source: DemoFrameSource())
         for status in all {
@@ -198,6 +199,20 @@ final class ScanModelTests: XCTestCase {
     func testDefaultSourceIsTheRealCameraUnlessTheDemoIsRequested() {
         // Unit tests don't pass -demoScene, so the default is the real LiDAR camera.
         XCTAssertTrue(FrameSources.makeDefault() is DepthCapture)
+    }
+
+    func testAMisplacedCornerIsCalledOutInsteadOfJustShowingANumber() throws {
+        // Your box: one corner dragged inward, so the bottom edge is shorter than the top.
+        let model = ScanModel(source: DemoFrameSource())
+        model.capture()
+        model.selectFace(at: faceCenter)
+        XCTAssertEqual(model.instruction, "Drag any corner to fine-tune.", "A clean face gets no warning")
+        let bottomLeft = try XCTUnwrap(model.corners)[3]
+        model.moveCorner(3, to: CGPoint(x: bottomLeft.x + 0.04, y: bottomLeft.y))
+        model.finishMovingCorner()
+        guard case .measured = model.status else { return XCTFail("Still measurable: \(model.status)") }
+        XCTAssertTrue(model.instruction.contains("top and bottom edges differ"), model.instruction)
+        XCTAssertTrue(model.instruction.contains("corner is probably off"), model.instruction)
     }
 
     func testDemoSourceIsSupportedWithNoLivePreview() {
