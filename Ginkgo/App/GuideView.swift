@@ -31,25 +31,29 @@ struct GuideView: View {
                 guideStep(
                     number: "01",
                     title: "Start a scan",
-                    detail: "Tap Snap furniture and allow camera access. Scanning requires an iPhone with LiDAR, such as iPhone 12 Pro or later Pro models."
+                    detail: "Tap Snap furniture and allow camera access. " +
+                        "Scanning requires an iPhone with LiDAR, such as iPhone 12 Pro or later Pro models."
                 )
 
                 guideStep(
                     number: "02",
                     title: "Frame one flat face",
-                    detail: "Aim at a flat, rectangular surface on your furniture. Hold the phone steady and keep the whole face in view."
+                    detail: "Aim at a flat, rectangular surface on your furniture. " +
+                        "Hold the phone steady and keep the whole face in view."
                 )
 
                 guideStep(
                     number: "03",
                     title: "Capture and select",
-                    detail: "Tap Capture. If Ginkgo outlines the face, tap it. If it doesn't, choose Place corners to mark the face yourself."
+                    detail: "Tap Capture. If Ginkgo outlines the face, tap it. " +
+                        "If it doesn't, choose Place corners to mark the face yourself."
                 )
 
                 guideStep(
                     number: "04",
                     title: "Check the corners",
-                    detail: "Drag each corner onto the edge of the face. The measured width and height appear in centimeters and inches, with an uncertainty estimate."
+                    detail: "Drag each corner onto the edge of the face. " +
+                        "The measured width and height appear in centimeters and inches, with an uncertainty estimate."
                 )
             }
 

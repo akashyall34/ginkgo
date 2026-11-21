@@ -6,7 +6,8 @@ struct ScanView: View {
     @State private var showDepthQuality = true
 
     init(source: FrameSource) {
-        _model = State(initialValue: ScanModel(source: source, store: ScanStore.standard()))
+        _model = State(initialValue: ScanModel(source: source, store: ScanStore.standard(),
+                                                 lifter: VisionSubjectLifter()))
     }
 
     var body: some View {

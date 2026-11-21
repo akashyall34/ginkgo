@@ -1,0 +1,81 @@
+import SwiftUI
+
+/// The judge walkthrough on the sample nightstand, in the order of the pitch, with a reset so
+/// every judge sees the same run. Works without internet: nothing here calls Gemini.
+struct DemoView: View {
+    enum Step: String, CaseIterable, Identifiable {
+        case measure, contrast, proof, transform
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .measure: return "1. Measure it"
+            case .contrast: return "2. Chatbot vs Ginkgo"
+            case .proof: return "3. Proven to fit"
+            case .transform: return "4. Transform and AR"
+            }
+        }
+
+        var detail: String {
+            switch self {
+            case .measure: return "LiDAR, one tap or walk around"
+            case .contrast: return "Same nightstand, same validator"
+            case .proof: return "Every cut, the sag check, the cutting plan"
+            case .transform: return "The nightstand becomes the bench"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .measure: return "viewfinder"
+            case .contrast: return "exclamationmark.triangle"
+            case .proof: return "checkmark.seal"
+            case .transform: return "cube.transparent"
+            }
+        }
+    }
+
+    @State private var path: [Step] = []
+    /// Changing it rebuilds every screen from scratch.
+    @State private var run = 0
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            List(Step.allCases) { step in
+                NavigationLink(value: step) {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(step.title).font(.headline)
+                            Text(step.detail).font(.subheadline).foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: step.icon).foregroundStyle(Palette.brand)
+                    }
+                    .frame(minHeight: TapTarget.minimum)
+                }
+                .accessibilityIdentifier("demo-\(step.rawValue)")
+            }
+            .navigationTitle("Demo")
+            .navigationDestination(for: Step.self) { step in
+                switch step {
+                case .measure: ScanView(source: FrameSources.makeDefault())
+                case .contrast: ExampleContrastView()
+                case .proof: ExampleProofView()
+                case .transform: ExampleTransformView()
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Reset") {
+                        path = []
+                        run += 1
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    }
+                    .accessibilityIdentifier("demoReset")
+                }
+            }
+        }
+        .id(run)
+        .tint(Palette.brand)
+    }
+}

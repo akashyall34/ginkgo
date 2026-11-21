@@ -17,7 +17,25 @@ struct GinkgoApp: App {
                 NavigationStack { ScanView(source: FrameSources.makeDefault()) }
             case .example:
                 NavigationStack { ExampleProofView() }
+            case .transform:
+                NavigationStack { ExampleTransformView() }
+            case .contrast:
+                NavigationStack { ExampleContrastView() }
+            case .demo:
+                DemoView()
             }
+        }
+    }
+}
+
+/// The sample nightstand turning into the bench, or a designed state if it can't be loaded.
+struct ExampleTransformView: View {
+    var body: some View {
+        if let scene = TransformLayout.example() {
+            TransformView(scene: scene)
+        } else {
+            ContentUnavailableView("Example unavailable", systemImage: "cube",
+                                   description: Text("The sample furniture couldn't be loaded."))
         }
     }
 }
