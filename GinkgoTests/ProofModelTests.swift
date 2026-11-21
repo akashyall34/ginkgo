@@ -104,6 +104,7 @@ final class ProofModelTests: XCTestCase {
 
     func testReuseText() throws {
         XCTAssertEqual(try proven().reuse, "52% of the wood reused")
+        XCTAssertEqual(try chatbot().reuse, "85% of the wood reused", "Vivek's validator: 84.9%")
     }
 
     // MARK: names and loading

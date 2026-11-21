@@ -19,6 +19,10 @@ struct GinkgoApp: App {
                 NavigationStack { ExampleProofView() }
             case .transform:
                 NavigationStack { ExampleTransformView() }
+            case .contrast:
+                NavigationStack { ExampleContrastView() }
+            case .demo:
+                DemoView()
             }
         }
     }
