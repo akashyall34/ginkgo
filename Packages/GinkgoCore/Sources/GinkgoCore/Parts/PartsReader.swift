@@ -65,7 +65,8 @@ public enum PartsReader {
         var flags = [
             PartFlag(message: "Confirm the material of each part (Gemini's guess is filled in; solid wood when it had none).",
                      partID: "all"),
-            PartFlag(message: "Confirm each part's thickness: 18 mm is assumed, and legs use their width.", partID: "all"),
+            PartFlag(message: "Confirm each part's thickness: a typical value for its material is assumed (wood 18 mm, "
+                + "plastic 3 mm, cardboard 4 mm), and legs use their width.", partID: "all"),
         ]
         if furniture == nil {
             let message = "Couldn't find the whole piece in the photo, so all sizes are Gemini's estimates. Measure them."
@@ -84,9 +85,10 @@ public enum PartsReader {
                 continue
             }
             flags += partFlags(detected, id: id, read: read)
-            let thickness = detected.type == .leg ? read.width : assumedThicknessMm
+            let material = detected.material ?? .solidWood
+            let thickness = detected.type == .leg ? read.width : MaterialCatalog.info(material).typicalThicknessMm
             parts.append(Part(damaged: detected.damaged, heightMm: read.height, id: id, keepOuts: [],
-                              material: detected.material ?? .solidWood, thicknessMm: thickness, type: detected.type,
+                              material: material, thicknessMm: thickness, type: detected.type,
                               widthMm: read.width))
         }
         return (Inventory(parts: parts, scanID: scanID), flags)

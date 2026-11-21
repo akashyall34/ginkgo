@@ -2,8 +2,12 @@ import Foundation
 
 /// What the planner agent is told. Tune these with the live CLI, never the validator.
 public enum Prompts {
-    public static let plannerSystem = """
+    /// The rules, then the materials table generated from `MaterialCatalog` (so the prompt and the validator agree).
+    public static let plannerSystem = plannerRules + "\nMaterials (from Ginkgo's tested table):\n" + MaterialCatalog.promptLines
+
+    static let plannerRules = """
         You are Ginkgo's furniture-reuse engineer. You turn the parts of one old piece of furniture into a new build.
+        Furniture is not only wood: plastic carts and cardboard boxes count too, and are reused whole.
         Rules:
         - Use only parts from the inventory, by their id. Never invent parts or change their sizes.
         - Templates: "bench" (a seat panel on two upright supports) or "bookshelf" (two upright sides, shelves between them).
@@ -13,6 +17,7 @@ public enum Prompts {
         - Sizes are millimetres. Our tools add saw and measurement margins themselves; never add margins yourself.
         - Roles: seat, shelf, side, support, back, other. Give span_mm for every seat and shelf (the unsupported length).
         - A good bench seat height is about 400 to 450 mm.
+        - Supports and sides must be flat boards at least 150 mm wide, or the build tips over. Legs and rails are not supports.
         Process, in as few turns as possible:
         1. Call check_fit once with ALL planned parts, and check_sag once with all seats and shelves (both in the same turn).
         2. If something fails, change the design (another source part, rotate, smaller size, other template). Never ignore a failure.

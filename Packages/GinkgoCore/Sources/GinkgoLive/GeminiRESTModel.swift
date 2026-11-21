@@ -59,24 +59,40 @@ actor GeminiRESTSession: AgentSession {
     }
 
     private func post() async throws -> ModelTurn {
-        let address = "https://generativelanguage.googleapis.com/v1beta/models/\(config.model):generateContent"
-        guard let url = URL(string: address) else { throw GeminiHTTPError(status: 0, body: "bad model name \(config.model)") }
-        var request = URLRequest(url: url, timeoutInterval: config.requestTimeout)
-        request.httpMethod = "POST"
-        request.setValue(config.apiKey, forHTTPHeaderField: "x-goog-api-key")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let body = GeminiWire.requestBody(system: system, tools: tools, contents: contents, thinkingLevel: config.thinkingLevel)
-        request.httpBody = try body.encodedData()
-
         await config.counter.increment()
-        let (data, status) = try await HTTP.send(request)
-        guard status == 200 else {
-            throw GeminiHTTPError(status: status, body: String(bytes: data, encoding: .utf8) ?? "(\(data.count) bytes, not text)")
-        }
-        let parsed = try GeminiWire.parse(response: try JSON.parse(data))
+        let response = try await HTTP.generate(body, apiKey: config.apiKey, model: config.model, timeout: config.requestTimeout)
+        let parsed = try GeminiWire.parse(response: response)
         contents.append(parsed.modelContent)
         lastCallIDs = GeminiWire.callIDs(in: parsed.modelContent)
         return parsed.turn
+    }
+}
+
+extension HTTP {
+    /// POSTs one generateContent request and returns the JSON answer. Non-200 answers throw with status and body.
+    static func generate(_ body: JSON, apiKey: String, model: String, timeout: TimeInterval) async throws -> JSON {
+        let address = "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent"
+        guard let url = URL(string: address) else { throw GeminiHTTPError(status: 0, body: "bad model name \(model)") }
+        var request = URLRequest(url: url, timeoutInterval: timeout)
+        request.httpMethod = "POST"
+        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try body.encodedData()
+        let (data, status) = try await send(request)
+        guard status == 200 else {
+            throw GeminiHTTPError(status: status, body: String(bytes: data, encoding: .utf8) ?? "(\(data.count) bytes, not text)")
+        }
+        return try JSON.parse(data)
+    }
+
+    /// One structured-output call (the parts reader, the chatbot): returns the model's JSON text.
+    static func generateText(_ body: JSON, apiKey: String, model: String) async throws -> String {
+        let response = try await generate(body, apiKey: apiKey, model: model, timeout: 90)
+        guard let text = try GeminiWire.parse(response: response).turn.text else {
+            throw GeminiHTTPError(status: 200, body: "the answer had no text")
+        }
+        return text
     }
 }
 

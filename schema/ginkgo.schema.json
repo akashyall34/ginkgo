@@ -138,7 +138,7 @@
       "properties": {
         "code": {
           "type": "string",
-          "enum": ["does_not_fit", "hits_keep_out", "part_used_twice", "damaged_part_used", "unknown_part", "sags", "too_large", "cut_not_allowed"]
+          "enum": ["does_not_fit", "hits_keep_out", "part_used_twice", "damaged_part_used", "unknown_part", "sags", "too_large", "cut_not_allowed", "unstable", "empty_plan"]
         },
         "new_part": { "type": "string" },
         "message": { "type": "string", "minLength": 1 }
