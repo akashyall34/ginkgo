@@ -46,7 +46,7 @@
       "required": ["id", "type", "width_mm", "height_mm", "thickness_mm", "material", "damaged", "keep_outs"],
       "properties": {
         "id": { "type": "string", "minLength": 1 },
-        "type": { "type": "string", "enum": ["top", "side", "back", "shelf", "drawer_front", "drawer_box", "leg"] },
+        "type": { "type": "string", "enum": ["top", "side", "back", "shelf", "drawer_front", "drawer_box", "leg", "rail"] },
         "width_mm": { "type": "number", "exclusiveMinimum": 0 },
         "height_mm": { "type": "number", "exclusiveMinimum": 0 },
         "thickness_mm": { "type": "number", "exclusiveMinimum": 0 },
@@ -238,6 +238,50 @@
         "new_parts": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/DraftPart" } },
         "steps": { "type": "array", "items": { "type": "string" } },
         "hardware": { "type": "array", "items": { "$ref": "#/definitions/HardwareItem" } }
+      }
+    },
+    "DetectedPart": {
+      "type": "object",
+      "description": "One part Gemini found in the photo. Code turns its box into millimetres; Gemini's own size guess is only a cross-check.",
+      "additionalProperties": false,
+      "required": ["type", "damaged", "estimated_width_mm", "estimated_height_mm"],
+      "properties": {
+        "type": { "type": "string", "enum": ["top", "side", "back", "shelf", "drawer_front", "drawer_box", "leg", "rail"] },
+        "box_2d": {
+          "type": "array",
+          "description": "[ymin, xmin, ymax, xmax] on Gemini's 0-1000 image scale. Missing when the part is hidden in the photo.",
+          "items": { "type": "number" }
+        },
+        "damaged": { "type": "boolean" },
+        "upholstered": { "type": "boolean", "description": "Covered in fabric or foam, like a padded seat." },
+        "curved": { "type": "boolean", "description": "Not a flat, straight board, like a curved leg." },
+        "estimated_width_mm": { "type": "number" },
+        "estimated_height_mm": { "type": "number" },
+        "note": { "type": "string" }
+      }
+    },
+    "PartsReading": {
+      "type": "object",
+      "description": "What Gemini read from one photo of the furniture.",
+      "additionalProperties": false,
+      "required": ["furniture_box_2d", "parts"],
+      "properties": {
+        "furniture_box_2d": {
+          "type": "array",
+          "description": "[ymin, xmin, ymax, xmax] of the whole piece on the 0-1000 image scale.",
+          "items": { "type": "number" }
+        },
+        "parts": { "type": "array", "items": { "$ref": "#/definitions/DetectedPart" } }
+      }
+    },
+    "PartFlag": {
+      "type": "object",
+      "description": "Something the user should check on the Confirm screen before the parts are trusted.",
+      "additionalProperties": false,
+      "required": ["part_id", "message"],
+      "properties": {
+        "part_id": { "type": "string" },
+        "message": { "type": "string", "minLength": 1 }
       }
     },
     "AgentStep": {
