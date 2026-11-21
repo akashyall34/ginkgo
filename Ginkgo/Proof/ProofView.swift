@@ -35,6 +35,22 @@ struct ProofView: View {
             }
             .padding(Spacing.medium)
         }
+        .safeAreaInset(edge: .bottom) {
+            if model.verdict == .proven {
+                NavigationLink {
+                    ExampleTransformView()
+                } label: {
+                    Label("See it built", systemImage: "cube.transparent")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Palette.brand)
+                .padding(Spacing.medium)
+                .background(.regularMaterial)
+                .accessibilityIdentifier("seeItBuilt")
+            }
+        }
         .background(Palette.background)
         .navigationTitle("Plan")
         .navigationBarTitleDisplayMode(.inline)
