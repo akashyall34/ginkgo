@@ -1,0 +1,65 @@
+{
+  "parts" : [
+    {
+      "damaged" : false,
+      "height_mm" : 410,
+      "id" : "top",
+      "keep_outs" : [
+
+      ],
+      "material" : "cardboard",
+      "thickness_mm" : 4,
+      "type" : "top",
+      "width_mm" : 313
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 125,
+      "id" : "side_1",
+      "keep_outs" : [
+
+      ],
+      "material" : "cardboard",
+      "thickness_mm" : 4,
+      "type" : "side",
+      "width_mm" : 410
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 163,
+      "id" : "side_2",
+      "keep_outs" : [
+
+      ],
+      "material" : "cardboard",
+      "thickness_mm" : 4,
+      "type" : "side",
+      "width_mm" : 410
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 310,
+      "id" : "side_3",
+      "keep_outs" : [
+
+      ],
+      "material" : "cardboard",
+      "thickness_mm" : 4,
+      "type" : "side",
+      "width_mm" : 410
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 310,
+      "id" : "back",
+      "keep_outs" : [
+
+      ],
+      "material" : "cardboard",
+      "thickness_mm" : 4,
+      "type" : "back",
+      "width_mm" : 315
+    }
+  ],
+  "scan_id" : "scan-4"
+}

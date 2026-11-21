@@ -1,0 +1,125 @@
+{
+  "parts" : [
+    {
+      "damaged" : false,
+      "height_mm" : 365,
+      "id" : "top",
+      "keep_outs" : [
+
+      ],
+      "material" : "plastic",
+      "thickness_mm" : 3,
+      "type" : "top",
+      "width_mm" : 314
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 212,
+      "id" : "drawer_front_1",
+      "keep_outs" : [
+
+      ],
+      "material" : "plastic",
+      "thickness_mm" : 3,
+      "type" : "drawer_front",
+      "width_mm" : 272
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 212,
+      "id" : "drawer_box_1",
+      "keep_outs" : [
+
+      ],
+      "material" : "plastic",
+      "thickness_mm" : 3,
+      "type" : "drawer_box",
+      "width_mm" : 270
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 168,
+      "id" : "drawer_front_2",
+      "keep_outs" : [
+
+      ],
+      "material" : "plastic",
+      "thickness_mm" : 3,
+      "type" : "drawer_front",
+      "width_mm" : 213
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 168,
+      "id" : "drawer_box_2",
+      "keep_outs" : [
+
+      ],
+      "material" : "plastic",
+      "thickness_mm" : 3,
+      "type" : "drawer_box",
+      "width_mm" : 213
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 140,
+      "id" : "drawer_front_3",
+      "keep_outs" : [
+
+      ],
+      "material" : "plastic",
+      "thickness_mm" : 3,
+      "type" : "drawer_front",
+      "width_mm" : 180
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 139,
+      "id" : "drawer_box_3",
+      "keep_outs" : [
+
+      ],
+      "material" : "plastic",
+      "thickness_mm" : 3,
+      "type" : "drawer_box",
+      "width_mm" : 179
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 600,
+      "id" : "side_left",
+      "keep_outs" : [
+
+      ],
+      "material" : "plastic",
+      "thickness_mm" : 3,
+      "type" : "side",
+      "width_mm" : 365
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 600,
+      "id" : "side_right",
+      "keep_outs" : [
+
+      ],
+      "material" : "plastic",
+      "thickness_mm" : 3,
+      "type" : "side",
+      "width_mm" : 365
+    },
+    {
+      "damaged" : false,
+      "height_mm" : 600,
+      "id" : "back",
+      "keep_outs" : [
+
+      ],
+      "material" : "plastic",
+      "thickness_mm" : 3,
+      "type" : "back",
+      "width_mm" : 315
+    }
+  ],
+  "scan_id" : "scan-3"
+}
