@@ -52,6 +52,21 @@ final class ImpactTests: XCTestCase {
     func testTheIdeasAskForTheRightBuild() {
         XCTAssertEqual(Idea.bench.request, Prompts.defaultRequest)
         XCTAssertEqual(Idea.bookshelf.request, "Make a bookshelf.")
-        XCTAssertEqual(Idea.allCases.map(\.title), ["Bench", "Bookshelf"])
+        XCTAssertEqual(Idea.reuseAsIs.request, "Reuse the parts whole, with no cuts.")
+    }
+
+    func testIdeasFollowTheMaterials() {
+        func parts(_ materials: [GinkgoCore.Material], damaged: Bool = false) -> Inventory {
+            Inventory(parts: materials.enumerated().map {
+                Part(damaged: damaged, heightMm: 400, id: "p\($0.offset)", keepOuts: [], material: $0.element,
+                     thicknessMm: 18, type: .side, widthMm: 400)
+            }, scanID: "s")
+        }
+        XCTAssertEqual(Idea.options(for: parts([.solidWood, .plastic])), [.bench, .bookshelf])
+        XCTAssertEqual(Idea.options(for: parts([.plywood])), [.bench, .bookshelf])
+        XCTAssertEqual(Idea.options(for: parts([.plastic, .plastic])), [.reuseAsIs], "A plastic drawer unit is never a cut bench")
+        XCTAssertEqual(Idea.options(for: parts([.cardboard])), [.reuseAsIs])
+        XCTAssertEqual(Idea.options(for: parts([.particleboardMDF])), [.reuseAsIs])
+        XCTAssertEqual(Idea.options(for: parts([.solidWood], damaged: true)), [.reuseAsIs], "Damaged wood isn't cut either")
     }
 }

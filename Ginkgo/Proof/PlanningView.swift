@@ -50,12 +50,17 @@ struct PlanningView: View {
         }
     }
 
+    /// What a step says on screen. Connection errors are shown in plain words, never as raw error text.
+    static func summary(_ step: AgentStep) -> String {
+        step.status == .error ? "Gemini's connection failed, so Ginkgo planned it with its own rules." : step.summary
+    }
+
     private func stepRow(_ step: AgentStep) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xSmall) {
-            Label(step.summary, systemImage: Self.icon(step.status))
+            Label(Self.summary(step), systemImage: Self.icon(step.status))
                 .foregroundStyle(Self.color(step.status))
                 .font(.subheadline.weight(.semibold))
-            if !step.reason.isEmpty {
+            if !step.reason.isEmpty && step.status != .error {
                 Text("“\(step.reason)”").font(.footnote).foregroundStyle(.secondary)
             }
         }

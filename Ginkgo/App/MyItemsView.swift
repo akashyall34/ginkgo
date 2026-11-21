@@ -35,7 +35,14 @@ struct MyItemsView: View {
             } else {
                 LazyVStack(alignment: .leading, spacing: Spacing.large) {
                     ForEach(items) { item in
-                        scanCard(item)
+                        NavigationLink {
+                            SavedScanDetailView(store: store, scan: item.scan, onDelete: {
+                                items.removeAll { $0.id == item.id }
+                            })
+                        } label: {
+                            scanCard(item)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -61,7 +68,7 @@ struct MyItemsView: View {
             }
 
             Spacer()
-            Button(action: onAppearanceSettings) {
+            NavigationLink { AppearanceSettingsView(pushed: true) } label: {
                 Image(systemName: "gearshape")
                     .font(.title3)
                     .foregroundStyle(Palette.brand)
@@ -82,6 +89,8 @@ struct MyItemsView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 220)
                 .clipped()
+                // The cropped-off part of a tall photo must not catch taps meant for the header above.
+                .contentShape(Rectangle())
                 .overlay(alignment: .topLeading) {
                     Text(item.scan.date.formatted(date: .abbreviated, time: .shortened))
                         .font(.caption.weight(.semibold))
@@ -119,6 +128,7 @@ struct MyItemsView: View {
                 }
             }
         }
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("savedScan-\(item.id.uuidString)")
     }

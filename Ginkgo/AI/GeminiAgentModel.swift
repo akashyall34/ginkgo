@@ -39,7 +39,7 @@ actor GeminiAgentSession: AgentSession {
             FunctionResponsePart(name: result.name, response: AgentBridge.object(result.response),
                                  functionId: index < lastCallIDs.count ? lastCallIDs[index] : nil)
         }
-        return try record(await chat.sendMessage([ModelContent(role: "function", parts: parts)]))
+        return try record(await chat.sendMessage([ModelContent(role: "user", parts: parts)]))
     }
 
     private func record(_ response: GenerateContentResponse) -> ModelTurn {

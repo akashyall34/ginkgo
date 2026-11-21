@@ -31,12 +31,46 @@ struct Impact: Equatable {
     }
 }
 
-/// The builds offered for a parts list.
+/// The builds offered for a parts list. Only wood and plywood are cut, so parts made only of plastic,
+/// cardboard or MDF get one honest idea: reuse them as they are.
 enum Idea: String, CaseIterable, Identifiable {
-    case bench, bookshelf
+    case bench, bookshelf, reuseAsIs
     var id: String { rawValue }
 
-    var title: String { self == .bench ? "Bench" : "Bookshelf" }
-    var request: String { self == .bench ? Prompts.defaultRequest : "Make a bookshelf." }
-    var icon: String { self == .bench ? "chair.lounge" : "books.vertical" }
+    var title: String {
+        switch self {
+        case .bench: return "Bench"
+        case .bookshelf: return "Bookshelf"
+        case .reuseAsIs: return "Reuse it as it is"
+        }
+    }
+
+    var request: String {
+        switch self {
+        case .bench: return Prompts.defaultRequest
+        case .bookshelf: return "Make a bookshelf."
+        case .reuseAsIs: return "Reuse the parts whole, with no cuts."
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .bench: return "chair.lounge"
+        case .bookshelf: return "books.vertical"
+        case .reuseAsIs: return "arrow.3.trianglepath"
+        }
+    }
+
+    /// Whether any part can be cut: only solid wood and plywood are.
+    static func canCut(_ inventory: Inventory) -> Bool {
+        inventory.parts.contains { !$0.damaged && ($0.material == .solidWood || $0.material == .plywood) }
+    }
+
+    /// The ideas that make sense for these parts.
+    static func options(for inventory: Inventory) -> [Idea] {
+        canCut(inventory) ? [.bench, .bookshelf] : [.reuseAsIs]
+    }
+
+    static let noCutReason = "Plastic, cardboard and MDF aren't cut: they lose strength and hold screws poorly. "
+        + "Ginkgo plans to reuse these parts whole."
 }

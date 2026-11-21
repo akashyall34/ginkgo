@@ -28,7 +28,10 @@ final class PlanningModel {
 
     /// Why the fallback was used, when it was.
     var fallbackReason: String? {
-        if case .fallback(_, _, _, let reason) = outcome { return reason }
+        if case .fallback(_, _, _, let reason) = outcome {
+            // Network errors come back as raw text; say it plainly instead.
+            return reason.contains("Error") || reason.contains("error") ? "Gemini couldn't be reached." : reason
+        }
         return nil
     }
 

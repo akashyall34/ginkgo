@@ -9,32 +9,43 @@ struct AppearanceSettingsView: View {
         AppearancePreference(rawValue: appearancePreferenceRawValue) ?? .system
     }
 
+    /// Shown as a sheet with its own Done button; `pushed` shows it inside an existing navigation stack instead.
+    var pushed = false
+
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: Spacing.large) {
-                HStack(spacing: Spacing.small) {
-                    ForEach(AppearancePreference.allCases) { preference in
-                        appearanceOption(preference)
+        if pushed {
+            options.background(Palette.background)
+        } else {
+            NavigationStack {
+                options.toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { dismiss() }
+                        .accessibilityIdentifier("appearanceDone")
                     }
                 }
-
-                Text("Follow System matches your iPhone's appearance setting.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                Spacer(minLength: 0)
             }
-            .padding(Spacing.large)
-            .navigationTitle("Appearance")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                    .accessibilityIdentifier("appearanceDone")
+            .presentationDetents([.medium])
+        }
+    }
+
+    private var options: some View {
+        VStack(alignment: .leading, spacing: Spacing.large) {
+            HStack(spacing: Spacing.small) {
+                ForEach(AppearancePreference.allCases) { preference in
+                    appearanceOption(preference)
                 }
             }
+
+            Text("Follow System matches your iPhone's appearance setting.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Spacer(minLength: 0)
         }
-        .presentationDetents([.medium])
+        .padding(Spacing.large)
+        .navigationTitle("Appearance")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
         .tint(Palette.brand)
     }
 

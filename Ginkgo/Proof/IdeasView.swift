@@ -9,7 +9,7 @@ struct IdeasView: View {
     var body: some View {
         List {
             Section {
-                ForEach(Idea.allCases) { idea in
+                ForEach(Idea.options(for: inventory)) { idea in
                     NavigationLink {
                         PlanningView(inventory: inventory, request: idea.request)
                     } label: {
@@ -18,7 +18,8 @@ struct IdeasView: View {
                     .accessibilityIdentifier("idea-\(idea.rawValue)")
                 }
             } footer: {
-                Text("Reuse and area come from your measurements and the validated plan.")
+                Text((Idea.canCut(inventory) ? "" : Idea.noCutReason + " ")
+                     + "Reuse and area come from your measurements and the validated plan.")
             }
         }
         .scrollContentBackground(.hidden)
