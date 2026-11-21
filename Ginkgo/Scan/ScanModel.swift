@@ -29,6 +29,8 @@ final class ScanModel {
     private(set) var status: Status = .aiming
     /// Where measurements are kept; nil keeps nothing (previews).
     let store: ScanStore?
+    /// Lifts the furniture under a tap out of the background; nil turns one-tap lifting off.
+    let lifter: SubjectLifting?
     /// The saved scan for the current capture; every new measurement of it replaces the save.
     private(set) var savedScanID: UUID?
     /// True when the last measurement couldn't be saved. The measurement itself still stands.
@@ -37,9 +39,10 @@ final class ScanModel {
 
     static let crossedCornersMessage = "The corners cross. Drag them back into a four-sided shape."
 
-    init(source: FrameSource, store: ScanStore? = nil) {
+    init(source: FrameSource, store: ScanStore? = nil, lifter: SubjectLifting? = nil) {
         self.source = source
         self.store = store
+        self.lifter = lifter
     }
 
     var instruction: String { instruction(for: status) }
@@ -47,8 +50,8 @@ final class ScanModel {
     func instruction(for status: Status) -> String {
         switch status {
         case .aiming: return "Aim at one flat face of the furniture, then capture."
-        case .chooseFace: return "Tap the outlined face you want to measure."
-        case .noFaceFound: return "No face found. Tap Place corners and drag them onto the face's corners."
+        case .chooseFace: return "Tap the outlined face you want to measure, or tap the furniture to lift it out."
+        case .noFaceFound: return "No outlined face. Tap the furniture to lift it out, or tap Place corners."
         case .adjusting: return "Drag the corner onto the face's corner."
         case .measured(let result): return result.misplacedCornerHint ?? "Drag any corner to fine-tune."
         case .problem(let message): return message
@@ -74,8 +77,20 @@ final class ScanModel {
     func selectFace(at point: CGPoint) {
         guard frame != nil, corners == nil else { return }
         let hits = faces.filter { $0.contains(point) }
-        guard let face = hits.min(by: { RectangleDetector.area($0) < RectangleDetector.area($1) }) else { return }
+        guard let face = hits.min(by: { RectangleDetector.area($0) < RectangleDetector.area($1) }) else {
+            liftFace(at: point)
+            return
+        }
         corners = face.corners
+        measure()
+    }
+
+    /// One tap: the subject under the finger is lifted out and its outline becomes the corners.
+    private func liftFace(at point: CGPoint) {
+        guard let lifter, let image = frame?.image.cgImage,
+              let lifted = lifter.lift(from: image, at: point)?.corners,
+              DetectedQuad(corners: lifted).isConvex else { return }
+        corners = lifted
         measure()
     }
 
