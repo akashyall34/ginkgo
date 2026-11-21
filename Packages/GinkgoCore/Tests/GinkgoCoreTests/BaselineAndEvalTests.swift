@@ -106,8 +106,13 @@ final class EvalTests: XCTestCase {
         let inventory = try Fixtures.inventory()
         let good = Validator.validate(plan: try Fixtures.planBench(), inventory: inventory, limits: nil)
         let bad = Validator.validate(plan: try Fixtures.planChatbot(), inventory: inventory, limits: nil)
-        let rate = EvalSummary.chatbotFailureRate([bad, good, bad])
-        XCTAssertEqual(rate.failed, 2)
-        XCTAssertEqual(rate.total, 3)
+        let noPlan = Validator.validate(
+            plan: ChatbotBaseline.plan(from: ChatbotAnswer(template: "no_cut", parts: [], steps: ["It can't be done."]),
+                                       inventory: inventory),
+            inventory: inventory, limits: nil)
+        let outcomes = EvalSummary.chatbotOutcomes([bad, good, bad, noPlan])
+        XCTAssertEqual(outcomes, ChatbotOutcomes(unsafe: 2, noPlan: 1, valid: 1), "giving up isn't counted as an unsafe plan")
+        XCTAssertEqual(outcomes.summary,
+                       "unsafe plans (an impossible cut, unsafe part or sag): 2 · no plan at all: 1 · valid plans: 1")
     }
 }

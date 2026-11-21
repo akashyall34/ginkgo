@@ -65,8 +65,7 @@ enum ChatbotCommand {
             for violation in result.violations { LiveCommand.say("    ✗ \(violation.message)") }
             if !result.passes { lastFailing = plan }
         }
-        let rate = EvalSummary.chatbotFailureRate(results)
-        LiveCommand.say("\nChatbot plans with at least one impossible cut, unsafe part or sag: \(rate.failed) of \(rate.total)")
+        LiveCommand.say("\nChatbot, \(results.count) answers: " + EvalSummary.chatbotOutcomes(results).summary)
         if let path = options.record, let lastFailing {
             try LiveCommand.write(try JSON.from(lastFailing), to: path)
             LiveCommand.say("Last failing chatbot plan recorded to \(path)")
@@ -79,7 +78,8 @@ enum ChatbotCommand {
 enum EvalCommand {
     static func run(_ options: LiveOptions, key: String) async throws -> Int32 {
         let base = try options.loadInventory()
-        let baseName = URL(fileURLWithPath: options.inventory).deletingPathExtension().lastPathComponent
+        let file = URL(fileURLWithPath: options.inventory).deletingPathExtension().lastPathComponent
+        let baseName = file == "inventory" ? "nightstand (sample data)" : file
         var variants = EvalVariant.standard(base, name: baseName)
         for path in options.also {
             variants.append(EvalVariant(name: URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent,

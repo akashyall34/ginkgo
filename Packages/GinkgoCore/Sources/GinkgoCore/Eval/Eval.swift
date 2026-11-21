@@ -95,7 +95,7 @@ public enum EvalSummary {
     /// A markdown table for the slide.
     public static func markdown(_ rows: [EvalRow]) -> String {
         var lines = [
-            "| Variant | Runs | Accepted first try | Accepted after repair | Fallback (safe plan shown) | Avg time | Avg Gemini calls |",
+            "| Variant | Runs | Accepted on first submit | Accepted after repair | Fallback (safe plan) | Avg time | Avg Gemini calls |",
             "|---|---|---|---|---|---|---|",
         ]
         for row in rows {
@@ -112,8 +112,22 @@ public enum EvalSummary {
         return lines.joined(separator: "\n")
     }
 
-    /// The spec's baseline metric: the share of chatbot plans with at least one violation.
-    public static func chatbotFailureRate(_ results: [ValidationResult]) -> (failed: Int, total: Int) {
-        (results.filter { !$0.passes }.count, results.count)
+    /// The spec's baseline metric, told honestly: plans with an impossible cut, unsafe part or sag are "unsafe";
+    /// an answer with no parts at all ("this can't be done") is "no plan", which is a different thing.
+    public static func chatbotOutcomes(_ results: [ValidationResult]) -> ChatbotOutcomes {
+        let empty = results.filter { $0.violations.contains { $0.code == .emptyPlan } }.count
+        let unsafe = results.filter { !$0.passes }.count - empty
+        return ChatbotOutcomes(unsafe: unsafe, noPlan: empty, valid: results.count - unsafe - empty)
+    }
+}
+
+/// How a set of chatbot answers fared against the validator.
+public struct ChatbotOutcomes: Sendable, Equatable {
+    public var unsafe: Int
+    public var noPlan: Int
+    public var valid: Int
+
+    public var summary: String {
+        "unsafe plans (an impossible cut, unsafe part or sag): \(unsafe) · no plan at all: \(noPlan) · valid plans: \(valid)"
     }
 }
