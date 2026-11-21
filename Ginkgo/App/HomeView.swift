@@ -4,6 +4,7 @@ import SwiftUI
 struct HomeView: View {
     @State private var selectedTab = 0
     @State private var isAppearanceSettingsPresented = false
+    @State private var isDemoPresented = false
     @AppStorage("appearancePreference") private var appearancePreferenceRawValue = AppearancePreference.system.rawValue
 
     private var appearancePreference: AppearancePreference {
@@ -39,6 +40,9 @@ struct HomeView: View {
         .sheet(isPresented: $isAppearanceSettingsPresented) {
             AppearanceSettingsView()
         }
+        .fullScreenCover(isPresented: $isDemoPresented) {
+            DemoView(onClose: { isDemoPresented = false })
+        }
     }
 
     private var homeContent: some View {
@@ -71,10 +75,37 @@ struct HomeView: View {
             .accessibilityIdentifier("snapFurniture")
             .padding(.top, Spacing.medium)
 
+            secondaryActions
+                .padding(.top, Spacing.small)
+
             impactSection
                 .padding(.top, 36)
                 .padding(.bottom, 112)
         }
+    }
+
+    /// The worked example and the judge walkthrough, one tap from Home.
+    private var secondaryActions: some View {
+        HStack(spacing: Spacing.small) {
+            NavigationLink {
+                ExampleProofView()
+            } label: {
+                Label("See an example", systemImage: "checkmark.seal")
+                    .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+            }
+            .accessibilityIdentifier("exampleButton")
+            Button {
+                isDemoPresented = true
+            } label: {
+                Label("Demo", systemImage: "play.circle")
+                    .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+            }
+            .accessibilityIdentifier("demoButton")
+        }
+        .font(.subheadline.weight(.semibold))
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
+        .tint(Palette.brand)
     }
 
     private var header: some View {

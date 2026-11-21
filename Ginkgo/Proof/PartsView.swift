@@ -9,8 +9,13 @@ struct PartsView: View {
     @State private var scanID = UUID().uuidString
     @State private var result: PartsResult?
     @State private var inventory: Inventory?
+    @State private var markingHolesOf: String?
 
     /// Every material the validator knows. Only solid wood and plywood get cut; the rest are reused whole.
+    private struct MarkedPart: Identifiable { let id: String }
+    private static let placeholder = Part(damaged: false, heightMm: 1, id: "", keepOuts: [], material: .solidWood,
+                                          thicknessMm: 18, type: .top, widthMm: 1)
+
     static let materials: [(GinkgoCore.Material, String)] = [(.solidWood, "Solid wood"), (.plywood, "Plywood"),
                                                   (.particleboardMDF, "Particleboard / MDF"),
                                                   (.plastic, "Plastic"), (.cardboard, "Cardboard")]
@@ -23,6 +28,12 @@ struct PartsView: View {
                 ProgressView("Reading the parts from the photo…")
                     .accessibilityIdentifier("partsLoading")
             }
+        }
+        .sheet(item: Binding(get: { markingHolesOf.map(MarkedPart.init) }, set: { markingHolesOf = $0?.id })) { marked in
+            ScrewHolesView(part: Binding(
+                get: { inventory?.parts.first { $0.id == marked.id } ?? Self.placeholder },
+                set: { changed in inventory = inventory?.with(parts: inventory?.parts.map { $0.id == changed.id ? changed : $0 } ?? []) }
+            ))
         }
         .navigationTitle("Parts")
         .navigationBarTitleDisplayMode(.inline)
@@ -56,18 +67,17 @@ struct PartsView: View {
             }
             Section {
                 NavigationLink {
-                    switch LivePlan.proof(from: inventory) {
-                    case .success(let model): ProofView(model: model)
-                    case .failure(let failure):
-                        ContentUnavailableView("No plan fits", systemImage: "ruler", description: Text(failure.explanation))
-                    }
+                    IdeasView(inventory: inventory)
                 } label: {
-                    Label("Make a plan", systemImage: "hammer").font(.headline)
+                    Label("See what it can become", systemImage: "lightbulb").font(.headline)
                         .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
                 }
                 .accessibilityIdentifier("planFromParts")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Palette.background)
+        .tint(Palette.brand)
     }
 
     private func partRow(_ part: Part) -> some View {
@@ -87,6 +97,16 @@ struct PartsView: View {
                 ForEach(Self.materials, id: \.0) { Text($0.1).tag($0.0) }
             }
             .accessibilityIdentifier("material-\(part.id)")
+            Button {
+                markingHolesOf = part.id
+            } label: {
+                Label(part.keepOuts.isEmpty ? "Mark screw holes" : "\(part.keepOuts.count) screw holes marked",
+                      systemImage: "smallcircle.filled.circle")
+                    .font(.subheadline)
+                    .frame(minHeight: TapTarget.minimum)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityIdentifier("holes-\(part.id)")
         }
         .padding(.vertical, Spacing.xSmall)
     }

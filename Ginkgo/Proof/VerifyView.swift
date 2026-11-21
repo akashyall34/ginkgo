@@ -17,7 +17,7 @@ struct VerifyView: View {
             Section("Measure before cutting") {
                 ForEach(model.checks.indices, id: \.self) { checkRow($0) }
             }
-            if model.status == .verified {
+            if model.isBuildable {
                 Section("Steps") {
                     ForEach(Array(model.plan.steps.enumerated()), id: \.offset) { index, step in
                         Text("\(index + 1). \(step)").accessibilityIdentifier("step")
@@ -30,6 +30,9 @@ struct VerifyView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Palette.background)
+        .tint(Palette.brand)
         .navigationTitle("Verify")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $measuring) { index in
@@ -59,6 +62,11 @@ struct VerifyView: View {
             statusLine("\(remaining) to measure before this plan is verified", icon: "ruler", color: nil)
         case .verified:
             statusLine("Verified: the real measurements fit", icon: "checkmark.seal.fill", color: Palette.verified)
+        case .adjusted(let reason):
+            VStack(alignment: .leading, spacing: Spacing.xSmall) {
+                statusLine("Adjusted: resized to fit the real measurements", icon: "arrow.triangle.2.circlepath", color: Palette.brand)
+                Text(reason).font(.footnote)
+            }
         case .withdrawn(let reasons):
             VStack(alignment: .leading, spacing: Spacing.xSmall) {
                 statusLine("Withdrawn: don't cut", icon: "xmark.octagon.fill", color: Palette.fails)

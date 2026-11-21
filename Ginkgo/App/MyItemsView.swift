@@ -1,3 +1,4 @@
+import ImageIO
 import SwiftUI
 import UIKit
 
@@ -32,15 +33,17 @@ struct MyItemsView: View {
                     description: Text("Completed LiDAR measurements are saved here on this device.")
                 )
             } else {
-                ForEach(items) { item in
-                    scanCard(item)
+                LazyVStack(alignment: .leading, spacing: Spacing.large) {
+                    ForEach(items) { item in
+                        scanCard(item)
+                    }
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 10)
         .padding(.bottom, 112)
-        .onAppear(perform: loadItems)
+        .task { await loadItems() }
     }
 
     private var header: some View {
@@ -120,24 +123,29 @@ struct MyItemsView: View {
         .accessibilityIdentifier("savedScan-\(item.id.uuidString)")
     }
 
-    private func loadItems() {
-        var loaded: [SavedScanItem] = []
-        var failures: [String] = []
-
-        for scan in store.list() {
-            do {
-                let preview = try store.preview(scan.id)
-                guard let image = UIImage(data: preview.photo) else {
-                    throw ScanStoreError.unreadable("The saved photo isn't a supported image.")
+    /// Reads the saved scans off the main thread and decodes small thumbnails, so opening My items stays
+    /// instant however many scans are saved.
+    private func loadItems() async {
+        let store = store
+        let (loaded, failures) = await Task.detached(priority: .userInitiated) { () -> ([SavedScanItem], [Error]) in
+            var loaded: [SavedScanItem] = []
+            var failures: [Error] = []
+            for scan in store.list() {
+                do {
+                    let preview = try store.preview(scan.id)
+                    guard let image = Self.thumbnail(from: preview.photo) else {
+                        throw ScanStoreError.unreadable("The saved photo isn't a supported image.")
+                    }
+                    loaded.append(SavedScanItem(scan: preview.scan, image: image))
+                } catch {
+                    failures.append(error)
                 }
-                loaded.append(SavedScanItem(scan: preview.scan, image: image))
-            } catch {
-                failures.append(errorMessage(for: error))
             }
-        }
+            return (loaded, failures)
+        }.value
 
         items = loaded
-        if let firstFailure = failures.first {
+        if let firstFailure = failures.first.map(errorMessage) {
             let remainingCount = failures.count - 1
             loadError = remainingCount == 0
                 ? firstFailure
@@ -145,6 +153,15 @@ struct MyItemsView: View {
         } else {
             loadError = nil
         }
+    }
+
+    /// A small image for a card, decoded straight from the saved photo without loading it at full size.
+    nonisolated private static func thumbnail(from data: Data, maxPixels: Int = 300) -> UIImage? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+        let options: [CFString: Any] = [kCGImageSourceCreateThumbnailFromImageAlways: true,
+                                        kCGImageSourceCreateThumbnailWithTransform: true,
+                                        kCGImageSourceThumbnailMaxPixelSize: maxPixels]
+        return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary).map { UIImage(cgImage: $0) }
     }
 
     private func errorMessage(for error: Error) -> String {

@@ -25,6 +25,7 @@ final class VerifyModelTests: XCTestCase {
         var v = try verify()
         for index in v.checks.indices { v.record(try XCTUnwrap(v.planned(index)), for: index) }
         XCTAssertEqual(v.status, .verified)
+        XCTAssertTrue(v.isBuildable)
     }
 
     func testOneCheckLeftIsStillPending() throws {
@@ -34,13 +35,23 @@ final class VerifyModelTests: XCTestCase {
         XCTAssertEqual(v.status, .pending(remaining: v.checks.count - 1))
     }
 
-    func testAPanelSmallerThanEstimatedWithdrawsThePlan() throws {
+    func testAPanelSomewhatSmallerAdjustsThePlanToFit() throws {
         var v = try verify()
         let planned = try XCTUnwrap(v.planned(0))
-        v.record(planned - 40, for: 0) // 4 cm shorter than the scan suggested
+        let planBefore = v.plan
+        for index in v.checks.indices { v.record(try XCTUnwrap(v.planned(index)) - (index == 0 ? 40 : 0), for: index) }
+        guard case .adjusted(let reason) = v.status else { return XCTFail("\(v.status)") }
+        XCTAssertFalse(reason.isEmpty, "Say why it changed")
+        XCTAssertTrue(v.result.passes)
+        XCTAssertNotEqual(v.plan, planBefore, "The plan was redone for the real size")
+        XCTAssertEqual(v.planned(0), planned - 40)
+    }
+
+    func testAPanelFarTooSmallWithdrawsThePlan() throws {
+        var v = try verify()
+        v.record(120, for: 0) // 12 cm: no bench of any size fits
         guard case .withdrawn(let reasons) = v.status else { return XCTFail("\(v.status)") }
-        XCTAssertFalse(reasons.isEmpty, "Say why it no longer fits")
-        XCTAssertFalse(v.result.passes)
+        XCTAssertFalse(reasons.joined().isEmpty)
     }
 
     func testABiggerPanelStillVerifies() throws {
@@ -68,15 +79,16 @@ final class VerifyModelTests: XCTestCase {
         XCTAssertTrue(v.measured.isEmpty)
     }
 
-    func testAWholePartsPlanIsWithdrawnWhenAPanelIsNotTheSizeItAssumed() throws {
-        // A dresser-sized box gets the reuse-whole plan; a whole panel that turns out bigger no longer
-        // matches the plan, so the plan has to be redone rather than cut.
+    func testAWholePartsPlanIsAdjustedWhenAPanelIsNotTheSizeItAssumed() throws {
+        // A dresser-sized box gets the reuse-whole plan; a whole panel that turns out bigger gets a matching
+        // reuse-whole plan for the real size.
         let box = FittedBox(length: 1.2, width: 0.5, height: 0.85, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 5000)
         let model = try LivePlan.proof(from: box, scanID: "s").get()
         XCTAssertEqual(model.plan.template, .noCut)
         var v = VerifyModel(plan: model.plan, inventory: model.inventory, result: model.result)
-        guard let index = v.checks.indices.first else { throw XCTSkip("no checks for this plan") }
-        v.record(try XCTUnwrap(v.planned(index)) + 15, for: index)
-        guard case .withdrawn = v.status else { return XCTFail("\(v.status)") }
+        guard !v.checks.isEmpty else { throw XCTSkip("no checks for this plan") }
+        for index in v.checks.indices { v.record(try XCTUnwrap(v.planned(index)) + 15, for: index) }
+        guard case .adjusted = v.status else { return XCTFail("\(v.status)") }
+        XCTAssertEqual(v.plan.template, .noCut)
     }
 }

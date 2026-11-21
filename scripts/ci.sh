@@ -19,10 +19,11 @@ rm -rf build/ci.xcresult
 set +e
 xcodebuild test -project Ginkgo.xcodeproj -scheme Ginkgo \
   -destination "platform=iOS Simulator,name=$SIMULATOR" \
+  -parallel-testing-enabled YES -parallel-testing-worker-count "${CI_WORKERS:-3}" \
   -resultBundlePath build/ci.xcresult > build/ci.log 2>&1
 STATUS=$?
 set -e
-grep -E "error:|Test Case .*failed|Executed [0-9]+ tests.*seconds$|TEST (SUCCEEDED|FAILED)" build/ci.log | tail -12
+grep -E "error:|Test [Cc]ase .*failed|Executed [0-9]+ tests.*seconds$|TEST (SUCCEEDED|FAILED)" build/ci.log | tail -12
 if [ $STATUS -ne 0 ]; then echo "CI failed. Full log: build/ci.log"; exit $STATUS; fi
 
 echo "== 4. Test coverage of logic files"

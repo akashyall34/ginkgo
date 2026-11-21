@@ -75,3 +75,20 @@ final class LaunchUITests: XCTestCase {
         app.buttons["appearanceDone"].tap()
     }
 }
+
+@MainActor
+final class HomeEntryUITests: XCTestCase {
+    override func setUp() async throws { continueAfterFailure = false }
+
+    func testHomeOpensTheExampleAndTheDemo() {
+        let app = XCUIApplication()
+        app.launch()
+        app.buttons["exampleButton"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["verdict"].waitForExistence(timeout: 10))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.buttons["demoButton"].tap()
+        XCTAssertTrue(app.buttons["demo-measure"].waitForExistence(timeout: 5))
+        app.buttons["demoClose"].tap()
+        XCTAssertTrue(app.buttons["snapFurniture"].waitForExistence(timeout: 5))
+    }
+}

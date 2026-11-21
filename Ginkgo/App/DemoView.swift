@@ -35,6 +35,8 @@ struct DemoView: View {
         }
     }
 
+    /// Closes the demo when it was opened from Home; nil when the app was launched straight into it.
+    var onClose: (() -> Void)?
     @State private var path: [Step] = []
     /// Changing it rebuilds every screen from scratch.
     @State private var run = 0
@@ -65,6 +67,11 @@ struct DemoView: View {
                 }
             }
             .toolbar {
+                if let onClose {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Close", action: onClose).accessibilityIdentifier("demoClose")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Reset") {
                         path = []

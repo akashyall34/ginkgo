@@ -34,9 +34,9 @@ final class VerifyUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts.matching(identifier: "step").firstMatch.waitForExistence(timeout: 3))
     }
 
-    func testAPanelTooSmallWithdrawsThePlan() {
+    func testAPanelFarTooSmallWithdrawsThePlan() {
         let app = openVerify()
-        type("41", into: 0, app) // the top is 5 cm narrower than the scan said
+        type("12", into: 0, app) // far too small for any bench
         let status = app.descendants(matching: .any)["verifyStatus"]
         XCTAssertTrue(status.label.contains("Withdrawn"), status.label)
         XCTAssertFalse(app.staticTexts.matching(identifier: "step").firstMatch.exists, "No steps for a withdrawn plan")
