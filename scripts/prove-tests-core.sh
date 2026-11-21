@@ -8,7 +8,7 @@ PKG=Packages/GinkgoCore
 SRC=$PKG/Sources
 SWIFT_ARGS="--package-path $PKG"
 if [ -n "${GINKGO_BUILD_DIR:-}" ]; then SWIFT_ARGS="$SWIFT_ARGS --scratch-path $GINKGO_BUILD_DIR"; fi
-MUTANTS="margin fit-compare overlap sag-limit damaged accept parts-flag"
+MUTANTS="margin fit-compare overlap sag-limit damaged accept parts-flag stable"
 LOG=$(mktemp)
 BACKUP=""
 TARGET=""
@@ -30,6 +30,7 @@ substitution() {
     damaged) echo 's/if part\.damaged/if false \&\& part.damaged/' ;;
     accept) echo 's/\bif\s+/if false \&\& /' ;;
     parts-flag) echo 's/> flagTolerance/>= flagTolerance/' ;;
+    stable) echo 's/widthMm < minSupportWidth/widthMm < 0/' ;;
   esac
 }
 

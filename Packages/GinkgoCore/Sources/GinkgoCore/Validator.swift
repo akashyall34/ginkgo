@@ -5,6 +5,8 @@ import Foundation
 public enum Validator {
     /// How many measurements to list for the user to double-check before cutting.
     static let verifyCount = 3
+    /// Supports and sides narrower than this tip over: a bench needs flat boards, not strips cut from legs.
+    public static let minSupportWidth = 150.0
 
     public static func validate(plan: Plan, inventory: Inventory, limits: SizeLimits?) -> ValidationResult {
         let parts = Dictionary(inventory.parts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
@@ -16,6 +18,7 @@ public enum Validator {
             + cutsNotAllowed(plan, parts: parts)
             + fitViolations(plan, packs: packs, parts: parts)
             + sag.violations
+            + unstableSupports(plan)
             + sizeViolations(plan, limits: limits)
         return ValidationResult(
             passes: violations.isEmpty, placements: packs.flatMap(\.placements), planID: plan.id,
@@ -161,6 +164,23 @@ public enum Validator {
             }
         }
         return (results, violations)
+    }
+
+    // MARK: - 6b: stability
+
+    /// In a bench or bookshelf, every support and side must be a board at least 150 mm wide.
+    static func unstableSupports(_ plan: Plan) -> [Violation] {
+        guard plan.template != .noCut else { return [] }
+        return plan.newParts.filter { $0.role == .support || $0.role == .side }.compactMap { part in
+            if part.widthMm < minSupportWidth { // MUTANT:stable
+                return Violation(
+                    code: .unstable,
+                    message: "\(part.name): only \(Format.mm(part.widthMm)) mm wide, so the build would tip over. "
+                        + "Supports must be flat boards at least \(Format.mm(minSupportWidth)) mm wide.",
+                    newPart: part.name)
+            }
+            return nil
+        }
     }
 
     // MARK: - 7: size limits

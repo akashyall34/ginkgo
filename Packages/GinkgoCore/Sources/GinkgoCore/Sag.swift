@@ -19,14 +19,9 @@ public enum Sag {
 
     /// Stiffness E in N/mm² (MPa). Conservative defaults, kept in this one place.
     /// Still to do before the demo: cross-check against the Sagulator and the USDA Wood Handbook (CLAUDE.md setup step 9).
+    /// The values and their sources live in `MaterialCatalog`.
     public static func stiffness(of material: Material) -> Double {
-        switch material {
-        case .solidWood: return 9000
-        case .plywood: return 7000
-        case .particleboardMDF: return 2500
-        case .plastic: return 1200     // polypropylene storage carts; conservative
-        case .cardboard: return 200    // corrugated board; never load-bearing in practice
-        }
+        MaterialCatalog.info(material).stiffness
     }
 
     /// The design load in kg for a role, or nil when the role isn't sag-checked.

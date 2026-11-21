@@ -1121,6 +1121,7 @@ public enum Code: String, Codable, Equatable, Sendable {
     case sags = "sags"
     case tooLarge = "too_large"
     case unknownPart = "unknown_part"
+    case unstable = "unstable"
 }
 
 //

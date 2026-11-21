@@ -84,7 +84,7 @@ public enum RuleBasedPlanner {
     static func supportSize(on parts: [Part], seatDepth: Double) -> (width: Double, height: Double)? {
         let width = parts.map { min(seatDepth, min($0.widthMm, $0.heightMm) - Packer.margin) }.min() ?? 0
         var height = parts.map { min(maxSupportHeight, max($0.widthMm, $0.heightMm) - Packer.margin) }.min() ?? 0
-        guard width > 0 else { return nil }
+        guard width >= Validator.minSupportWidth else { return nil }   // narrower supports would tip over
         while height >= minSupportHeight {
             if parts.allSatisfy({ fits(width, height, on: $0) }) { return (width, height) }
             height -= step
@@ -125,8 +125,6 @@ public enum RuleBasedPlanner {
 
     /// Screws hold wood; plastic gets cable ties; cardboard gets mounting tape. The weakest material decides.
     static func fastener(for materials: [Material]) -> String {
-        if materials.contains(.cardboard) { return "double-sided mounting tape strip" }
-        if materials.contains(.plastic) { return "cable tie, 200 mm" }
-        return screw
+        MaterialCatalog.fastener(for: materials)
     }
 }
