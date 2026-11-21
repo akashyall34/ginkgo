@@ -82,7 +82,7 @@ final class ToolExecutorTests: XCTestCase {
         }
         let board = try executor(Inventory(parts: parts, scanID: "s"))
         XCTAssertEqual(try checkFit([fitItem("seat", "top", 400, 300)], on: board).step.summary,
-                       "seat from top: particleboard can't be cut")
+                       "seat from top: particleboard/MDF can't be cut")
         XCTAssertEqual(try checkFit([fitItem("cubby", "top", 460, 400)], on: board).step.status, .pass)
     }
 
@@ -110,7 +110,7 @@ final class ToolExecutorTests: XCTestCase {
         let outcome = try executor().run(call, index: 2)
         XCTAssertEqual(outcome.step, AgentStep(
             index: 2, reason: "Will it hold?", status: .fail,
-            summary: "seat: bends 0.4 of 0.6 mm allowed; shelf: bends 1.9 of 1.5 mm allowed, too much", tool: .checkSag))
+            summary: "seat: bends 0.39 of 0.60 mm allowed; shelf: bends 1.94 of 1.50 mm allowed, too much", tool: .checkSag))
         let rows = try XCTUnwrap(outcome.result.response["results"]?.arrayValue)
         XCTAssertEqual(rows[0]["deflection_mm"], 0.386)
         XCTAssertEqual(rows[0]["limit_mm"], 0.6)

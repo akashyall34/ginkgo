@@ -19,7 +19,15 @@ diff -q "$TMP/GinkgoModels.swift" "$OUT"
 echo "up to date"
 
 echo "== C2. Lint (if swiftlint is installed; the Mac CI always lints)"
-if command -v swiftlint >/dev/null; then swiftlint lint --quiet --strict $PKG/Sources $PKG/Tests; echo clean
+# Passing folders to swiftlint still lints the whole config's "included" list, so name the package's files
+# exactly (the Xcode build-phase mode). --force-exclude keeps the generated models out.
+if command -v swiftlint >/dev/null; then
+  COUNT=0
+  while IFS= read -r FILE; do export "SCRIPT_INPUT_FILE_$COUNT=$FILE"; COUNT=$((COUNT + 1)); done \
+    < <(find $PKG/Sources $PKG/Tests -name '*.swift' | sort)
+  export SCRIPT_INPUT_FILE_COUNT=$COUNT
+  swiftlint lint --quiet --strict --use-script-input-files --force-exclude
+  echo "clean ($COUNT files)"
 else echo "swiftlint not installed: skipped here, enforced by ci.sh on the Mac"; fi
 
 echo "== C3. Build with warnings as errors"

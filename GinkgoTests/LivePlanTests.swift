@@ -3,12 +3,12 @@ import XCTest
 @testable import Ginkgo
 
 final class LivePlanTests: XCTestCase {
-    private func box(width: Float, depth: Float, height: Float) -> FittedBox {
-        FittedBox(width: width, depth: depth, height: height, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 5000)
+    private func box(length: Float, width: Float, height: Float) -> FittedBox {
+        FittedBox(length: length, width: width, height: height, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 5000)
     }
 
     func testTheMeasuredBoxBecomesATopAndTwoSides() {
-        let inventory = LivePlan.inventory(from: box(width: 0.4604, depth: 0.3998, height: 0.58), scanID: "scan-1")
+        let inventory = LivePlan.inventory(from: box(length: 0.4604, width: 0.3998, height: 0.58), scanID: "scan-1")
         XCTAssertEqual(inventory.scanID, "scan-1")
         XCTAssertEqual(inventory.parts.map(\.id), ["top", "side_left", "side_right"])
         let top = inventory.parts[0], side = inventory.parts[1]
@@ -20,7 +20,7 @@ final class LivePlanTests: XCTestCase {
     }
 
     func testANightstandBecomesAProvenBench() throws {
-        let model = try LivePlan.proof(from: box(width: 0.46, depth: 0.40, height: 0.58), scanID: "scan-1").get()
+        let model = try LivePlan.proof(from: box(length: 0.46, width: 0.40, height: 0.58), scanID: "scan-1").get()
         XCTAssertEqual(model.verdict, .proven)
         XCTAssertEqual(model.plan.newParts.map(\.name), ["seat", "leg_left", "leg_right"])
         XCTAssertTrue(model.result.passes)
@@ -34,7 +34,7 @@ final class LivePlanTests: XCTestCase {
     }
 
     func testTheBenchCanBeShownInThreeD() throws {
-        let model = try LivePlan.proof(from: box(width: 0.46, depth: 0.40, height: 0.58), scanID: "s").get()
+        let model = try LivePlan.proof(from: box(length: 0.46, width: 0.40, height: 0.58), scanID: "s").get()
         let scene = TransformLayout.scene(plan: model.plan, inventory: model.inventory)
         XCTAssertEqual(scene.pieces.count, 3)
     }
@@ -42,12 +42,12 @@ final class LivePlanTests: XCTestCase {
     /// Different furniture, not one prop: each either gets a proven plan whose cuts fit, or a clear "no".
     func testWorksAcrossDifferentFurniture() throws {
         let pieces: [(name: String, box: FittedBox)] = [
-            ("side table", box(width: 0.45, depth: 0.45, height: 0.55)),
-            ("dresser", box(width: 1.20, depth: 0.50, height: 0.85)),
-            ("desk", box(width: 1.40, depth: 0.70, height: 0.75)),
-            ("tall cabinet", box(width: 0.80, depth: 0.40, height: 1.80)),
-            ("low shelf", box(width: 0.90, depth: 0.30, height: 0.40)),
-            ("small cabinet", box(width: 0.60, depth: 0.35, height: 0.70)),
+            ("side table", box(length: 0.45, width: 0.45, height: 0.55)),
+            ("dresser", box(length: 1.20, width: 0.50, height: 0.85)),
+            ("desk", box(length: 1.40, width: 0.70, height: 0.75)),
+            ("tall cabinet", box(length: 0.80, width: 0.40, height: 1.80)),
+            ("low shelf", box(length: 0.90, width: 0.30, height: 0.40)),
+            ("small cabinet", box(length: 0.60, width: 0.35, height: 0.70)),
         ]
         for (name, box) in pieces {
             switch LivePlan.proof(from: box, scanID: name) {
@@ -66,7 +66,7 @@ final class LivePlanTests: XCTestCase {
 
     func testSomethingTooSmallForABenchGetsAWholePartsPlan() throws {
         // Too small to cut a bench from: the planner offers its parts reused whole, never a failing plan.
-        let tiny = try LivePlan.proof(from: box(width: 0.12, depth: 0.10, height: 0.08), scanID: "s").get()
+        let tiny = try LivePlan.proof(from: box(length: 0.12, width: 0.10, height: 0.08), scanID: "s").get()
         XCTAssertEqual(tiny.plan.template, .noCut)
         XCTAssertEqual(tiny.verdict, .proven)
         XCTAssertFalse(LivePlan.Failure.noBenchFits.explanation.isEmpty)

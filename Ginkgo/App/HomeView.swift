@@ -37,7 +37,7 @@ struct HomeView: View {
         }
         .preferredColorScheme(appearancePreference.colorScheme)
         .sheet(isPresented: $isAppearanceSettingsPresented) {
-            appearanceSettings
+            AppearanceSettingsView()
         }
     }
 
@@ -63,7 +63,7 @@ struct HomeView: View {
                 }
                 .foregroundStyle(Palette.onBrand)
                 .frame(maxWidth: .infinity)
-                .frame(height: 80)
+                .frame(minHeight: 80)
                 .background(Palette.brand)
                 .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
             }
@@ -87,7 +87,7 @@ struct HomeView: View {
                     .accessibilityHidden(true)
 
                 Text("Ginkgo")
-                    .font(.system(size: 23, weight: .heavy))
+                    .font(.title2.weight(.heavy))
                     .foregroundStyle(Palette.brand)
                     .accessibilityIdentifier("appTitle")
             }
@@ -113,78 +113,14 @@ struct HomeView: View {
         .accessibilityIdentifier("appearanceSettings")
     }
 
-    private var appearanceSettings: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: Spacing.large) {
-                HStack(spacing: Spacing.small) {
-                    ForEach(AppearancePreference.allCases) { preference in
-                        appearanceOption(preference)
-                    }
-                }
-
-                Text("Follow System matches your iPhone's appearance setting.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                Spacer(minLength: 0)
-            }
-            .padding(Spacing.large)
-            .navigationTitle("Appearance")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        isAppearanceSettingsPresented = false
-                    }
-                    .accessibilityIdentifier("appearanceDone")
-                }
-            }
-        }
-        .presentationDetents([.medium])
-        .tint(Palette.brand)
-    }
-
-    private func appearanceOption(_ preference: AppearancePreference) -> some View {
-        let isSelected = appearancePreference == preference
-        return Button {
-            appearancePreferenceRawValue = preference.rawValue
-        } label: {
-            VStack(spacing: Spacing.small) {
-                Image(systemName: preference.symbol)
-                    .font(.title3)
-                Text(preference.title)
-                    .font(.caption)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-            .foregroundStyle(Palette.brand)
-            .frame(maxWidth: .infinity, minHeight: 76)
-            .background(
-                isSelected ? Palette.brand.opacity(0.16) : Palette.background.opacity(0.6),
-                in: RoundedRectangle(cornerRadius: 16)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(
-                        isSelected ? Palette.brand : Palette.brand.opacity(0.2),
-                        lineWidth: isSelected ? 2 : 1
-                    )
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(preference.title)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityIdentifier("appearance-\(preference.rawValue)")
-    }
-
     private var heroTitle: some View {
         VStack(alignment: .leading, spacing: Spacing.medium) {
             Text("A second life starts\nwith a snapshot.")
-                .font(.system(size: 30, weight: .heavy))
+                .font(.largeTitle.weight(.heavy))
                 .foregroundStyle(Palette.brand)
 
             Text("Snap your furniture. Find the best way\nto repurpose it.")
-                .font(.system(size: 15))
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("tagline")
@@ -219,7 +155,7 @@ struct HomeView: View {
     private var impactSection: some View {
         VStack(alignment: .leading, spacing: Spacing.medium) {
             Text("Less landfill. More possibility.")
-                .font(.system(size: 19, weight: .heavy))
+                .font(.title3.weight(.heavy))
                 .foregroundStyle(Palette.brand)
 
             HStack(alignment: .top, spacing: 8) {

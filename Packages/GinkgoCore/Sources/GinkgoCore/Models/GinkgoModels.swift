@@ -18,6 +18,9 @@
 //   let sizeLimits = try SizeLimits(json)
 //   let draftPart = try DraftPart(json)
 //   let planDraft = try PlanDraft(json)
+//   let detectedPart = try DetectedPart(json)
+//   let partsReading = try PartsReading(json)
+//   let partFlag = try PartFlag(json)
 //   let agentStep = try AgentStep(json)
 
 //
@@ -384,8 +387,11 @@ public extension Rect {
     }
 }
 
+/// Gemini's guess from the photo; the user confirms it.
 public enum Material: String, Codable, Equatable, Sendable {
+    case cardboard = "cardboard"
     case particleboardMDF = "particleboard_mdf"
+    case plastic = "plastic"
     case plywood = "plywood"
     case solidWood = "solid_wood"
 }
@@ -395,6 +401,7 @@ public enum TypeEnum: String, Codable, Equatable, Sendable {
     case drawerBox = "drawer_box"
     case drawerFront = "drawer_front"
     case leg = "leg"
+    case rail = "rail"
     case shelf = "shelf"
     case side = "side"
     case top = "top"
@@ -1321,6 +1328,228 @@ public extension DraftPart {
             sourcePartID: sourcePartID ?? self.sourcePartID,
             spanMm: spanMm ?? self.spanMm,
             widthMm: widthMm ?? self.widthMm
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+//
+// Hashable or Equatable:
+// The compiler will not be able to synthesize the implementation of Hashable or Equatable
+// for types that require the use of JSONAny, nor will the implementation of Hashable be
+// synthesized for types that have collections (such as arrays or dictionaries).
+
+/// What Gemini read from one photo of the furniture.
+// MARK: - PartsReading
+public struct PartsReading: Codable, Equatable, Sendable {
+    /// [ymin, xmin, ymax, xmax] of the whole piece on the 0-1000 image scale.
+    public let furnitureBox2D: [Double]
+    public let parts: [DetectedPart]
+
+    public enum CodingKeys: String, CodingKey {
+        case furnitureBox2D = "furniture_box_2d"
+        case parts = "parts"
+    }
+
+    public init(furnitureBox2D: [Double], parts: [DetectedPart]) {
+        self.furnitureBox2D = furnitureBox2D
+        self.parts = parts
+    }
+}
+
+// MARK: PartsReading convenience initializers and mutators
+
+public extension PartsReading {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(PartsReading.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        furnitureBox2D: [Double]? = nil,
+        parts: [DetectedPart]? = nil
+    ) -> PartsReading {
+        return PartsReading(
+            furnitureBox2D: furnitureBox2D ?? self.furnitureBox2D,
+            parts: parts ?? self.parts
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+//
+// Hashable or Equatable:
+// The compiler will not be able to synthesize the implementation of Hashable or Equatable
+// for types that require the use of JSONAny, nor will the implementation of Hashable be
+// synthesized for types that have collections (such as arrays or dictionaries).
+
+/// One part Gemini found in the photo. Code turns its box into millimetres; Gemini's own
+/// size guess is only a cross-check.
+// MARK: - DetectedPart
+public struct DetectedPart: Codable, Equatable, Sendable {
+    /// [ymin, xmin, ymax, xmax] on Gemini's 0-1000 image scale. Missing when the part is hidden
+    /// in the photo.
+    public let box2D: [Double]?
+    /// Not a flat, straight board, like a curved leg.
+    public let curved: Bool?
+    public let damaged: Bool
+    public let estimatedHeightMm: Double
+    public let estimatedWidthMm: Double
+    /// Gemini's guess from the photo; the user confirms it.
+    public let material: Material?
+    public let note: String?
+    public let type: TypeEnum
+    /// Covered in fabric or foam, like a padded seat.
+    public let upholstered: Bool?
+
+    public enum CodingKeys: String, CodingKey {
+        case box2D = "box_2d"
+        case curved = "curved"
+        case damaged = "damaged"
+        case estimatedHeightMm = "estimated_height_mm"
+        case estimatedWidthMm = "estimated_width_mm"
+        case material = "material"
+        case note = "note"
+        case type = "type"
+        case upholstered = "upholstered"
+    }
+
+    public init(box2D: [Double]?, curved: Bool?, damaged: Bool, estimatedHeightMm: Double, estimatedWidthMm: Double, material: Material?, note: String?, type: TypeEnum, upholstered: Bool?) {
+        self.box2D = box2D
+        self.curved = curved
+        self.damaged = damaged
+        self.estimatedHeightMm = estimatedHeightMm
+        self.estimatedWidthMm = estimatedWidthMm
+        self.material = material
+        self.note = note
+        self.type = type
+        self.upholstered = upholstered
+    }
+}
+
+// MARK: DetectedPart convenience initializers and mutators
+
+public extension DetectedPart {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(DetectedPart.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        box2D: [Double]?? = nil,
+        curved: Bool?? = nil,
+        damaged: Bool? = nil,
+        estimatedHeightMm: Double? = nil,
+        estimatedWidthMm: Double? = nil,
+        material: Material?? = nil,
+        note: String?? = nil,
+        type: TypeEnum? = nil,
+        upholstered: Bool?? = nil
+    ) -> DetectedPart {
+        return DetectedPart(
+            box2D: box2D ?? self.box2D,
+            curved: curved ?? self.curved,
+            damaged: damaged ?? self.damaged,
+            estimatedHeightMm: estimatedHeightMm ?? self.estimatedHeightMm,
+            estimatedWidthMm: estimatedWidthMm ?? self.estimatedWidthMm,
+            material: material ?? self.material,
+            note: note ?? self.note,
+            type: type ?? self.type,
+            upholstered: upholstered ?? self.upholstered
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+//
+// Hashable or Equatable:
+// The compiler will not be able to synthesize the implementation of Hashable or Equatable
+// for types that require the use of JSONAny, nor will the implementation of Hashable be
+// synthesized for types that have collections (such as arrays or dictionaries).
+
+/// Something the user should check on the Confirm screen before the parts are trusted.
+// MARK: - PartFlag
+public struct PartFlag: Codable, Equatable, Sendable {
+    public let message: String
+    public let partID: String
+
+    public enum CodingKeys: String, CodingKey {
+        case message = "message"
+        case partID = "part_id"
+    }
+
+    public init(message: String, partID: String) {
+        self.message = message
+        self.partID = partID
+    }
+}
+
+// MARK: PartFlag convenience initializers and mutators
+
+public extension PartFlag {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(PartFlag.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        message: String? = nil,
+        partID: String? = nil
+    ) -> PartFlag {
+        return PartFlag(
+            message: message ?? self.message,
+            partID: partID ?? self.partID
         )
     }
 

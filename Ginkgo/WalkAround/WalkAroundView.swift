@@ -6,6 +6,7 @@ import SwiftUI
 struct WalkAroundView: View {
     @State private var model = WalkAroundModel()
     @State private var capture = MeshCapture()
+    @State private var photo: Data?
 
     var body: some View {
         Group {
@@ -45,9 +46,9 @@ struct WalkAroundView: View {
                 Text(WalkAroundModel.summary(box))
                     .font(.title2.weight(.semibold).monospacedDigit())
                     .accessibilityIdentifier("walkAroundResult")
-                Text("Width × height × depth").font(.footnote).foregroundStyle(.secondary)
+                Text("Length × width × height").font(.footnote).foregroundStyle(.secondary)
                 NavigationLink {
-                    LiveProofView(box: box)
+                    PartsView(box: box, photo: photo)
                 } label: {
                     Label("Make a plan", systemImage: "hammer")
                         .font(.headline)
@@ -58,6 +59,19 @@ struct WalkAroundView: View {
                 .tint(Palette.brand)
                 .accessibilityIdentifier("makePlan")
             }
+            if model.status == .scanning {
+                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                    let points = capture.vertexCount()
+                    VStack(alignment: .leading, spacing: Spacing.xSmall) {
+                        ProgressView(value: WalkAroundModel.coverage(points: points))
+                            .tint(Palette.brand)
+                        Text(WalkAroundModel.progressText(points: points))
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("walkAroundProgress")
+                }
+            }
             Text(model.instruction)
                 .font(.body)
                 .foregroundStyle(model.status == .scanning ? Color.primary : Color.secondary)
@@ -65,7 +79,11 @@ struct WalkAroundView: View {
                 .accessibilityIdentifier("walkAroundInstruction")
             Button {
                 if model.status == .scanning {
-                    model.finish(points: capture.furniturePoints(), floorY: capture.floorY(), aim: capture.aimPoint())
+                    let points = capture.furniturePoints(), floorY = capture.floorY(), aim = capture.aimPoint()
+                    photo = capture.photoJPEG()
+                    let cloud = capture.depth.points
+                    _ = WalkAroundRecording(points: points, floorY: floorY, aim: aim, cloud: cloud).save()
+                    model.finish(points: points, floorY: floorY, aim: aim, cloud: cloud)
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 } else {
                     model.rescan()

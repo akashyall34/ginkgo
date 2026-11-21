@@ -108,8 +108,8 @@ struct ProofModel {
 }
 
 extension ProofModel {
-    /// The bundled example: a nightstand turned into a bench, as validated by Ginkgo,
-    /// or the chatbot's plan for the same nightstand with its problems.
+    /// The bundled example: a piece of furniture turned into a bench, as validated by Ginkgo,
+    /// or the chatbot's plan for the same piece with its problems.
     static func example(chatbot: Bool = false, bundle: Bundle = .main) -> ProofModel? {
         func load<T: Decodable>(_ name: String, as: T.Type) -> T? {
             guard let url = bundle.url(forResource: name, withExtension: "json"),
@@ -122,7 +122,7 @@ extension ProofModel {
             return ProofModel(plan: plan, result: Validator.validate(plan: plan, inventory: inventory, limits: nil),
                               inventory: inventory)
         }
-        // Ginkgo's own plan for the nightstand: the rule-based bench, laid out in 3D and validated.
+        // Ginkgo's own plan for the piece: the rule-based bench, laid out in 3D and validated.
         return try? LivePlan.proof(from: inventory).get()
     }
 }

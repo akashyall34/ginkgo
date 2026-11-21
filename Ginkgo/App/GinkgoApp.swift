@@ -23,12 +23,18 @@ struct GinkgoApp: App {
                 NavigationStack { ExampleContrastView() }
             case .demo:
                 DemoView()
+            case .parts:
+                // A measured cabinet-sized box with no photo: the offline path, as on a site with no signal.
+                NavigationStack {
+                    PartsView(box: FittedBox(length: 0.6, width: 0.35, height: 0.7, baseCenter: .zero, yaw: 0,
+                                             uncertainty: 0.01, pointCount: 4000), photo: nil)
+                }
             }
         }
     }
 }
 
-/// The sample nightstand turning into the bench, or a designed state if it can't be loaded.
+/// The sample furniture turning into the bench, or a designed state if it can't be loaded.
 struct ExampleTransformView: View {
     var body: some View {
         if let scene = TransformLayout.example() {
@@ -40,7 +46,7 @@ struct ExampleTransformView: View {
     }
 }
 
-/// The sample nightstand-to-bench plan, or a designed state if it can't be loaded.
+/// The sample furniture-to-bench plan, or a designed state if it can't be loaded.
 struct ExampleProofView: View {
     var body: some View {
         if let example = ProofModel.example() {

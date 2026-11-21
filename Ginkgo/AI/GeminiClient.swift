@@ -28,6 +28,22 @@ struct GeminiClient: Sendable {
     /// answered where default thinking produced nothing within 60 s (measured Nov 21).
     static let thinking = ThinkingConfig(thinkingLevel: .low)
 
+    /// Returns the model's JSON text for a photo and a prompt, constrained to `schema`.
+    func json(prompt: String, image: Data, mimeType: String = "image/jpeg", schema: Schema) async throws -> String {
+        guard FirebaseApp.app() != nil else { throw GeminiError.notConfigured }
+        return try await runner.run { modelName in
+            let model = FirebaseAI.firebaseAI(backend: .googleAI()).generativeModel(
+                modelName: modelName,
+                generationConfig: GenerationConfig(responseMIMEType: "application/json", responseSchema: schema,
+                                                   thinkingConfig: Self.thinking),
+                requestOptions: RequestOptions(timeout: Self.requestTimeout.seconds)
+            )
+            let response = try await model.generateContent(InlineDataPart(data: image, mimeType: mimeType), prompt)
+            guard let text = response.text, !text.isEmpty else { throw GeminiError.emptyResponse }
+            return text
+        }
+    }
+
     /// Returns the model's JSON text, already constrained to `schema`.
     func json(prompt: String, schema: Schema) async throws -> String {
         guard FirebaseApp.app() != nil else { throw GeminiError.notConfigured }

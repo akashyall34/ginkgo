@@ -3,15 +3,15 @@ import simd
 
 /// An upright box around a piece of furniture, in meters, in ARKit world space (y is up).
 struct FittedBox: Equatable {
-    /// The longer horizontal side.
+    /// The longer side across the floor.
+    let length: Float
+    /// The shorter side across the floor.
     let width: Float
-    /// The shorter horizontal side.
-    let depth: Float
     /// From the floor to the top.
     let height: Float
     /// Center of the box's footprint on the floor.
     let baseCenter: SIMD3<Float>
-    /// Rotation of the width side around the vertical axis, in radians, 0..<π.
+    /// Rotation of the length side around the vertical axis, in radians, 0..<π.
     let yaw: Float
     /// Typical distance of the surface points from the box's faces: the ± of each size.
     let uncertainty: Float
@@ -72,9 +72,9 @@ enum BoxFit {
         yaw = yaw.truncatingRemainder(dividingBy: .pi)
         if yaw < 0 { yaw += .pi }
 
-        let fitted = FittedBox(width: max(box.sizeU, box.sizeV), depth: min(box.sizeU, box.sizeV), height: height,
+        let fitted = FittedBox(length: max(box.sizeU, box.sizeV), width: min(box.sizeU, box.sizeV), height: height,
                                baseCenter: SIMD3(centerX, floorY, centerZ), yaw: yaw, uncertainty: 0, pointCount: points.count)
-        return FittedBox(width: fitted.width, depth: fitted.depth, height: fitted.height, baseCenter: fitted.baseCenter,
+        return FittedBox(length: fitted.length, width: fitted.width, height: fitted.height, baseCenter: fitted.baseCenter,
                          yaw: fitted.yaw, uncertainty: residual(points, box: fitted), pointCount: points.count)
     }
 
@@ -120,7 +120,7 @@ enum BoxFit {
         for p in points {
             let dx = p.x - box.baseCenter.x, dz = p.z - box.baseCenter.z
             let u = abs(dx * cosA + dz * sinA), v = abs(-dx * sinA + dz * cosA)
-            let distance = min(abs(u - box.width / 2), abs(v - box.depth / 2), abs(p.y - box.baseCenter.y - box.height))
+            let distance = min(abs(u - box.length / 2), abs(v - box.width / 2), abs(p.y - box.baseCenter.y - box.height))
             sum += distance * distance
         }
         return (sum / Float(points.count)).squareRoot()
