@@ -42,6 +42,7 @@ struct ProofView: View {
                 } label: {
                     Label("See it built", systemImage: "cube.transparent")
                         .font(.headline)
+                        .foregroundStyle(Palette.onBrand)
                         .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
                 }
                 .buttonStyle(.borderedProminent)

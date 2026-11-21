@@ -75,6 +75,7 @@ struct ScanView: View {
         if model.frame == nil {
             Button { model.capture() } label: {
                 Label("Capture", systemImage: "camera.shutter.button")
+                    .foregroundStyle(Palette.onBrand)
                     .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
             }
             .buttonStyle(.borderedProminent)

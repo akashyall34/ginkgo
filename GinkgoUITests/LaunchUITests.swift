@@ -29,6 +29,7 @@ final class LaunchUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
         XCTAssertTrue(app.staticTexts["appTitle"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["snapFurniture"].exists)
     }
 
     @MainActor
@@ -48,5 +49,21 @@ final class LaunchUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["guideTitle"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Frame one flat face"].exists)
         XCTAssertTrue(app.buttons["guideStartScan"].exists)
+    }
+
+    @MainActor
+    func testAppearanceSettingsOfferAllThreeChoices() {
+        let app = XCUIApplication()
+        app.launch()
+        app.buttons["appearanceSettings"].tap()
+
+        XCTAssertTrue(app.buttons["appearance-light"].exists)
+        XCTAssertTrue(app.buttons["appearance-dark"].exists)
+        XCTAssertTrue(app.buttons["appearance-system"].exists)
+
+        app.buttons["appearance-dark"].tap()
+        XCTAssertTrue(app.buttons["appearance-dark"].isSelected)
+        app.buttons["appearance-system"].tap()
+        app.buttons["appearanceDone"].tap()
     }
 }
