@@ -1116,6 +1116,7 @@ public enum Code: String, Codable, Equatable, Sendable {
     case cutNotAllowed = "cut_not_allowed"
     case damagedPartUsed = "damaged_part_used"
     case doesNotFit = "does_not_fit"
+    case emptyPlan = "empty_plan"
     case hitsKeepOut = "hits_keep_out"
     case partUsedTwice = "part_used_twice"
     case sags = "sags"

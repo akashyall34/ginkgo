@@ -33,6 +33,14 @@ final class StabilityTests: XCTestCase {
         ], scanID: "scan-stool")
     }
 
+    func testAPlanWithNoPartsNeverPasses() throws {
+        let empty = Plan(hardware: [], id: "p", newParts: [], overallMm: nil, scanID: "s", source: .chatbot, steps: [], template: .noCut)
+        let result = Validator.validate(plan: empty, inventory: try Fixtures.inventory(), limits: nil)
+        XCTAssertFalse(result.passes)
+        XCTAssertEqual(result.violations, [Violation(
+            code: .emptyPlan, message: "The plan has no parts, so there is nothing to build.", newPart: "plan")])
+    }
+
     func testTheSampleBenchStandsFirm() throws {
         XCTAssertTrue(try validate(supportWidth: 300).passes)
     }

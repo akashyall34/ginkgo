@@ -12,7 +12,10 @@ public enum Validator {
         let parts = Dictionary(inventory.parts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let packs = pack(plan, inventory: inventory)
         let sag = sagResults(plan, parts: parts)
-        let violations = unknownParts(plan, inventory: inventory)
+        let empty = plan.newParts.isEmpty
+            ? [Violation(code: .emptyPlan, message: "The plan has no parts, so there is nothing to build.", newPart: "plan")]
+            : []
+        let violations = empty + unknownParts(plan, inventory: inventory)
             + duplicateNames(plan)
             + damagedParts(plan, parts: parts)
             + cutsNotAllowed(plan, parts: parts)

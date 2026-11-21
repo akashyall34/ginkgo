@@ -60,7 +60,8 @@ enum ChatbotCommand {
             let result = Validator.validate(plan: plan, inventory: inventory, limits: options.limits)
             results.append(result)
             let cuts = answer.parts.map { "\($0.name) \(Format.mm($0.widthMm))×\(Format.mm($0.heightMm)) from \($0.from)" }
-            LiveCommand.say("\(result.passes ? "✓" : "✗") run \(run): \(cuts.joined(separator: ", "))")
+            let said = cuts.isEmpty ? "no parts (\(answer.template)): \(answer.steps.joined(separator: " "))" : cuts.joined(separator: ", ")
+            LiveCommand.say("\(result.passes ? "✓" : "✗") run \(run): \(said)")
             for violation in result.violations { LiveCommand.say("    ✗ \(violation.message)") }
             if !result.passes { lastFailing = plan }
         }
