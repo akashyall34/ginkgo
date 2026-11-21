@@ -16,6 +16,16 @@ struct ScanView: View {
         .navigationTitle("Scan")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    WalkAroundView()
+                } label: {
+                    Label("Walk around", systemImage: "rotate.3d")
+                }
+                .accessibilityIdentifier("walkAroundLink")
+            }
+        }
         .background(Palette.background)
     }
 

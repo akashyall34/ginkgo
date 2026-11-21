@@ -10,6 +10,7 @@ final class LaunchRouteTests: XCTestCase {
     func testEachKnownScreen() {
         XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "scan"]), .scan)
         XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "example"]), .example)
+        XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "transform"]), .transform)
     }
 
     func testFoundAmongOtherArguments() {

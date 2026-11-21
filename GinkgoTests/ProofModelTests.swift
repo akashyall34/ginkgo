@@ -16,8 +16,8 @@ final class ProofModelTests: XCTestCase {
 
     func testAFailingPlanCountsItsProblems() throws {
         let m = try chatbot()
-        XCTAssertEqual(m.verdict, .fails(problems: 3))
-        XCTAssertEqual(m.headline, "Doesn't fit: 3 problems")
+        XCTAssertEqual(m.verdict, .fails(problems: 4))
+        XCTAssertEqual(m.headline, "Doesn't fit: 4 problems")
     }
 
     func testOneProblemIsSingular() throws {
@@ -31,7 +31,7 @@ final class ProofModelTests: XCTestCase {
         // Defensive: never show "Proven" while any violation exists.
         let m = try chatbot()
         let contradictory = ProofModel(plan: m.plan, result: try result(m.result, passes: true), inventory: m.inventory)
-        XCTAssertEqual(contradictory.verdict, .fails(problems: 3))
+        XCTAssertEqual(contradictory.verdict, .fails(problems: 4))
     }
 
     // MARK: cuts
@@ -47,11 +47,12 @@ final class ProofModelTests: XCTestCase {
 
     func testProblemsAttachToThePieceTheyAreAbout() throws {
         let rows = try chatbot().cuts
-        let seat = try XCTUnwrap(rows.first { $0.name == "Seat" })
-        XCTAssertFalse(seat.fits)
-        XCTAssertEqual(seat.problems.count, 3)
-        XCTAssertTrue(seat.problems[0].contains("490 mm"))
-        XCTAssertTrue(rows.filter { $0.name != "Seat" }.allSatisfy(\.fits))
+        // Vivek's validator on the chatbot plan: one problem on each of the four pieces.
+        XCTAssertEqual(rows.map(\.name), ["Seat", "Left leg", "Right leg", "Shelf"])
+        XCTAssertEqual(rows.map(\.problems.count), [1, 1, 1, 1])
+        XCTAssertFalse(rows.contains(where: \.fits))
+        let leftLeg = try XCTUnwrap(rows.first { $0.name == "Left leg" })
+        XCTAssertTrue(leftLeg.problems[0].contains("388 × 458"), leftLeg.problems[0])
     }
 
     func testProblemsNotAboutAPlannedPieceAreStillShown() throws {
@@ -73,9 +74,10 @@ final class ProofModelTests: XCTestCase {
         XCTAssertEqual(seat.shareOfLimit, 0.6436, accuracy: 1e-4)
         XCTAssertEqual(seat.summary, "0.39 of 0.60 mm allowed")
         XCTAssertTrue(seat.passes)
-        let failing = try XCTUnwrap(try chatbot().sagRows.first)
-        XCTAssertGreaterThan(failing.shareOfLimit, 1)
-        XCTAssertFalse(failing.passes)
+        // The chatbot's mistakes are fit, screw holes and a damaged part, not bending.
+        let chatbotSag = try chatbot().sagRows
+        XCTAssertFalse(chatbotSag.isEmpty)
+        XCTAssertTrue(chatbotSag.allSatisfy(\.passes))
     }
 
     func testAZeroLimitNeverReadsAsSafe() {
