@@ -4,15 +4,16 @@ import SwiftUI
 /// every judge sees the same run. Works without internet: nothing here calls Gemini.
 struct DemoView: View {
     enum Step: String, CaseIterable, Identifiable {
-        case measure, contrast, proof, transform
+        case measure, contrast, agent, proof, transform
         var id: String { rawValue }
 
         var title: String {
             switch self {
             case .measure: return "1. Measure it"
             case .contrast: return "2. Chatbot vs Ginkgo"
-            case .proof: return "3. Proven to fit"
-            case .transform: return "4. Transform and AR"
+            case .agent: return "3. AI suggests, code decides"
+            case .proof: return "4. Proven to fit"
+            case .transform: return "5. Transform and AR"
             }
         }
 
@@ -20,6 +21,7 @@ struct DemoView: View {
             switch self {
             case .measure: return "LiDAR, one tap or walk around"
             case .contrast: return "Same furniture, same validator"
+            case .agent: return RecordedRun.label
             case .proof: return "Every cut, the sag check, the cutting plan"
             case .transform: return "The furniture becomes something new"
             }
@@ -29,6 +31,7 @@ struct DemoView: View {
             switch self {
             case .measure: return "viewfinder"
             case .contrast: return "exclamationmark.triangle"
+            case .agent: return "sparkles"
             case .proof: return "checkmark.seal"
             case .transform: return "cube.transparent"
             }
@@ -62,6 +65,7 @@ struct DemoView: View {
                 switch step {
                 case .measure: ScanView(source: FrameSources.makeDefault())
                 case .contrast: ExampleContrastView()
+                case .agent: ExampleRecordedRunView()
                 case .proof: ExampleProofView()
                 case .transform: ExampleTransformView()
                 }

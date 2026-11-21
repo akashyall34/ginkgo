@@ -27,7 +27,8 @@ final class DemoUITests: XCTestCase {
 
     func testEveryDemoStepOpensAndResetReturnsToTheList() {
         let app = launch("demo")
-        let screens = ["measure": "capture", "contrast": "verdict", "proof": "verdict", "transform": "transformStage"]
+        let screens = ["measure": "capture", "contrast": "verdict", "agent": "recordedLabel", "proof": "verdict",
+                       "transform": "transformStage"]
         for (step, mark) in screens {
             app.buttons["demo-\(step)"].tap()
             XCTAssertTrue(app.descendants(matching: .any)[mark].waitForExistence(timeout: 10), step)
