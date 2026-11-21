@@ -60,9 +60,10 @@ extension ToolExecutor {
         if part.damaged {
             return blocked(request, by: "damaged", words: "part is damaged", hint: "\(part.id) is damaged; use another part.")
         }
-        if part.material == .particleboardMDF && !whole {
-            return blocked(request, by: "particleboard", words: "particleboard can't be cut",
-                           hint: "\(part.id) is particleboard/MDF; reuse it whole or use another part.")
+        if !part.material.canBeCut && !whole {
+            let material = part.material.displayName
+            let hint = "\(part.id) is \(material), which \(part.material.whyNotCut); reuse it whole or use another part."
+            return blocked(request, by: part.material.rawValue, words: "\(material) can't be cut", hint: hint)
         }
         if let placement = pack.placements.first(where: { $0.newPart == "#\(number)" }) {
             let spare = min(pack.spareWidthMm, pack.spareHeightMm)

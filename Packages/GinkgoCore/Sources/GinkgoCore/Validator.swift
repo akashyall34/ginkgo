@@ -65,10 +65,10 @@ public enum Validator {
         plan.newParts.compactMap { newPart in
             guard let part = parts[newPart.sourcePartID], !isWhole(newPart, of: part) else { return nil }
             let size = "\(Format.mm(newPart.widthMm)) × \(Format.mm(newPart.heightMm)) mm"
-            if part.material == .particleboardMDF {
+            if !part.material.canBeCut {
                 return Violation(
                     code: .cutNotAllowed,
-                    message: "\(newPart.name): \(part.id) is particleboard/MDF, which crumbles when cut. "
+                    message: "\(newPart.name): \(part.id) is \(part.material.displayName), which \(part.material.whyNotCut). "
                         + "Reuse it whole (\(dimensions(part))) instead of cutting \(size).",
                     newPart: newPart.name)
             }

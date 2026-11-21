@@ -82,7 +82,7 @@ final class ToolExecutorTests: XCTestCase {
         }
         let board = try executor(Inventory(parts: parts, scanID: "s"))
         XCTAssertEqual(try checkFit([fitItem("seat", "top", 400, 300)], on: board).step.summary,
-                       "seat from top: particleboard can't be cut")
+                       "seat from top: particleboard/MDF can't be cut")
         XCTAssertEqual(try checkFit([fitItem("cubby", "top", 460, 400)], on: board).step.status, .pass)
     }
 
