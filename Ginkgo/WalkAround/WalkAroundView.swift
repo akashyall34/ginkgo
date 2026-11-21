@@ -76,7 +76,9 @@ struct WalkAroundView: View {
                 .accessibilityIdentifier("walkAroundInstruction")
             Button {
                 if model.status == .scanning {
-                    model.finish(points: capture.furniturePoints(), floorY: capture.floorY(), aim: capture.aimPoint())
+                    let points = capture.furniturePoints(), floorY = capture.floorY(), aim = capture.aimPoint()
+                    _ = WalkAroundRecording(points: points, floorY: floorY, aim: aim).save()
+                    model.finish(points: points, floorY: floorY, aim: aim)
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 } else {
                     model.rescan()
