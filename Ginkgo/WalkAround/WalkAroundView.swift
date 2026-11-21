@@ -46,6 +46,15 @@ struct WalkAroundView: View {
                     .font(.title2.weight(.semibold).monospacedDigit())
                     .accessibilityIdentifier("walkAroundResult")
                 Text("Width × height × depth").font(.footnote).foregroundStyle(.secondary)
+                NavigationLink {
+                    LiveProofView(box: box)
+                } label: {
+                    Label("Make a plan", systemImage: "hammer")
+                        .font(.headline).frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Palette.brand)
+                .accessibilityIdentifier("makePlan")
             }
             Text(model.instruction)
                 .font(.body)

@@ -38,7 +38,7 @@ struct ProofView: View {
         .safeAreaInset(edge: .bottom) {
             if model.verdict == .proven {
                 NavigationLink {
-                    ExampleTransformView()
+                    TransformView(scene: TransformLayout.scene(plan: model.plan, inventory: model.inventory))
                 } label: {
                     Label("See it built", systemImage: "cube.transparent")
                         .font(.headline)

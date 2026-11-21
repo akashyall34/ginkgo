@@ -48,3 +48,19 @@ struct ExampleContrastView: View {
         }
     }
 }
+
+/// The plan for what was just measured, or why there isn't one.
+struct LiveProofView: View {
+    let box: FittedBox
+    @State private var scanID = UUID().uuidString
+
+    var body: some View {
+        switch LivePlan.proof(from: box, scanID: scanID) {
+        case .success(let model):
+            ProofView(model: model)
+        case .failure(let failure):
+            ContentUnavailableView("No bench fits", systemImage: "ruler", description: Text(failure.explanation))
+                .accessibilityIdentifier("noPlan")
+        }
+    }
+}

@@ -85,8 +85,12 @@ struct ProofModel {
     /// The measurements with the least room to spare, tightest first.
     var checksBeforeCutting: [String] {
         result.verify.sorted { $0.marginMm < $1.marginMm }.map {
-            String(format: "Check the %@'s %@: %.0f mm to spare.",
-                   Self.displayName($0.sourcePartID).lowercased(), $0.dimension.rawValue, $0.marginMm)
+            let side = String(format: "Check the %@'s %@", Self.displayName($0.sourcePartID).lowercased(), $0.dimension.rawValue)
+            // Spare is what's left after the saw cut and measuring allowance (Packer.margin).
+            if $0.marginMm < 0.5 {
+                return side + String(format: ": a tight fit, with only the %.0f mm cutting allowance to spare.", Packer.margin)
+            }
+            return side + String(format: ": %.0f mm to spare.", $0.marginMm)
         }
     }
 
@@ -112,9 +116,13 @@ extension ProofModel {
                   let data = try? Data(contentsOf: url) else { return nil }
             return try? JSONDecoder().decode(T.self, from: data)
         }
-        guard let plan = load(chatbot ? "plan_chatbot" : "plan_bench", as: Plan.self),
-              let inventory = load("inventory", as: Inventory.self) else { return nil }
-        return ProofModel(plan: plan, result: Validator.validate(plan: plan, inventory: inventory, limits: nil),
-                          inventory: inventory)
+        guard let inventory = load("inventory", as: Inventory.self) else { return nil }
+        if chatbot {
+            guard let plan = load("plan_chatbot", as: Plan.self) else { return nil }
+            return ProofModel(plan: plan, result: Validator.validate(plan: plan, inventory: inventory, limits: nil),
+                              inventory: inventory)
+        }
+        // Ginkgo's own plan for the nightstand: the rule-based bench, laid out in 3D and validated.
+        return try? LivePlan.proof(from: inventory).get()
     }
 }

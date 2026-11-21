@@ -103,9 +103,9 @@ final class ModelTests: XCTestCase {
         let inv = try JSONDecoder().decode(Inventory.self, from: example("inventory"))
         XCTAssertEqual(inv.parts.count, 4)
         XCTAssertEqual(inv.parts[0].material, .solidWood)
-        let plan = try JSONDecoder().decode(Plan.self, from: example("plan_bench"))
-        XCTAssertEqual(plan.template, .bench)
-        XCTAssertEqual(plan.newParts.first?.spanMm, 360)
+        let plan = try JSONDecoder().decode(Plan.self, from: example("plan_chatbot"))
+        XCTAssertEqual(plan.source, .chatbot)
+        XCTAssertEqual(plan.newParts.count, 4)
     }
 
     func testBadDataFailsLoudly() throws {
