@@ -117,7 +117,9 @@ private struct TransformStage: View {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 } label: {
                     Text(assembled ? "Show the original" : "Transform")
-                        .font(.headline).frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                        .font(.headline)
+                        .foregroundStyle(Palette.onBrand)
+                        .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(Palette.brand)

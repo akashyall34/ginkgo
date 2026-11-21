@@ -77,6 +77,20 @@ final class DesignSystemTests: XCTestCase {
         }
     }
 
+    func testOnBrandTextMeetsWCAGContrastInLightAndDarkMode() throws {
+        for traits in [light, dark] {
+            let onBrand = try color("LaunchBackground", traits)
+            let brand = try color("Brand", traits)
+            XCTAssertGreaterThanOrEqual(Contrast.ratio(onBrand, brand), 4.5)
+        }
+    }
+
+    func testAppearancePreferenceCanFollowSystemOrSetAnOverride() {
+        XCTAssertNil(AppearancePreference.system.colorScheme)
+        XCTAssertEqual(AppearancePreference.light.colorScheme, .light)
+        XCTAssertEqual(AppearancePreference.dark.colorScheme, .dark)
+    }
+
     func testContrastFormulaKnownValues() {
         XCTAssertEqual(Contrast.ratio(.black, .white), 21, accuracy: 0.01)
         XCTAssertEqual(Contrast.ratio(.white, .white), 1, accuracy: 0.001)

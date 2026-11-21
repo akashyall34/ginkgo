@@ -7,11 +7,44 @@ enum Palette {
     static let verified = Color("Verified")
     static let fails = Color("Fails")
     static let background = Color("LaunchBackground")
+    static let onBrand = Color("LaunchBackground")
 
     /// Every named color, so tests can check each one exists and is readable.
     static let allNames = ["Brand", "Verified", "Fails", "LaunchBackground"]
     /// Colors used for text or icons on the background, which must meet contrast rules.
     static let foregroundNames = ["Brand", "Verified", "Fails"]
+}
+
+enum AppearancePreference: String, CaseIterable, Identifiable {
+    case light
+    case dark
+    case system
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .system: return "Follow System"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .system: return "iphone"
+        case .light: return "sun.max"
+        case .dark: return "moon"
+        }
+    }
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
 }
 
 /// Spacing on a 4-point grid. Use these instead of literal numbers.
