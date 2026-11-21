@@ -6,6 +6,7 @@ import SwiftUI
 struct WalkAroundView: View {
     @State private var model = WalkAroundModel()
     @State private var capture = MeshCapture()
+    @State private var photo: Data?
 
     var body: some View {
         Group {
@@ -47,7 +48,7 @@ struct WalkAroundView: View {
                     .accessibilityIdentifier("walkAroundResult")
                 Text("Length × width × height").font(.footnote).foregroundStyle(.secondary)
                 NavigationLink {
-                    LiveProofView(box: box)
+                    PartsView(box: box, photo: photo)
                 } label: {
                     Label("Make a plan", systemImage: "hammer")
                         .font(.headline)
@@ -79,8 +80,10 @@ struct WalkAroundView: View {
             Button {
                 if model.status == .scanning {
                     let points = capture.furniturePoints(), floorY = capture.floorY(), aim = capture.aimPoint()
-                    _ = WalkAroundRecording(points: points, floorY: floorY, aim: aim).save()
-                    model.finish(points: points, floorY: floorY, aim: aim)
+                    photo = capture.photoJPEG()
+                    let cloud = capture.depth.points
+                    _ = WalkAroundRecording(points: points, floorY: floorY, aim: aim, cloud: cloud).save()
+                    model.finish(points: points, floorY: floorY, aim: aim, cloud: cloud)
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 } else {
                     model.rescan()

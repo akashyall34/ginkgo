@@ -31,3 +31,13 @@ final class WalkAroundRecordingTests: XCTestCase {
         XCTAssertNil(WalkAroundRecording(points: [], floorY: 0, aim: nil).save(in: file))
     }
 }
+
+final class WalkAroundRecordingCloudTests: XCTestCase {
+    func testTheDepthCloudIsKeptWithTheRecording() throws {
+        let cloud = [SIMD3<Float>(0.1, 0.2, 0.3), SIMD3(0.4, 0.5, 0.6)]
+        let recording = WalkAroundRecording(points: [], floorY: 0, aim: nil, cloud: cloud)
+        let loaded = try JSONDecoder().decode(WalkAroundRecording.self, from: JSONEncoder().encode(recording))
+        XCTAssertEqual(loaded.cloudPoints, cloud)
+        XCTAssertNil(WalkAroundRecording(points: [], floorY: 0, aim: nil).cloud, "No depth, no cloud field")
+    }
+}

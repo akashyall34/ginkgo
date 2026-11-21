@@ -7,6 +7,7 @@ enum LaunchRoute: Equatable {
     case transform
     case contrast
     case demo
+    case parts
 
     init(arguments: [String]) {
         guard let flag = arguments.firstIndex(of: "-openScreen"), flag + 1 < arguments.count else {
@@ -19,6 +20,7 @@ enum LaunchRoute: Equatable {
         case "transform": self = .transform
         case "contrast": self = .contrast
         case "demo": self = .demo
+        case "parts": self = .parts
         default: self = .home
         }
     }

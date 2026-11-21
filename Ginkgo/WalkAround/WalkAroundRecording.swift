@@ -7,15 +7,21 @@ struct WalkAroundRecording: Codable, Equatable {
     let floorY: Float?
     let aim: [Float]?
     let points: [Float]
+    /// Raw depth points gathered while walking (x y z), when the scan had them.
+    let cloud: [Float]?
 
-    init(points: [SIMD3<Float>], floorY: Float?, aim: SIMD3<Float>?) {
+    init(points: [SIMD3<Float>], floorY: Float?, aim: SIMD3<Float>?, cloud: [SIMD3<Float>] = []) {
         self.floorY = floorY
         self.aim = aim.map { [$0.x, $0.y, $0.z] }
         self.points = points.flatMap { [$0.x, $0.y, $0.z] }
+        self.cloud = cloud.isEmpty ? nil : cloud.flatMap { [$0.x, $0.y, $0.z] }
     }
 
-    var worldPoints: [SIMD3<Float>] {
-        stride(from: 0, to: points.count - 2, by: 3).map { SIMD3(points[$0], points[$0 + 1], points[$0 + 2]) }
+    var worldPoints: [SIMD3<Float>] { Self.unflatten(points) }
+    var cloudPoints: [SIMD3<Float>] { Self.unflatten(cloud ?? []) }
+
+    private static func unflatten(_ values: [Float]) -> [SIMD3<Float>] {
+        stride(from: 0, to: values.count - 2, by: 3).map { SIMD3(values[$0], values[$0 + 1], values[$0 + 2]) }
     }
 
     var aimPoint: SIMD3<Float>? {

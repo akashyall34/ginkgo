@@ -93,3 +93,39 @@ final class WalkAroundProgressTests: XCTestCase {
         XCTAssertTrue(WalkAroundModel.progressText(points: WalkAroundModel.readyPoints).hasPrefix("Ready"))
     }
 }
+
+@MainActor
+final class WalkAroundDepthTests: XCTestCase {
+    /// Points on the four sides and top of an upright box centered on the origin, standing on the floor.
+    private func shell(length: Float, width: Float, top: Float, from bottom: Float, step: Float) -> [SIMD3<Float>] {
+        let (l, w) = (length / 2, width / 2)
+        var points: [SIMD3<Float>] = []
+        for y in stride(from: bottom, through: top, by: step) {
+            for u in stride(from: -l, through: l, by: step) { points += [SIMD3(u, y, -w), SIMD3(u, y, w)] }
+            for v in stride(from: -w, through: w, by: step) { points += [SIMD3(-l, y, v), SIMD3(l, y, v)] }
+        }
+        for u in stride(from: -l, through: l, by: step) {
+            for v in stride(from: -w, through: w, by: step) { points.append(SIMD3(u, top, v)) }
+        }
+        return points
+    }
+
+    func testPreciseDepthCorrectsTheMeshBox() {
+        // A mesh shell 3 cm too big on each side, and precise depth of the real 40 × 30 × 50 cm box.
+        let mesh = shell(length: 0.46, width: 0.36, top: 0.53, from: 0.03, step: 0.01)
+        let cloud = shell(length: 0.40, width: 0.30, top: 0.50, from: 0.02, step: 0.005)
+        let model = WalkAroundModel()
+        model.finish(points: mesh, floorY: 0, aim: SIMD3(0, 0.53, 0), cloud: cloud)
+        guard case .measured(let box) = model.status else { return XCTFail("\(model.status)") }
+        XCTAssertEqual(box.length, 0.40, accuracy: 0.005)
+        XCTAssertEqual(box.width, 0.30, accuracy: 0.005)
+        XCTAssertEqual(box.height, 0.50, accuracy: 0.005)
+    }
+
+    func testWithoutDepthTheMeshBoxStands() {
+        let model = WalkAroundModel()
+        model.finish(points: shell(length: 0.40, width: 0.30, top: 0.5, from: 0.03, step: 0.01), floorY: 0, aim: SIMD3(0, 0.5, 0))
+        guard case .measured(let box) = model.status else { return XCTFail("\(model.status)") }
+        XCTAssertEqual(box.length, 0.40, accuracy: 0.01)
+    }
+}

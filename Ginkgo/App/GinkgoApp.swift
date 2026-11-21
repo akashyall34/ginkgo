@@ -23,6 +23,12 @@ struct GinkgoApp: App {
                 NavigationStack { ExampleContrastView() }
             case .demo:
                 DemoView()
+            case .parts:
+                // A measured cabinet-sized box with no photo: the offline path, as on a site with no signal.
+                NavigationStack {
+                    PartsView(box: FittedBox(length: 0.6, width: 0.35, height: 0.7, baseCenter: .zero, yaw: 0,
+                                             uncertainty: 0.01, pointCount: 4000), photo: nil)
+                }
             }
         }
     }

@@ -1,11 +1,21 @@
 import ARKit
+import CoreImage
 import simd
 
-/// ARKit's room mesh, read out as plain points: what the walk-around scan measures.
-/// Runs only on LiDAR iPhones; the math it feeds (FurnitureIsolation, BoxFit) is tested separately.
+/// ARKit's room mesh (to find the furniture) and raw LiDAR depth gathered while walking (to measure it).
+/// Runs only on LiDAR iPhones; the math it feeds (FurnitureIsolation, BoxFit, DepthCloud) is tested separately.
 @MainActor
-final class MeshCapture {
+final class MeshCapture: NSObject, ARSessionDelegate {
     let session = ARSession()
+    private(set) var depth = DepthCloud()
+    private var lastDepthTime: TimeInterval = 0
+    /// About four depth frames a second: enough views of every side without overloading the phone.
+    static let depthInterval: TimeInterval = 0.25
+
+    override init() {
+        super.init()
+        session.delegate = self
+    }
 
     static var isSupported: Bool {
         ARWorldTrackingConfiguration.supportsSceneReconstruction(.meshWithClassification)
@@ -15,10 +25,33 @@ final class MeshCapture {
         let configuration = ARWorldTrackingConfiguration()
         configuration.sceneReconstruction = .meshWithClassification
         configuration.planeDetection = [.horizontal]
+        if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
+            configuration.frameSemantics.insert(.sceneDepth)
+        }
+        depth = DepthCloud()
+        lastDepthTime = 0
         session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
     }
 
     func pause() { session.pause() }
+
+    nonisolated func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        let time = frame.timestamp
+        let pose = frame.camera.transform
+        guard let sceneDepth = frame.sceneDepth, let confidenceMap = sceneDepth.confidenceMap,
+              let values = FrameConversion.depthValues(sceneDepth.depthMap),
+              let confidence = FrameConversion.confidenceValues(confidenceMap),
+              let snapshot = DepthSnapshot(width: values.width, height: values.height, depth: values.values,
+                                           confidence: confidence.values,
+                                           intrinsics: FrameConversion.intrinsics(from: frame.camera.intrinsics,
+                                                                                  imageResolution: frame.camera.imageResolution))
+        else { return }
+        MainActor.assumeIsolated {
+            guard time - lastDepthTime >= Self.depthInterval else { return }
+            lastDepthTime = time
+            depth.add(snapshot, cameraToWorld: pose)
+        }
+    }
 
     /// Room surfaces that are never furniture.
     private static let ignored: Set<ARMeshClassification> = [.wall, .floor, .ceiling, .door, .window]
@@ -58,6 +91,14 @@ final class MeshCapture {
         return session.raycast(query).first.map {
             SIMD3($0.worldTransform.columns.3.x, $0.worldTransform.columns.3.y, $0.worldTransform.columns.3.z)
         }
+    }
+
+    /// The camera's current view as an upright JPEG, for Gemini to read the parts from.
+    func photoJPEG() -> Data? {
+        guard let buffer = session.currentFrame?.capturedImage else { return nil }
+        let image = CIImage(cvPixelBuffer: buffer).oriented(.right)
+        return CIContext().jpegRepresentation(of: image, colorSpace: CGColorSpaceCreateDeviceRGB(),
+                                              options: [kCGImageDestinationLossyCompressionQuality as CIImageRepresentationOption: 0.8])
     }
 
     /// How big the room mesh is so far; cheap enough to read every second.

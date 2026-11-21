@@ -27,13 +27,15 @@ final class WalkAroundModel {
     }
 
     /// Measures the furniture under the aim point.
-    func finish(points: [SIMD3<Float>], floorY: Float?, aim: SIMD3<Float>?) {
+    /// `cloud` is the raw depth gathered while walking; when there's enough of it the mesh box is re-fitted on it.
+    func finish(points: [SIMD3<Float>], floorY: Float?, aim: SIMD3<Float>?, cloud: [SIMD3<Float>] = []) {
         guard let floorY else { return status = .problem(Self.noFloorMessage) }
         guard let aim else { return status = .problem(Self.noAimMessage) }
         let furniture = FurnitureIsolation.isolate(points, seed: aim, floorY: floorY)
         guard !furniture.isEmpty else { return status = .problem(Self.nothingThereMessage) }
         do {
-            status = .measured(try BoxFit.fit(furniture, floorY: floorY))
+            let coarse = try BoxFit.fit(furniture, floorY: floorY)
+            status = .measured(BoxFit.refine(coarse, cloud: cloud) ?? coarse)
         } catch let error as BoxFitError {
             status = .problem(error.explanation)
         } catch {

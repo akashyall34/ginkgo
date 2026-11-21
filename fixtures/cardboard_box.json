@@ -1,6 +1,24 @@
 {
   "piece": "cardboard shipping box",
   "photo": "photos/cardboard_box_front.jpg",
-  "tape_mm": { "length": 410, "width": 315, "height": 310 },
-  "note": "Measured by tape on Nov 21, 2026. Length is the long side, width the short side; height is floor to top."
+  "tape_mm": {
+    "length": 410,
+    "width": 315,
+    "height": 310
+  },
+  "note": "Measured by tape on Nov 21, 2026. Length is the long side, width the short side; height is floor to top.",
+  "readings_mm": {
+    "apple_measure_app": {
+      "length": 400,
+      "width": 300,
+      "height": 270
+    },
+    "ginkgo_walk_around": {
+      "length": 424,
+      "width": 299,
+      "height": 322,
+      "plus_minus": 38
+    }
+  },
+  "readings_note": "Same box, Nov 21, 2026. Ginkgo build before the recording-based fix."
 }
