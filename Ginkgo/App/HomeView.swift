@@ -8,38 +8,12 @@ struct HomeView: View {
         NavigationStack {
             ZStack(alignment: .bottom) {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        header
-
-                        heroTitle
-                            .padding(.top, Spacing.medium)
-
-                        heroPhoto
-                            .padding(.top, Spacing.large)
-
-                        NavigationLink {
-                            ScanView(source: FrameSources.makeDefault())
-                        } label: {
-                            HStack(spacing: Spacing.small) {
-                                Image(systemName: "camera")
-                                    .font(.title3.weight(.semibold))
-                                    .accessibilityHidden(true)
-                                Text("Snap furniture")
-                                    .font(.title3.weight(.semibold))
-                            }
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 80)
-                            .background(Palette.brand)
-                            .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+                    Group {
+                        if selectedTab == 2 {
+                            GuideView()
+                        } else {
+                            homeContent
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("snapFurniture")
-                        .padding(.top, Spacing.medium)
-
-                        impactSection
-                            .padding(.top, 36)
-                            .padding(.bottom, 112)
                     }
                     .padding(.horizontal, Spacing.large)
                 }
@@ -51,11 +25,48 @@ struct HomeView: View {
         }
     }
 
+    private var homeContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            header
+
+            heroTitle
+                .padding(.top, Spacing.medium)
+
+            heroPhoto
+                .padding(.top, Spacing.large)
+
+            NavigationLink {
+                ScanView(source: FrameSources.makeDefault())
+            } label: {
+                HStack(spacing: Spacing.small) {
+                    Image(systemName: "camera")
+                        .font(.title3.weight(.semibold))
+                        .accessibilityHidden(true)
+                    Text("Snap furniture")
+                        .font(.title3.weight(.semibold))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 80)
+                .background(Palette.brand)
+                .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("snapFurniture")
+            .padding(.top, Spacing.medium)
+
+            impactSection
+                .padding(.top, 36)
+                .padding(.bottom, 112)
+        }
+    }
+
     private var header: some View {
         HStack(alignment: .center, spacing: 7) {
-            Image(systemName: "leaf.fill")
-                .font(.system(size: 22, weight: .bold))
-                .foregroundStyle(Palette.brand)
+            Image("GinkgoMark")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
                 .accessibilityHidden(true)
 
             Text("Ginkgo")
