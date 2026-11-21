@@ -50,7 +50,9 @@ struct WalkAroundView: View {
                     LiveProofView(box: box)
                 } label: {
                     Label("Make a plan", systemImage: "hammer")
-                        .font(.headline).frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                        .font(.headline)
+                        .foregroundStyle(Palette.onBrand)
+                        .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(Palette.brand)
@@ -86,6 +88,7 @@ struct WalkAroundView: View {
             } label: {
                 Text(model.status == .scanning ? "Done" : "Scan again")
                     .font(.headline)
+                    .foregroundStyle(Palette.onBrand)
                     .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
             }
             .buttonStyle(.borderedProminent)

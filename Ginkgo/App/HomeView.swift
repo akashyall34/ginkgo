@@ -3,6 +3,12 @@ import SwiftUI
 /// The first screen: what Ginkgo does, and the way in.
 struct HomeView: View {
     @State private var selectedTab = 0
+    @State private var isAppearanceSettingsPresented = false
+    @AppStorage("appearancePreference") private var appearancePreferenceRawValue = AppearancePreference.system.rawValue
+
+    private var appearancePreference: AppearancePreference {
+        AppearancePreference(rawValue: appearancePreferenceRawValue) ?? .system
+    }
 
     var body: some View {
         NavigationStack {
@@ -10,7 +16,9 @@ struct HomeView: View {
                 ScrollView {
                     Group {
                         if selectedTab == 2 {
-                            GuideView()
+                            GuideView(onAppearanceSettings: {
+                                isAppearanceSettingsPresented = true
+                            })
                         } else {
                             homeContent
                         }
@@ -22,6 +30,10 @@ struct HomeView: View {
             }
             .background(Palette.background)
             .toolbar(.hidden, for: .navigationBar)
+        }
+        .preferredColorScheme(appearancePreference.colorScheme)
+        .sheet(isPresented: $isAppearanceSettingsPresented) {
+            AppearanceSettingsView()
         }
     }
 
@@ -45,7 +57,7 @@ struct HomeView: View {
                     Text("Snap furniture")
                         .font(.title3.weight(.semibold))
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(Palette.onBrand)
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 80)
                 .background(Palette.brand)
@@ -62,19 +74,39 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 7) {
-            Image("GinkgoMark")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 24, height: 24)
-                .accessibilityHidden(true)
+        HStack(alignment: .center) {
+            HStack(spacing: 7) {
+                Image("GinkgoMark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+                    .accessibilityHidden(true)
 
-            Text("Ginkgo")
-                .font(.title2.weight(.heavy))
-                .foregroundStyle(Palette.brand)
-                .accessibilityIdentifier("appTitle")
+                Text("Ginkgo")
+                    .font(.title2.weight(.heavy))
+                    .foregroundStyle(Palette.brand)
+                    .accessibilityIdentifier("appTitle")
+            }
+
+            Spacer()
+            appearanceSettingsButton
         }
         .padding(.top, 10)
+    }
+
+    private var appearanceSettingsButton: some View {
+        Button {
+            isAppearanceSettingsPresented = true
+        } label: {
+            Image(systemName: "gearshape")
+                .font(.title3)
+                .foregroundStyle(Palette.brand)
+                .frame(width: TapTarget.minimum, height: TapTarget.minimum)
+                .background(Palette.brand.opacity(0.1), in: Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Appearance settings")
+        .accessibilityIdentifier("appearanceSettings")
     }
 
     private var heroTitle: some View {
@@ -102,7 +134,7 @@ struct HomeView: View {
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 15)
                 .padding(.vertical, 10)
-                .background(.regularMaterial)
+                .background(Palette.background.opacity(0.96))
                 .clipShape(Capsule())
                 .padding(.top, 20)
                 .padding(.leading, 20)
@@ -136,7 +168,7 @@ struct HomeView: View {
                 .font(.caption2.bold())
                 .foregroundStyle(Palette.brand)
                 .frame(width: 32, height: 32)
-                .background(Palette.brand.opacity(0.18))
+                .background(Palette.brand.opacity(0.14))
                 .clipShape(Capsule())
 
             Text(title)

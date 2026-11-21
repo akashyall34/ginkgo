@@ -1,18 +1,34 @@
 import SwiftUI
 
 struct GuideView: View {
+    let onAppearanceSettings: () -> Void
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.large) {
-            HStack(spacing: 7) {
-                Image("GinkgoMark")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 24, height: 24)
-                    .accessibilityHidden(true)
+            HStack {
+                HStack(spacing: 7) {
+                    Image("GinkgoMark")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 24)
+                        .accessibilityHidden(true)
 
-                Text("Ginkgo")
-                    .font(.title2.weight(.heavy))
-                    .foregroundStyle(Palette.brand)
+                    Text("Ginkgo")
+                        .font(.title2.weight(.heavy))
+                        .foregroundStyle(Palette.brand)
+                }
+
+                Spacer()
+                Button(action: onAppearanceSettings) {
+                    Image(systemName: "gearshape")
+                        .font(.title3)
+                        .foregroundStyle(Palette.brand)
+                        .frame(width: TapTarget.minimum, height: TapTarget.minimum)
+                        .background(Palette.brand.opacity(0.1), in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Appearance settings")
+                .accessibilityIdentifier("appearanceSettings")
             }
             .padding(.top, 10)
 
@@ -69,7 +85,7 @@ struct GuideView: View {
             } label: {
                 Label("Start a scan", systemImage: "camera")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Palette.onBrand)
                     .frame(maxWidth: .infinity, minHeight: 56)
                     .background(Palette.brand, in: Capsule())
             }
