@@ -39,7 +39,7 @@ final class ProofModelTests: XCTestCase {
     func testEachPlannedPieceGetsARowWithSizeAndSource() throws {
         let rows = try proven().cuts
         XCTAssertEqual(rows.map(\.name), ["Seat", "Left leg", "Right leg"])
-        XCTAssertEqual(rows[0].size, "40.0 × 30.0 cm")
+        XCTAssertEqual(rows[0].size, "45.2 × 36.2 cm")
         XCTAssertEqual(rows[0].source, "From the top")
         XCTAssertEqual(rows[1].source, "From the left side")
         XCTAssertTrue(rows.allSatisfy(\.fits))
@@ -70,9 +70,9 @@ final class ProofModelTests: XCTestCase {
     func testSagRowsShowShareOfTheLimit() throws {
         let seat = try XCTUnwrap(try proven().sagRows.first)
         XCTAssertEqual(seat.name, "Seat")
-        // Vivek's validator: 0.386 mm of the 0.60 mm allowed.
-        XCTAssertEqual(seat.shareOfLimit, 0.6436, accuracy: 1e-4)
-        XCTAssertEqual(seat.summary, "0.39 of 0.60 mm allowed")
+        // The validator on the rule-based bench: 0.49 mm of the 0.69 mm allowed.
+        XCTAssertEqual(seat.shareOfLimit, 0.7054, accuracy: 1e-4)
+        XCTAssertEqual(seat.summary, "0.49 of 0.69 mm allowed")
         XCTAssertTrue(seat.passes)
         // The chatbot's mistakes are fit, screw holes and a damaged part, not bending.
         let chatbotSag = try chatbot().sagRows
@@ -96,14 +96,14 @@ final class ProofModelTests: XCTestCase {
 
     func testChecksAreTightestFirst() throws {
         XCTAssertEqual(try proven().checksBeforeCutting, [
-            "Check the top's width: 52 mm to spare.",
-            "Check the top's height: 62 mm to spare.",
-            "Check the left side's width: 72 mm to spare.",
+            "Check the top's width: a tight fit, with only the 8 mm cutting allowance to spare.",
+            "Check the top's height: a tight fit, with only the 8 mm cutting allowance to spare.",
+            "Check the left side's width: 10 mm to spare.",
         ])
     }
 
     func testReuseText() throws {
-        XCTAssertEqual(try proven().reuse, "52% of the wood reused")
+        XCTAssertEqual(try proven().reuse, "70% of the wood reused")
         XCTAssertEqual(try chatbot().reuse, "85% of the wood reused", "Vivek's validator: 84.9%")
     }
 
