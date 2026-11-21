@@ -45,6 +45,13 @@ final class ScanStoreTests: XCTestCase {
         XCTAssertEqual(loaded.snapshot.intrinsics, testIntrinsics)
     }
 
+    func testPreviewLoadsSavedMetadataAndPhoto() throws {
+        let saved = try save()
+        let preview = try store.preview(saved.id)
+        XCTAssertEqual(preview.scan, saved)
+        XCTAssertEqual(preview.photo, photo)
+    }
+
     func testAReloadedScanMeasuresTheSame() throws {
         // A flat face 50 cm away, which the measurer accepts.
         let flat = makeSnapshot(depth: { _, _ in 0.5 })

@@ -19,6 +19,10 @@ struct HomeView: View {
                             GuideView(onAppearanceSettings: {
                                 isAppearanceSettingsPresented = true
                             })
+                        } else if selectedTab == 1 {
+                            MyItemsView(store: ScanStore.standard(), onAppearanceSettings: {
+                                isAppearanceSettingsPresented = true
+                            })
                         } else {
                             homeContent
                         }

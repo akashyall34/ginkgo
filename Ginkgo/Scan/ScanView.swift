@@ -43,6 +43,20 @@ struct ScanView: View {
         VStack(spacing: Spacing.medium) {
             photoArea
             MeasurementPanelView(model: model)
+            if case .measured = model.status {
+                if model.saveFailed {
+                    Label("The latest measurement couldn't be saved on this device.",
+                          systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(Palette.fails)
+                        .accessibilityIdentifier("saveFailure")
+                } else if model.savedScanID != nil {
+                    Label("Saved to My items", systemImage: "checkmark.circle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(Palette.verified)
+                        .accessibilityIdentifier("saveConfirmation")
+                }
+            }
             controls
         }
         .padding(Spacing.medium)
