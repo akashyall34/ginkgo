@@ -1,0 +1,44 @@
+{
+  "id": "plan-bench-1",
+  "scan_id": "scan-nightstand-1",
+  "template": "bench",
+  "source": "ginkgo",
+  "new_parts": [
+    {
+      "name": "seat",
+      "source_part_id": "top",
+      "width_mm": 400,
+      "height_mm": 300,
+      "role": "seat",
+      "span_mm": 360,
+      "position_mm": { "x": 0, "y": 400, "z": 0 },
+      "rotation_deg": { "x": 0, "y": 0, "z": 0 }
+    },
+    {
+      "name": "leg_left",
+      "source_part_id": "side_left",
+      "width_mm": 300,
+      "height_mm": 380,
+      "role": "support",
+      "position_mm": { "x": -190, "y": 190, "z": 0 },
+      "rotation_deg": { "x": 0, "y": 0, "z": 90 }
+    },
+    {
+      "name": "leg_right",
+      "source_part_id": "side_right",
+      "width_mm": 300,
+      "height_mm": 380,
+      "role": "support",
+      "position_mm": { "x": 190, "y": 190, "z": 0 },
+      "rotation_deg": { "x": 0, "y": 0, "z": 90 }
+    }
+  ],
+  "steps": [
+    "Cut the seat from the top, avoiding the two screw holes.",
+    "Cut both legs from the sides.",
+    "Screw the legs to the seat, 20 mm in from each end."
+  ],
+  "hardware": [
+    { "item": "wood screw, 40 mm", "quantity": 8 }
+  ]
+}
