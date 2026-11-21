@@ -387,8 +387,11 @@ public extension Rect {
     }
 }
 
+/// Gemini's guess from the photo; the user confirms it.
 public enum Material: String, Codable, Equatable, Sendable {
+    case cardboard = "cardboard"
     case particleboardMDF = "particleboard_mdf"
+    case plastic = "plastic"
     case plywood = "plywood"
     case solidWood = "solid_wood"
 }
@@ -1416,6 +1419,8 @@ public struct DetectedPart: Codable, Equatable, Sendable {
     public let damaged: Bool
     public let estimatedHeightMm: Double
     public let estimatedWidthMm: Double
+    /// Gemini's guess from the photo; the user confirms it.
+    public let material: Material?
     public let note: String?
     public let type: TypeEnum
     /// Covered in fabric or foam, like a padded seat.
@@ -1427,17 +1432,19 @@ public struct DetectedPart: Codable, Equatable, Sendable {
         case damaged = "damaged"
         case estimatedHeightMm = "estimated_height_mm"
         case estimatedWidthMm = "estimated_width_mm"
+        case material = "material"
         case note = "note"
         case type = "type"
         case upholstered = "upholstered"
     }
 
-    public init(box2D: [Double]?, curved: Bool?, damaged: Bool, estimatedHeightMm: Double, estimatedWidthMm: Double, note: String?, type: TypeEnum, upholstered: Bool?) {
+    public init(box2D: [Double]?, curved: Bool?, damaged: Bool, estimatedHeightMm: Double, estimatedWidthMm: Double, material: Material?, note: String?, type: TypeEnum, upholstered: Bool?) {
         self.box2D = box2D
         self.curved = curved
         self.damaged = damaged
         self.estimatedHeightMm = estimatedHeightMm
         self.estimatedWidthMm = estimatedWidthMm
+        self.material = material
         self.note = note
         self.type = type
         self.upholstered = upholstered
@@ -1468,6 +1475,7 @@ public extension DetectedPart {
         damaged: Bool? = nil,
         estimatedHeightMm: Double? = nil,
         estimatedWidthMm: Double? = nil,
+        material: Material?? = nil,
         note: String?? = nil,
         type: TypeEnum? = nil,
         upholstered: Bool?? = nil
@@ -1478,6 +1486,7 @@ public extension DetectedPart {
             damaged: damaged ?? self.damaged,
             estimatedHeightMm: estimatedHeightMm ?? self.estimatedHeightMm,
             estimatedWidthMm: estimatedWidthMm ?? self.estimatedWidthMm,
+            material: material ?? self.material,
             note: note ?? self.note,
             type: type ?? self.type,
             upholstered: upholstered ?? self.upholstered

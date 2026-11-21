@@ -24,6 +24,8 @@ public enum Sag {
         case .solidWood: return 9000
         case .plywood: return 7000
         case .particleboardMDF: return 2500
+        case .plastic: return 1200     // polypropylene storage carts; conservative
+        case .cardboard: return 200    // corrugated board; never load-bearing in practice
         }
     }
 

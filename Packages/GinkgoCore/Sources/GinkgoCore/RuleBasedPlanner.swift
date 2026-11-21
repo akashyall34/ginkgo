@@ -14,7 +14,7 @@ public enum RuleBasedPlanner {
     public static func bench(inventory: Inventory, limits: SizeLimits? = nil) -> (plan: Plan, validation: ValidationResult)? {
         let usable = inventory.parts.filter { !$0.damaged }
         guard !usable.isEmpty else { return nil }
-        let cuttable = usable.filter { $0.material != .particleboardMDF }
+        let cuttable = usable.filter(\.material.canBeCut)
         if let draft = benchDraft(from: cuttable), let accepted = accept(draft, inventory: inventory, limits: limits) {
             return accepted
         }
@@ -112,13 +112,21 @@ public enum RuleBasedPlanner {
             DraftPart(heightMm: part.heightMm, name: part.id, role: .other, sourcePartID: part.id, spanMm: nil,
                       widthMm: part.widthMm)
         }
-        let screws = 2 * (parts.count - 1)
+        let joins = 2 * (parts.count - 1)
+        let fastener = fastener(for: usable.map(\.material))
         let steps = [
-            "Clean each part and check it for loose veneer or splinters.",
+            "Clean each part and check it for cracks, splinters or loose pieces.",
             "Stand the parts side by side as cubbies or panels, without cutting them.",
-            "If you want them to stay together, join each neighbouring pair with 2 wood screws, 40 mm.",
+            "If you want them to stay together, join each neighbouring pair with 2 of: \(fastener).",
         ]
-        let hardware = screws > 0 ? [HardwareItem(item: screw, quantity: screws)] : []
+        let hardware = joins > 0 ? [HardwareItem(item: fastener, quantity: joins)] : []
         return PlanDraft(hardware: hardware, newParts: parts, steps: steps, template: .noCut)
+    }
+
+    /// Screws hold wood; plastic gets cable ties; cardboard gets mounting tape. The weakest material decides.
+    static func fastener(for materials: [Material]) -> String {
+        if materials.contains(.cardboard) { return "double-sided mounting tape strip" }
+        if materials.contains(.plastic) { return "cable tie, 200 mm" }
+        return screw
     }
 }

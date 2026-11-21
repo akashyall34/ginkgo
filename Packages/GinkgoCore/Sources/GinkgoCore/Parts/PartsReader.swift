@@ -19,6 +19,8 @@ public enum PartsReader {
         For each part you can see, give box_2d as [ymin, xmin, ymax, xmax] on a 0-1000 scale, tightly around its visible face.
         Also list parts that must exist but are hidden (for example the back legs or the side rails), without box_2d.
         Mark damaged parts. Mark padded or fabric-covered parts as upholstered, and bent parts like curved legs as curved.
+        Guess each part's material: solid_wood, plywood, particleboard_mdf, plastic or cardboard.
+        Furniture is not only wood: plastic storage carts and cardboard boxes count too.
         Estimate each part's width and height in millimetres, using the measured size below.
         Give furniture_box_2d around the whole piece. Never invent parts that a piece like this would not have.
         """
@@ -32,6 +34,8 @@ public enum PartsReader {
             ParamProperty(name: "box_2d", schema: .array(.number("0-1000"), "[ymin, xmin, ymax, xmax]; leave out if hidden."),
                           required: false),
             ParamProperty(name: "damaged", schema: .boolean("Visible damage.")),
+            ParamProperty(name: "material", schema: .enumeration(
+                ["solid_wood", "plywood", "particleboard_mdf", "plastic", "cardboard"], "Your guess of the material."), required: false),
             ParamProperty(name: "upholstered", schema: .boolean("Covered in fabric or foam."), required: false),
             ParamProperty(name: "curved", schema: .boolean("Not a flat, straight board."), required: false),
             ParamProperty(name: "estimated_width_mm", schema: .number("Your width estimate in mm.")),
@@ -59,7 +63,8 @@ public enum PartsReader {
                                  scanID: String) -> (inventory: Inventory, flags: [PartFlag]) {
         let furniture = Box2D(reading.furnitureBox2D)
         var flags = [
-            PartFlag(message: "Pick the material of each part: solid wood, plywood or particleboard/MDF.", partID: "all"),
+            PartFlag(message: "Confirm the material of each part (Gemini's guess is filled in; solid wood when it had none).",
+                     partID: "all"),
             PartFlag(message: "Confirm each part's thickness: 18 mm is assumed, and legs use their width.", partID: "all"),
         ]
         if furniture == nil {
@@ -80,8 +85,9 @@ public enum PartsReader {
             }
             flags += partFlags(detected, id: id, read: read)
             let thickness = detected.type == .leg ? read.width : assumedThicknessMm
-            parts.append(Part(damaged: detected.damaged, heightMm: read.height, id: id, keepOuts: [], material: .solidWood,
-                              thicknessMm: thickness, type: detected.type, widthMm: read.width))
+            parts.append(Part(damaged: detected.damaged, heightMm: read.height, id: id, keepOuts: [],
+                              material: detected.material ?? .solidWood, thicknessMm: thickness, type: detected.type,
+                              widthMm: read.width))
         }
         return (Inventory(parts: parts, scanID: scanID), flags)
     }

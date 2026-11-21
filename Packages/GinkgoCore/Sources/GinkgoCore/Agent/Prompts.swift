@@ -7,7 +7,8 @@ public enum Prompts {
         Rules:
         - Use only parts from the inventory, by their id. Never invent parts or change their sizes.
         - Templates: "bench" (a seat panel on two upright supports) or "bookshelf" (two upright sides, shelves between them).
-          If every usable part is particleboard_mdf, use "no_cut" and reuse parts whole.
+          Only solid_wood and plywood may be cut. Parts of particleboard_mdf, plastic or cardboard are reused whole;
+          if no usable part can be cut, use "no_cut".
         - Never use a part marked damaged. Avoid keep-out areas (screw holes, damage); the tools handle them.
         - Sizes are millimetres. Our tools add saw and measurement margins themselves; never add margins yourself.
         - Roles: seat, shelf, side, support, back, other. Give span_mm for every seat and shelf (the unsupported length).

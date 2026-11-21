@@ -11,7 +11,7 @@ final class PartsReaderTests: XCTestCase {
     private func part(_ type: TypeEnum, _ box: [Double]?, estimate: [Double], damaged: Bool = false,
                       upholstered: Bool? = nil, curved: Bool? = nil) -> DetectedPart {
         DetectedPart(box2D: box, curved: curved, damaged: damaged, estimatedHeightMm: estimate[1], estimatedWidthMm: estimate[0],
-                     note: nil, type: type, upholstered: upholstered)
+                     material: nil, note: nil, type: type, upholstered: upholstered)
     }
 
     private func read(_ parts: [DetectedPart], furniture: [Double] = [100, 200, 900, 800],

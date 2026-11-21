@@ -50,7 +50,7 @@
         "width_mm": { "type": "number", "exclusiveMinimum": 0 },
         "height_mm": { "type": "number", "exclusiveMinimum": 0 },
         "thickness_mm": { "type": "number", "exclusiveMinimum": 0 },
-        "material": { "type": "string", "enum": ["solid_wood", "plywood", "particleboard_mdf"] },
+        "material": { "type": "string", "enum": ["solid_wood", "plywood", "particleboard_mdf", "plastic", "cardboard"] },
         "damaged": { "type": "boolean" },
         "keep_outs": {
           "type": "array",
@@ -253,6 +253,11 @@
           "items": { "type": "number" }
         },
         "damaged": { "type": "boolean" },
+        "material": {
+          "type": "string",
+          "description": "Gemini's guess from the photo; the user confirms it.",
+          "enum": ["solid_wood", "plywood", "particleboard_mdf", "plastic", "cardboard"]
+        },
         "upholstered": { "type": "boolean", "description": "Covered in fabric or foam, like a padded seat." },
         "curved": { "type": "boolean", "description": "Not a flat, straight board, like a curved leg." },
         "estimated_width_mm": { "type": "number" },
