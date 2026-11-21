@@ -112,13 +112,8 @@ extension ProofModel {
                   let data = try? Data(contentsOf: url) else { return nil }
             return try? JSONDecoder().decode(T.self, from: data)
         }
-        guard let plan = load("plan_bench", as: Plan.self),
+        guard let plan = load(chatbot ? "plan_chatbot" : "plan_bench", as: Plan.self),
               let inventory = load("inventory", as: Inventory.self) else { return nil }
-        if chatbot {
-            // Until the chatbot's own plan is in examples/, its recorded result is shown.
-            guard let result = load("validation_chatbot", as: ValidationResult.self) else { return nil }
-            return ProofModel(plan: plan, result: result, inventory: inventory)
-        }
         return ProofModel(plan: plan, result: Validator.validate(plan: plan, inventory: inventory, limits: nil),
                           inventory: inventory)
     }
