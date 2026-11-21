@@ -39,4 +39,14 @@ final class LaunchUITests: XCTestCase {
         app.buttons["snapFurniture"].tap()
         XCTAssertTrue(app.navigationBars["Scan"].waitForExistence(timeout: 5))
     }
+
+    @MainActor
+    func testGuideTabShowsInstructions() {
+        let app = XCUIApplication()
+        app.launch()
+        app.buttons["Guide"].tap()
+        XCTAssertTrue(app.staticTexts["guideTitle"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Frame one flat face"].exists)
+        XCTAssertTrue(app.buttons["guideStartScan"].exists)
+    }
 }
