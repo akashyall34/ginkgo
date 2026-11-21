@@ -17,6 +17,8 @@ public struct MaterialInfo: Sendable, Equatable {
     public var reuseIdea: String
     /// Where the stiffness comes from.
     public var source: String
+    /// A typical panel or wall thickness, assumed until the user confirms it.
+    public var typicalThicknessMm: Double = 18
 }
 
 public enum MaterialCatalog {
@@ -34,12 +36,13 @@ public enum MaterialCatalog {
                      whyNotCut: "has thin walls that crack or warp when sawn",
                      stiffness: 1200, fastener: "cable tie, 200 mm",
                      reuseIdea: "reuse drawers and bins whole as cubbies or organizers",
-                     source: "Polypropylene datasheets: about 1,300-1,800 N/mm²; rounded down"),
+                     source: "Polypropylene datasheets: about 1,300-1,800 N/mm²; rounded down", typicalThicknessMm: 3),
         MaterialInfo(material: .cardboard, displayName: "cardboard", canBeCut: false,
                      whyNotCut: "is too weak to cut into furniture parts",
                      stiffness: 200, fastener: "double-sided mounting tape strip",
                      reuseIdea: "reuse whole as light storage, never load-bearing",
-                     source: "Corrugated board bends easily; a deliberately low value so it never passes as a seat or shelf"),
+                     source: "Corrugated board bends easily; a deliberately low value so it never passes as a seat or shelf",
+                     typicalThicknessMm: 4),
     ]
 
     public static func info(_ material: Material) -> MaterialInfo {

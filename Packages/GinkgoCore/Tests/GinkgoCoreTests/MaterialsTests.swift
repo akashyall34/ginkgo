@@ -109,5 +109,7 @@ final class MaterialsTests: XCTestCase {
         let (inventory, _) = PartsReader.inventory(from: PartsReading(furnitureBox2D: [100, 200, 900, 800], parts: [guessed, unknown]),
                                                   measured: Vector3(x: 315, y: 600, z: 365), scanID: "s")
         XCTAssertEqual(inventory.parts.map(\.material), [.plastic, .solidWood], "no guess means solid wood, flagged for the user")
+        XCTAssertEqual(inventory.parts.map(\.thicknessMm), [3, 18], "a typical thickness for each material")
+        XCTAssertEqual(MaterialCatalog.info(.cardboard).typicalThicknessMm, 4)
     }
 }
