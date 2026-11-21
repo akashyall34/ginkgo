@@ -98,7 +98,7 @@ enum TransformLayout {
 }
 
 extension TransformLayout {
-    /// The sample nightstand turned into the rule-based bench, whose 3D layout comes from Vivek's Layout code.
+    /// The sample furniture turned into the rule-based bench, whose 3D layout comes from Vivek's Layout code.
     static func example(bundle: Bundle = .main) -> TransformScene? {
         guard let url = bundle.url(forResource: "inventory", withExtension: "json"),
               let data = try? Data(contentsOf: url),

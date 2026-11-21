@@ -76,3 +76,20 @@ final class WalkAroundModelTests: XCTestCase {
         XCTAssertEqual(WalkAroundModel.summary(perfect), "50.0 × 60.0 × 40.0 cm ± 0.1 cm", "Never claims zero error")
     }
 }
+
+@MainActor
+final class WalkAroundProgressTests: XCTestCase {
+    func testCoverageGrowsToFullAndStops() {
+        XCTAssertEqual(WalkAroundModel.coverage(points: 0), 0)
+        XCTAssertEqual(WalkAroundModel.coverage(points: WalkAroundModel.readyPoints / 2), 0.5, accuracy: 1e-9)
+        XCTAssertEqual(WalkAroundModel.coverage(points: WalkAroundModel.readyPoints), 1)
+        XCTAssertEqual(WalkAroundModel.coverage(points: WalkAroundModel.readyPoints * 5), 1)
+        XCTAssertEqual(WalkAroundModel.coverage(points: -10), 0)
+    }
+
+    func testTheGuidanceChangesAsTheScanFillsIn() {
+        XCTAssertEqual(WalkAroundModel.progressText(points: 0), "Keep walking around it")
+        XCTAssertTrue(WalkAroundModel.progressText(points: WalkAroundModel.readyPoints * 3 / 4).hasPrefix("Almost there"))
+        XCTAssertTrue(WalkAroundModel.progressText(points: WalkAroundModel.readyPoints).hasPrefix("Ready"))
+    }
+}

@@ -4,8 +4,11 @@ import SwiftUI
 struct ScanView: View {
     @State private var model: ScanModel
     @State private var showDepthQuality = true
+    /// When set (from Verify), a measured face can be handed back with "Use this measurement".
+    private let onUse: ((QuadResult) -> Void)?
 
-    init(source: FrameSource) {
+    init(source: FrameSource, onUse: ((QuadResult) -> Void)? = nil) {
+        self.onUse = onUse
         _model = State(initialValue: ScanModel(source: source, store: ScanStore.standard(),
                                                  lifter: VisionSubjectLifter()))
     }
@@ -43,6 +46,17 @@ struct ScanView: View {
         VStack(spacing: Spacing.medium) {
             photoArea
             MeasurementPanelView(model: model)
+            if let onUse, case .measured(let result) = model.status {
+                Button {
+                    onUse(result)
+                } label: {
+                    Label("Use this measurement", systemImage: "checkmark")
+                        .font(.headline).frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Palette.verified)
+                .accessibilityIdentifier("useMeasurement")
+            }
             controls
         }
         .padding(Spacing.medium)

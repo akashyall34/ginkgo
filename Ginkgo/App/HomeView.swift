@@ -47,7 +47,7 @@ struct HomeView: View {
                 }
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 80)
+                .frame(minHeight: 80)
                 .background(Palette.brand)
                 .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
             }
@@ -70,7 +70,7 @@ struct HomeView: View {
                 .accessibilityHidden(true)
 
             Text("Ginkgo")
-                .font(.system(size: 23, weight: .heavy))
+                .font(.title2.weight(.heavy))
                 .foregroundStyle(Palette.brand)
                 .accessibilityIdentifier("appTitle")
         }
@@ -80,11 +80,11 @@ struct HomeView: View {
     private var heroTitle: some View {
         VStack(alignment: .leading, spacing: Spacing.medium) {
             Text("A second life starts\nwith a snapshot.")
-                .font(.system(size: 30, weight: .heavy))
+                .font(.largeTitle.weight(.heavy))
                 .foregroundStyle(Palette.brand)
 
             Text("Snap your furniture. Find the best way\nto repurpose it.")
-                .font(.system(size: 15))
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("tagline")
@@ -102,7 +102,7 @@ struct HomeView: View {
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 15)
                 .padding(.vertical, 10)
-                .background(.white)
+                .background(.regularMaterial)
                 .clipShape(Capsule())
                 .padding(.top, 20)
                 .padding(.leading, 20)
@@ -119,7 +119,7 @@ struct HomeView: View {
     private var impactSection: some View {
         VStack(alignment: .leading, spacing: Spacing.medium) {
             Text("Less landfill. More possibility.")
-                .font(.system(size: 19, weight: .heavy))
+                .font(.title3.weight(.heavy))
                 .foregroundStyle(Palette.brand)
 
             HStack(alignment: .top, spacing: 8) {
@@ -136,7 +136,7 @@ struct HomeView: View {
                 .font(.caption2.bold())
                 .foregroundStyle(Palette.brand)
                 .frame(width: 32, height: 32)
-                .background(Color(red: 0.79, green: 0.92, blue: 0.75))
+                .background(Palette.brand.opacity(0.18))
                 .clipShape(Capsule())
 
             Text(title)

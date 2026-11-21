@@ -28,7 +28,7 @@ struct GinkgoApp: App {
     }
 }
 
-/// The sample nightstand turning into the bench, or a designed state if it can't be loaded.
+/// The sample furniture turning into the bench, or a designed state if it can't be loaded.
 struct ExampleTransformView: View {
     var body: some View {
         if let scene = TransformLayout.example() {
@@ -40,7 +40,7 @@ struct ExampleTransformView: View {
     }
 }
 
-/// The sample nightstand-to-bench plan, or a designed state if it can't be loaded.
+/// The sample furniture-to-bench plan, or a designed state if it can't be loaded.
 struct ExampleProofView: View {
     var body: some View {
         if let example = ProofModel.example() {

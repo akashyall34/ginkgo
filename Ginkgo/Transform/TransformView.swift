@@ -30,8 +30,8 @@ private final class Stage {
     var pieces: [(entity: ModelEntity, piece: TransformPiece)] = []
     var unused: [ModelEntity] = []
 
-    static let wood = SimpleMaterial(color: UIColor(red: 0.78, green: 0.62, blue: 0.43, alpha: 1), roughness: 0.75, isMetallic: false)
-    static let spare = SimpleMaterial(color: UIColor(white: 0.62, alpha: 1), roughness: 0.9, isMetallic: false)
+    static let wood = SimpleMaterial(color: Palette.wood, roughness: 0.75, isMetallic: false)
+    static let spare = SimpleMaterial(color: Palette.unusedPanel, roughness: 0.9, isMetallic: false)
 
     static func panel(_ pose: PanelPose, material: SimpleMaterial) -> ModelEntity {
         let entity = ModelEntity(mesh: .generateBox(width: pose.size.x, height: pose.size.y, depth: pose.size.z, cornerRadius: 0.002),

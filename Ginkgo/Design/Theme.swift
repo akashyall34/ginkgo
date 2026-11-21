@@ -6,6 +6,9 @@ enum Palette {
     static let brand = Color("Brand")
     static let verified = Color("Verified")
     static let fails = Color("Fails")
+    /// Panels in the 3D transform: salvaged wood, and old panels the plan leaves out.
+    static let wood = UIColor(red: 0.78, green: 0.62, blue: 0.43, alpha: 1)
+    static let unusedPanel = UIColor(white: 0.62, alpha: 1)
     static let background = Color("LaunchBackground")
 
     /// Every named color, so tests can check each one exists and is readable.

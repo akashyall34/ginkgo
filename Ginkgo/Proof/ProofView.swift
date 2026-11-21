@@ -32,24 +32,32 @@ struct ProofView: View {
                         }
                     }
                 }
+                if model.verdict == .proven {
+                    VStack(spacing: Spacing.small) {
+                        NavigationLink {
+                            TransformView(scene: TransformLayout.scene(plan: model.plan, inventory: model.inventory))
+                        } label: {
+                            Label("See it built", systemImage: "cube.transparent")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Palette.brand)
+                        .accessibilityIdentifier("seeItBuilt")
+                        NavigationLink {
+                            VerifyView(plan: model.plan, inventory: model.inventory, result: model.result)
+                        } label: {
+                            Label("Verify before cutting", systemImage: "ruler")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(Palette.brand)
+                        .accessibilityIdentifier("verify")
+                    }
+                }
             }
             .padding(Spacing.medium)
-        }
-        .safeAreaInset(edge: .bottom) {
-            if model.verdict == .proven {
-                NavigationLink {
-                    TransformView(scene: TransformLayout.scene(plan: model.plan, inventory: model.inventory))
-                } label: {
-                    Label("See it built", systemImage: "cube.transparent")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(Palette.brand)
-                .padding(Spacing.medium)
-                .background(.regularMaterial)
-                .accessibilityIdentifier("seeItBuilt")
-            }
         }
         .background(Palette.background)
         .navigationTitle("Plan")

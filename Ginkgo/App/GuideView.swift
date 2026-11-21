@@ -11,7 +11,7 @@ struct GuideView: View {
                     .accessibilityHidden(true)
 
                 Text("Ginkgo")
-                    .font(.system(size: 23, weight: .heavy))
+                    .font(.title2.weight(.heavy))
                     .foregroundStyle(Palette.brand)
             }
             .padding(.top, 10)

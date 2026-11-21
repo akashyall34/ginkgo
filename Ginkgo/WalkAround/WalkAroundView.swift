@@ -56,6 +56,19 @@ struct WalkAroundView: View {
                 .tint(Palette.brand)
                 .accessibilityIdentifier("makePlan")
             }
+            if model.status == .scanning {
+                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                    let points = capture.vertexCount()
+                    VStack(alignment: .leading, spacing: Spacing.xSmall) {
+                        ProgressView(value: WalkAroundModel.coverage(points: points))
+                            .tint(Palette.brand)
+                        Text(WalkAroundModel.progressText(points: points))
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("walkAroundProgress")
+                }
+            }
             Text(model.instruction)
                 .font(.body)
                 .foregroundStyle(model.status == .scanning ? Color.primary : Color.secondary)

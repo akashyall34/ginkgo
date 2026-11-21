@@ -43,6 +43,23 @@ final class WalkAroundModel {
 
     func rescan() { status = .scanning }
 
+    /// Mesh points a typical piece of furniture needs before the box fit is dependable.
+    static let readyPoints = 3000
+
+    /// How much has been scanned, 0...1, from the room mesh's size.
+    static func coverage(points: Int) -> Double {
+        min(max(Double(points) / Double(readyPoints), 0), 1)
+    }
+
+    /// What to tell the person while they walk.
+    static func progressText(points: Int) -> String {
+        switch coverage(points: points) {
+        case ..<0.4: return "Keep walking around it"
+        case ..<1: return "Almost there: cover the sides you haven't seen"
+        default: return "Ready: aim the dot at it and tap Done"
+        }
+    }
+
     /// "46.0 × 58.0 × 40.0 cm ± 0.3 cm" as width × height × depth, the order the plan uses.
     static func summary(_ box: FittedBox) -> String {
         String(format: "%.1f × %.1f × %.1f cm ± %.1f cm", box.width * 100, box.height * 100, box.depth * 100,

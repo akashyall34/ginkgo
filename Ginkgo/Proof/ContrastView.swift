@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The same nightstand planned two ways, both checked by the same validator:
+/// The same furniture planned two ways, both checked by the same validator:
 /// a plain chatbot's plan in red, Ginkgo's in green.
 struct ContrastView: View {
     enum Side: String, CaseIterable, Identifiable {
@@ -37,7 +37,7 @@ struct ContrastView: View {
     }
 }
 
-/// The contrast on the sample nightstand, or a designed state if the samples can't be loaded.
+/// The contrast on the sample furniture, or a designed state if the samples can't be loaded.
 struct ExampleContrastView: View {
     var body: some View {
         if let chatbot = ProofModel.example(chatbot: true), let ginkgo = ProofModel.example() {

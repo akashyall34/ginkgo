@@ -60,6 +60,11 @@ final class MeshCapture {
         }
     }
 
+    /// How big the room mesh is so far; cheap enough to read every second.
+    func vertexCount() -> Int {
+        meshAnchors.reduce(0) { $0 + $1.geometry.vertices.count }
+    }
+
     private var meshAnchors: [ARMeshAnchor] {
         (session.currentFrame?.anchors ?? []).compactMap { $0 as? ARMeshAnchor }
     }
