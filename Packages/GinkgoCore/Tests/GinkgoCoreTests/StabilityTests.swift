@@ -77,7 +77,9 @@ final class StabilityTests: XCTestCase {
             XCTAssertTrue(Prompts.plannerSystem.contains("- \(info.material.rawValue): "), "\(info.material) is in the system prompt")
             XCTAssertTrue(PartsReader.prompt.contains(info.material.rawValue), "\(info.material) is in the parts prompt")
         }
-        XCTAssertTrue(Prompts.plannerSystem.contains("- plastic: never cut, reuse whole (has thin walls that crack or warp when sawn)"))
+        XCTAssertTrue(Prompts.plannerSystem.contains(
+            "- plastic: never cut, reuse whole (has thin walls that crack or warp when sawn); never a seat or shelf (not load-bearing)"))
+        XCTAssertTrue(Prompts.plannerSystem.contains("- solid_wood: may be cut; may carry load"))
     }
 
     func testCatalogIsTheSingleSourceOfTruth() {
