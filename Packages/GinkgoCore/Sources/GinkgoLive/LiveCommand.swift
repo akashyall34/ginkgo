@@ -1,63 +1,72 @@
 import Foundation
 import GinkgoCore
 
-/// `ginkgo-live plan`: runs the real Gemini agent on an inventory and prints the trace as it happens.
-/// Exit codes: 0 = accepted, 2 = fallback, 1 = usage or setup error.
+/// ginkgo-live: the real Gemini pipeline from the command line. All logic lives in GinkgoCore (tested);
+/// this file only reads options, calls it and prints. Exit codes: 0 = accepted / done, 2 = fallback, 1 = error.
 enum LiveCommand {
     static let usage = """
-        Usage: ginkgo-live plan [options]
+        Usage: ginkgo-live <command> [options]
+          plan       Gemini agent → validated plan (from --inventory, or from --photo through the parts reader)
+          parts      Gemini reads --photo → parts sized by code from --width/--height/--depth (mm) → flags to check
+          chatbot    a plain chatbot's cut list from --photo, judged by the same validator (--runs, --with-dimensions)
+          eval       agent runs on --inventory's standard variants (+ --also a.json,b.json) → markdown table (--out)
+        Options:
           --inventory PATH    inventory JSON (default examples/inventory.json)
+          --photo PATH        a photo of the furniture, with --width W --height H --depth D in mm
           --request TEXT      what to build (default "Make a bench.")
-          --max-width MM      size limits (also --max-height, --max-depth)
-          --max-turns N       model replies allowed (default 6)
-          --model ID          Gemini model (default gemini-3.8-flash)
-          --timeout SECONDS   whole-run time limit (default 25)
-          --record PATH       write the trace and plan as JSON, for demo fixtures
+          --limits TEXT       size limits in words, for example "no wider than 42 cm"
+          --max-width MM      size limits in mm (also --max-height, --max-depth)
+          --max-turns N       model replies allowed (default 6)    --timeout SECONDS   agent time limit (default 25)
+          --runs N            runs for chatbot and eval (default 2) --model ID          (default gemini-3.8-flash)
+          --record PATH       plan: trace + plan JSON; parts: inventory JSON; chatbot: the last failing plan
           --no-thinking       leave out thinkingConfig
         Needs GEMINI_API_KEY in the environment (. ~/.ginkgo.env).
         """
 
     static func run(_ arguments: [String]) async -> Int32 {
         let words = Array(arguments.dropFirst())
-        guard words.first == "plan" else {
+        guard let command = words.first, ["plan", "parts", "chatbot", "eval"].contains(command) else {
             say(usage)
             return 1
         }
-        let options: LiveOptions
-        let inventory: Inventory
         do {
-            options = try LiveOptions(Array(words.dropFirst()))
-            inventory = try JSONDecoder().decode(Inventory.self, from: Data(contentsOf: URL(fileURLWithPath: options.inventory)))
+            let options = try LiveOptions(Array(words.dropFirst()))
+            guard let key = ProcessInfo.processInfo.environment["GEMINI_API_KEY"], !key.isEmpty else {
+                throw LiveOptions.Problem(description: "GEMINI_API_KEY is not set. Run: . ~/.ginkgo.env")
+            }
+            switch command {
+            case "parts": return try await PartsCommand.run(options, key: key)
+            case "chatbot": return try await ChatbotCommand.run(options, key: key)
+            case "eval": return try await EvalCommand.run(options, key: key)
+            default: return try await plan(options, key: key)
+            }
         } catch {
             say("error: \(error)\n\n\(usage)")
             return 1
         }
-        guard let key = ProcessInfo.processInfo.environment["GEMINI_API_KEY"], !key.isEmpty else {
-            say("error: GEMINI_API_KEY is not set. Run: . ~/.ginkgo.env")
-            return 1
+    }
+
+    static func plan(_ options: LiveOptions, key: String) async throws -> Int32 {
+        let inventory = options.photo == nil ? try options.loadInventory() : try await PartsCommand.read(options, key: key).inventory
+        say("Ginkgo agent · \(options.model) · \(inventory.parts.count) parts · \"\(options.request)\"\n")
+        let run = await agent(inventory: inventory, limits: options.limits, options: options, key: key) { say(line(for: $0)) }
+        report(run.outcome, seconds: run.seconds, calls: run.calls)
+        if let path = options.record {
+            try record(run.outcome, to: path, model: options.model, seconds: run.seconds)
+            say("Recorded to \(path)")
         }
+        if case .accepted = run.outcome { return 0 }
+        return 2
+    }
+
+    /// One agent run, timed, with the number of Gemini calls.
+    static func agent(inventory: Inventory, limits: SizeLimits?, options: LiveOptions, key: String,
+                      onStep: @escaping @Sendable (AgentStep) -> Void) async -> EvalRun {
         let model = GeminiRESTModel(apiKey: key, model: options.model, thinkingLevel: options.thinking ? "low" : nil)
         let agent = PlanAgent(model: model, maxTurns: options.maxTurns, timeout: .seconds(options.timeout))
-        say("Ginkgo agent · \(options.model) · \(inventory.parts.count) parts · \"\(options.request)\"\n")
-
         let start = Date()
-        let outcome = await agent.run(inventory: inventory, limits: options.limits, request: options.request) { step in
-            say(line(for: step))
-        }
-        let seconds = Date().timeIntervalSince(start)
-        let calls = await model.counter.count
-        report(outcome, seconds: seconds, calls: calls)
-        if let path = options.record {
-            do {
-                try record(outcome, to: path, model: options.model, seconds: seconds)
-                say("Recorded to \(path)")
-            } catch {
-                say("error: couldn't write \(path): \(error)")
-                return 1
-            }
-        }
-        if case .accepted = outcome { return 0 }
-        return 2
+        let outcome = await agent.run(inventory: inventory, limits: limits, request: options.request, onStep: onStep)
+        return EvalRun(variant: "", outcome: outcome, seconds: Date().timeIntervalSince(start), calls: await model.counter.count)
     }
 
     /// "✓ [check_fit] Check every cut. → seat from top: fits, 52 mm to spare"
@@ -81,10 +90,10 @@ enum LiveCommand {
             let verify = validation.verify.map { "\($0.sourcePartID) \($0.dimension.rawValue) \(Int($0.marginMm)) mm" }
             say("\nValidation: passes \(validation.passes), \(validation.violations.count) violations, "
                 + "reuse \(validation.reusePercent)%")
-            say("Sag: \(sag.joined(separator: "; "))")
+            say("Sag: \(sag.isEmpty ? "nothing load-bearing" : sag.joined(separator: "; "))")
             say("Verify first: \(verify.joined(separator: ", "))")
         } else {
-            say("\nNo safe plan could be made.")
+            say("\nNo safe plan could be made from these parts. That's the honest answer, not a failure.")
         }
         say("\nTime: \(String(format: "%.1f", seconds)) s · Gemini calls: \(calls) · trace steps: \(outcome.trace.count)")
     }
@@ -100,9 +109,13 @@ enum LiveCommand {
             "plan": try outcome.plan.map { try JSON.from($0) } ?? .null,
             "validation": try outcome.validation.map { try JSON.from($0) } ?? .null,
         ]
+        try write(document, to: path)
+    }
+
+    static func write(_ document: JSON, to path: String) throws {
         let url = URL(fileURLWithPath: path)
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try document.encodedData().write(to: url)
+        try (pretty(document) ?? document.encodedString()).write(to: url, atomically: true, encoding: .utf8)
     }
 
     static func pretty<T: Encodable>(_ value: T) -> String? {
@@ -114,66 +127,5 @@ enum LiveCommand {
     /// Unbuffered output, so each trace line shows up the moment it happens.
     static func say(_ text: String) {
         FileHandle.standardOutput.write(Data((text + "\n").utf8))
-    }
-}
-
-/// The command-line options for `plan`.
-struct LiveOptions {
-    var inventory = "examples/inventory.json"
-    var request = Prompts.defaultRequest
-    var limits: SizeLimits?
-    var maxTurns = 6
-    var model = "gemini-3.8-flash"
-    var timeout = 25
-    var record: String?
-    var thinking = true
-
-    static let valued: Set<String> = [
-        "--inventory", "--request", "--max-width", "--max-height", "--max-depth", "--max-turns", "--model", "--timeout", "--record",
-    ]
-
-    struct Problem: Error, CustomStringConvertible {
-        var description: String
-    }
-
-    init(_ words: [String]) throws {
-        var values: [String: String] = [:]
-        var index = 0
-        while index < words.count {
-            let word = words[index]
-            if word == "--no-thinking" {
-                thinking = false
-                index += 1
-                continue
-            }
-            guard Self.valued.contains(word) else { throw Problem(description: "unknown option \(word)") }
-            guard index + 1 < words.count else { throw Problem(description: "\(word) needs a value") }
-            values[word] = words[index + 1]
-            index += 2
-        }
-        inventory = values["--inventory"] ?? inventory
-        request = values["--request"] ?? request
-        model = values["--model"] ?? model
-        record = values["--record"]
-        maxTurns = try Self.whole(values["--max-turns"], "--max-turns") ?? maxTurns
-        timeout = try Self.whole(values["--timeout"], "--timeout") ?? timeout
-        let width = try Self.millimetres(values["--max-width"], "--max-width")
-        let height = try Self.millimetres(values["--max-height"], "--max-height")
-        let depth = try Self.millimetres(values["--max-depth"], "--max-depth")
-        if width != nil || height != nil || depth != nil {
-            limits = SizeLimits(maxDepthMm: depth, maxHeightMm: height, maxWidthMm: width)
-        }
-    }
-
-    static func whole(_ text: String?, _ name: String) throws -> Int? {
-        guard let text else { return nil }
-        guard let value = Int(text), value > 0 else { throw Problem(description: "\(name) must be a whole number above 0") }
-        return value
-    }
-
-    static func millimetres(_ text: String?, _ name: String) throws -> Double? {
-        guard let text else { return nil }
-        guard let value = Double(text), value > 0, value.isFinite else { throw Problem(description: "\(name) must be a size in mm") }
-        return value
     }
 }
