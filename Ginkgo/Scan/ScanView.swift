@@ -33,6 +33,27 @@ struct ScanView: View {
         .background(Palette.background)
     }
 
+    /// Always takes its space, so the photo above never shrinks when a measurement is saved.
+    private var saveStatus: some View {
+        let measured: Bool = { if case .measured = model.status { return true } else { return false } }()
+        return Group {
+            if measured && model.saveFailed {
+                Label("The latest measurement couldn't be saved on this device.", systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(Palette.fails)
+                    .accessibilityIdentifier("saveFailure")
+            } else if measured && model.savedScanID != nil {
+                Label("Saved to My items", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(Palette.verified)
+                    .accessibilityIdentifier("saveConfirmation")
+            } else {
+                Label("Saved to My items", systemImage: "checkmark.circle.fill").hidden().accessibilityHidden(true)
+            }
+        }
+        .font(.footnote)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+    }
+
     private var unsupported: some View {
         ContentUnavailableView(
             "LiDAR needed",
@@ -57,6 +78,7 @@ struct ScanView: View {
                 .tint(Palette.verified)
                 .accessibilityIdentifier("useMeasurement")
             }
+            saveStatus
             controls
         }
         .padding(Spacing.medium)

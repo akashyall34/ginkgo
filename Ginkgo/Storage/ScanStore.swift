@@ -28,6 +28,11 @@ struct LoadedScan {
     let snapshot: DepthSnapshot
 }
 
+struct ScanPreview {
+    let scan: SavedScan
+    let photo: Data
+}
+
 enum ScanStoreError: Error, Equatable {
     case notFound
     case unreadable(String)
@@ -93,6 +98,12 @@ struct ScanStore {
             .filter { !$0.lastPathComponent.hasPrefix(".") }
             .compactMap { try? readScan(in: $0) }
             .sorted { $0.date > $1.date }
+    }
+
+    func preview(_ id: UUID) throws -> ScanPreview {
+        let dir = folder(id)
+        guard FileManager.default.fileExists(atPath: dir.path) else { throw ScanStoreError.notFound }
+        return ScanPreview(scan: try readScan(in: dir), photo: try read(Self.photoFile, in: dir))
     }
 
     func load(_ id: UUID) throws -> LoadedScan {

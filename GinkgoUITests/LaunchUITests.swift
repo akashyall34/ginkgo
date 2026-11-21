@@ -52,6 +52,14 @@ final class LaunchUITests: XCTestCase {
     }
 
     @MainActor
+    func testMyItemsTabShowsPreviouslyScannedItemsPage() {
+        let app = XCUIApplication()
+        app.launch()
+        app.buttons["My items"].tap()
+        XCTAssertTrue(app.staticTexts["previouslyScannedTitle"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     func testAppearanceSettingsOfferAllThreeChoices() {
         let app = XCUIApplication()
         app.launch()
