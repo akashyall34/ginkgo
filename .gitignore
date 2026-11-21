@@ -1,0 +1,12 @@
+.DS_Store
+build/
+DerivedData/
+*.xcodeproj/
+*.xcresult
+xcuserdata/
+.build/
+# Firebase config holds project identifiers; keep it out of a public repo.
+GoogleService-Info.plist
+
+# Claude Code project instructions: local only, never pushed.
+CLAUDE.md
