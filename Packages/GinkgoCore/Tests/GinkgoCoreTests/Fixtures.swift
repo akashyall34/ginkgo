@@ -22,6 +22,11 @@ enum Fixtures {
         try JSONDecoder().decode(Plan.self, from: data("plan_bench.json"))
     }
 
+    /// A chatbot's plan for the same nightstand, for the red-vs-green contrast.
+    static func planChatbot() throws -> Plan {
+        try JSONDecoder().decode(Plan.self, from: data("plan_chatbot.json"))
+    }
+
     /// The sample plan as the AI would submit it: no positions, rotations or overall size.
     static func benchDraft() throws -> PlanDraft {
         let plan = try planBench()

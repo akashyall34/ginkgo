@@ -22,6 +22,21 @@ final class ValidatorTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(result.sag.first).deflectionMm, 0.386, accuracy: 0.001)
     }
 
+    /// examples/plan_chatbot.json drives the red side of the contrast; these are the results the Proof screen shows.
+    func testChatbotPlanFailsForTheRightReasons() throws {
+        let result = try validate(Fixtures.planChatbot())
+        XCTAssertFalse(result.passes)
+        XCTAssertEqual(result.planID, "plan-chatbot-1")
+        XCTAssertEqual(result.violations.map(\.code), [.damagedPartUsed, .hitsKeepOut, .doesNotFit, .doesNotFit])
+        XCTAssertEqual(result.violations.map(\.newPart), ["shelf", "seat", "leg_left", "leg_right"])
+        XCTAssertEqual(result.violations[2].message,
+                       "leg_left: needs 388 × 458 mm including the 8 mm cutting margin, but side_left is 380 × 560 mm. "
+                        + "Fits with height 370 mm or less at width 380 mm, or width 370 mm or less at height 450 mm.")
+        XCTAssertEqual(result.placements.map(\.newPart), ["shelf"], "only the shelf could be placed, on the damaged part")
+        XCTAssertEqual(result.sag.map(\.newPart), ["seat", "shelf"])
+        XCTAssertEqual(result.reusePercent, 84.9)
+    }
+
     func testEmptyStepsAndHardwareStillValidate() throws {
         let sample = try Fixtures.planBench()
         let plan = Plan(hardware: [], id: "p", newParts: sample.newParts, overallMm: nil, scanID: "s", source: .chatbot,

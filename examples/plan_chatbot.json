@@ -1,0 +1,55 @@
+{
+  "id": "plan-chatbot-1",
+  "scan_id": "scan-nightstand-1",
+  "template": "bench",
+  "source": "chatbot",
+  "new_parts": [
+    {
+      "name": "seat",
+      "source_part_id": "top",
+      "width_mm": 452,
+      "height_mm": 392,
+      "role": "seat",
+      "span_mm": 452,
+      "position_mm": { "x": 0, "y": 459.5, "z": 0 },
+      "rotation_deg": { "x": 90, "y": 0, "z": 0 }
+    },
+    {
+      "name": "leg_left",
+      "source_part_id": "side_left",
+      "width_mm": 380,
+      "height_mm": 450,
+      "role": "support",
+      "position_mm": { "x": -216.5, "y": 225, "z": 0 },
+      "rotation_deg": { "x": 0, "y": 90, "z": 0 }
+    },
+    {
+      "name": "leg_right",
+      "source_part_id": "side_right",
+      "width_mm": 380,
+      "height_mm": 450,
+      "role": "support",
+      "position_mm": { "x": 216.5, "y": 225, "z": 0 },
+      "rotation_deg": { "x": 0, "y": 90, "z": 0 }
+    },
+    {
+      "name": "shelf",
+      "source_part_id": "drawer_front",
+      "width_mm": 400,
+      "height_mm": 120,
+      "role": "shelf",
+      "span_mm": 400,
+      "position_mm": { "x": 0, "y": 150, "z": 0 },
+      "rotation_deg": { "x": 90, "y": 0, "z": 0 }
+    }
+  ],
+  "steps": [
+    "Take the top off and use it as the seat.",
+    "Cut both sides down to 450 mm tall to make the legs.",
+    "Use the drawer front as a low shelf between the legs.",
+    "Screw everything together with wood screws."
+  ],
+  "hardware": [
+    { "item": "wood screw, 40 mm", "quantity": 12 }
+  ]
+}
