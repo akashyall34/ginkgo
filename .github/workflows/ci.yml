@@ -1,9 +1,16 @@
-# Runs scripts/ci.sh, the same command run locally, on every push and pull request.
+# Runs scripts/ci.sh, the same command run locally. To save runner time it runs only when code
+# reaches main or a pull request, and never for docs-only changes. Pushes to other branches wait
+# for their pull request. Add [skip ci] to a commit message to skip a run; use "Run workflow"
+# on the Actions tab to start one by hand.
 name: CI
 
 on:
   push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**', 'brand/**', 'LICENSE', '.gitignore']
   pull_request:
+    paths-ignore: ['**.md', 'docs/**', 'brand/**', 'LICENSE', '.gitignore']
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -11,15 +18,17 @@ concurrency:
 
 jobs:
   ci:
-    runs-on: macos-latest
+    # Xcode 27 matches the team's Macs and is needed for Foundation Models + GeminiLanguageModel (iOS 27).
+    # macos-latest only has Xcode 26.x, which rejects code Xcode 27 accepts.
+    runs-on: xcode-27
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use the newest Xcode
+      - name: Use Xcode 27
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: '27'
 
       - uses: actions/setup-node@v4
         with:
@@ -41,7 +50,19 @@ jobs:
       - name: Generate the Xcode project
         run: xcodegen generate
 
+      # Firebase and its dependencies take minutes to download and resolve; keep them between runs.
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/spm
+            Packages/GinkgoCore/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('project.yml', 'Packages/GinkgoCore/Package.swift') }}
+          restore-keys: spm-${{ runner.os }}-
+
       - name: CI (models, lint, build, tests, coverage)
+        env:
+          SPM_DIR: build/spm
         run: scripts/ci.sh
 
       - name: Keep the test results
