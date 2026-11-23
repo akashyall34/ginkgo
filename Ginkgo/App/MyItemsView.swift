@@ -23,6 +23,7 @@ struct MyItemsView: View {
                     .font(.footnote)
                     .foregroundStyle(Palette.fails)
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("savedScansError")
             }
 

@@ -115,7 +115,11 @@ private struct ScanScreen {
         }
     }
 
-    func tapFace() {
+    func tapFace(file: StaticString = #filePath, line: UInt = #line) {
+        // The frozen photo appears a moment after Capture; under load, tapping first would hit nothing.
+        guard element("photo").waitForExistence(timeout: 5) else {
+            return XCTFail("No photo after Capture; the screen says: \"\(result)\"", file: file, line: line)
+        }
         element("photo").coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         waitForResult(containing: "centimeters")
     }

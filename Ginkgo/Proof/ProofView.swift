@@ -28,6 +28,7 @@ struct ProofView: View {
                         ForEach(model.checksBeforeCutting, id: \.self) { check in
                             Label(check, systemImage: "ruler")
                                 .font(.callout)
+                                .accessibilityElement(children: .combine)
                                 .accessibilityIdentifier("check")
                         }
                     }

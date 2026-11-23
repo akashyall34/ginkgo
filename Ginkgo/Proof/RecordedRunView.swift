@@ -13,6 +13,7 @@ struct RecordedRunView: View {
                 Label(RecordedRun.label, systemImage: "record.circle")
                     .font(.headline)
                     .foregroundStyle(Palette.brand)
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("recordedLabel")
                 Text(run.detail).font(.subheadline.monospacedDigit()).foregroundStyle(Palette.secondaryText)
                 if shown == run.trace.count { StepStoryView(trace: run.trace) }

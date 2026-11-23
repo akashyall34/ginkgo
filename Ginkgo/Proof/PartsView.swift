@@ -54,12 +54,15 @@ struct PartsView: View {
             Section {
                 Label(result.fromGemini ? "Read by Gemini from your photo" : "Estimated from the measured size",
                       systemImage: result.fromGemini ? "sparkles" : "ruler")
+                    // One element: VoiceOver reads the words once, and tests never land on the bare icon.
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("partsSource")
                 ForEach(result.flags, id: \.message) { flag in
                     Label(flag.message, systemImage: "exclamationmark.circle")
                         .font(.footnote)
                         .foregroundStyle(Palette.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("partsFlag")
                 }
             }

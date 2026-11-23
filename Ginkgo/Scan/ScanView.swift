@@ -41,10 +41,12 @@ struct ScanView: View {
             if measured && model.saveFailed {
                 Label("The latest measurement couldn't be saved on this device.", systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(Palette.fails)
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("saveFailure")
             } else if measured && model.savedScanID != nil {
                 Label("Saved to My items", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(Palette.verified)
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("saveConfirmation")
             } else {
                 Label("Saved to My items", systemImage: "checkmark.circle.fill").hidden().accessibilityHidden(true)

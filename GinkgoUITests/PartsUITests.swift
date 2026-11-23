@@ -11,7 +11,10 @@ final class PartsUITests: XCTestCase {
         app.launch()
         let any = app.descendants(matching: .any)
         XCTAssertTrue(any["partsSource"].firstMatch.waitForExistence(timeout: 10))
-        XCTAssertTrue(any["partsSource"].firstMatch.label.contains("Estimated from the measured size"))
+        // Wait for the words, not just the element: under load the label is read before it finishes drawing.
+        let estimated = NSPredicate(format: "label CONTAINS %@", "Estimated from the measured size")
+        XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: estimated, evaluatedWith: any["partsSource"].firstMatch)],
+                                        timeout: 5), .completed, any["partsSource"].firstMatch.label)
         XCTAssertTrue(any["partsFlag"].firstMatch.waitForExistence(timeout: 5), "Says the parts are an estimate to check")
         XCTAssertTrue(any["material-top"].firstMatch.waitForExistence(timeout: 5))
         app.buttons["planFromParts"].firstMatch.tap()
