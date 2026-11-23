@@ -38,13 +38,18 @@ if [ -n "${SPM_DIR:-}" ]; then SPM=(-clonedSourcePackagesDirPath "$SPM_DIR"); fi
 xcodegen generate --quiet
 rm -rf build/ci.xcresult
 set +e
+# The full output goes to build/ci.log; milestones and each test result also print here as they happen,
+# so a slow or stuck step is visible (locally and in the GitHub Actions console).
 xcodebuild test -project Ginkgo.xcodeproj -scheme Ginkgo \
   -destination "platform=iOS Simulator,name=$SIMULATOR" \
   -parallel-testing-enabled YES -parallel-testing-worker-count "${CI_WORKERS:-3}" \
   ${ONLY[@]+"${ONLY[@]}"} ${SPM[@]+"${SPM[@]}"} \
-  -resultBundlePath build/ci.xcresult > build/ci.log 2>&1
-STATUS=$?
+  -resultBundlePath build/ci.xcresult 2>&1 | tee build/ci.log | grep --line-buffered -E \
+  "^Resolve Package Graph|^Fetching from|^Resolved source packages|^Testing started|Test [Cc]ase .*(passed|failed)|error:" \
+  | sed -u 's/^/   /'
+STATUS=${PIPESTATUS[0]}
 set -e
+echo "-- $((SECONDS - START)) s so far"
 grep -E "error:|Test [Cc]ase .*failed|Executed [0-9]+ tests.*seconds$|TEST (SUCCEEDED|FAILED)" build/ci.log | tail -12
 if [ $STATUS -ne 0 ]; then echo "CI failed. Full log: build/ci.log"; exit $STATUS; fi
 

@@ -60,7 +60,9 @@ jobs:
           key: spm-${{ runner.os }}-${{ hashFiles('project.yml', 'Packages/GinkgoCore/Package.swift') }}
           restore-keys: spm-${{ runner.os }}-
 
+      # Locally this takes about 4 minutes; a run this long is stuck, so fail fast and keep the log.
       - name: CI (models, lint, build, tests, coverage)
+        timeout-minutes: 20
         env:
           SPM_DIR: build/spm
         run: scripts/ci.sh
@@ -70,5 +72,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: build/ci.xcresult
+          path: |
+            build/ci.xcresult
+            build/ci.log
           if-no-files-found: ignore
