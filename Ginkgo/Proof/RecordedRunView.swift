@@ -15,20 +15,12 @@ struct RecordedRunView: View {
                     .foregroundStyle(Palette.brand)
                     .accessibilityIdentifier("recordedLabel")
                 Text(run.detail).font(.subheadline.monospacedDigit()).foregroundStyle(Palette.secondaryText)
+                if shown == run.trace.count { StepStoryView(trace: run.trace) }
             }
             Section("Every step, checked") {
                 ForEach(run.trace.prefix(shown), id: \.index) { step in
-                    VStack(alignment: .leading, spacing: Spacing.xSmall) {
-                        Label(step.summary, systemImage: PlanningView.icon(step.status))
-                            .foregroundStyle(PlanningView.color(step.status))
-                            .font(.subheadline.weight(.semibold))
-                        if !step.reason.isEmpty {
-                            Text("“\(step.reason)”").font(.footnote).foregroundStyle(Palette.secondaryText)
-                        }
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("agentStep")
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    AgentStepView(step: step)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
             if shown == run.trace.count {

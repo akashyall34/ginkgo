@@ -18,13 +18,14 @@ struct PlanningView: View {
                     if model.isRunning { ProgressView() }
                     Text(model.headline).font(.headline).accessibilityIdentifier("planningHeadline")
                 }
+                if !model.isRunning { StepStoryView(trace: model.steps) }
                 if let reason = model.fallbackReason {
                     Text(reason).font(.footnote).foregroundStyle(Palette.secondaryText).accessibilityIdentifier("fallbackReason")
                 }
             }
             if !model.steps.isEmpty {
                 Section("Every step, checked") {
-                    ForEach(model.steps, id: \.index) { stepRow($0) }
+                    ForEach(model.steps, id: \.index) { AgentStepView(step: $0) }
                 }
             }
             if let proof = model.proof {
@@ -48,24 +49,6 @@ struct PlanningView: View {
             guard model.outcome == nil else { return }
             await model.run(model: GeminiAgentModel(), request: request)
         }
-    }
-
-    /// What a step says on screen. Connection errors are shown in plain words, never as raw error text.
-    static func summary(_ step: AgentStep) -> String {
-        step.status == .error ? "Gemini's connection failed, so Ginkgo planned it with its own rules." : step.summary
-    }
-
-    private func stepRow(_ step: AgentStep) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.xSmall) {
-            Label(Self.summary(step), systemImage: Self.icon(step.status))
-                .foregroundStyle(Self.color(step.status))
-                .font(.subheadline.weight(.semibold))
-            if !step.reason.isEmpty && step.status != .error {
-                Text("“\(step.reason)”").font(.footnote).foregroundStyle(Palette.secondaryText)
-            }
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("agentStep")
     }
 
     static func icon(_ status: GinkgoCore.Status) -> String {

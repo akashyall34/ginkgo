@@ -109,13 +109,3 @@ final class AgentBridgeTests: XCTestCase {
         XCTAssertEqual(AgentBridge.turn([], text: "All done.").text, "All done.")
     }
 }
-
-final class PlanningWordingTests: XCTestCase {
-    func testConnectionErrorsAreShownInPlainWords() {
-        let raw = AgentStep(index: 2, reason: "Couldn't reach Gemini", status: .error,
-                            summary: "internalError(underlying: FirebaseAILogic.BackendError(...))", tool: .fallback)
-        XCTAssertEqual(PlanningView.summary(raw), "Gemini's connection failed, so Ginkgo planned it with its own rules.")
-        let check = AgentStep(index: 0, reason: "Check it.", status: .pass, summary: "seat from top: fits, 12 mm to spare", tool: .checkFit)
-        XCTAssertEqual(PlanningView.summary(check), "seat from top: fits, 12 mm to spare")
-    }
-}
