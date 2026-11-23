@@ -45,6 +45,37 @@ final class RectangleDetectorTests: XCTestCase {
         XCTAssertTrue(RectangleDetector.detect(in: try image(with: .zero)).isEmpty)
     }
 
+    func testSeveralFacesComeBackLargestFirst() throws {
+        let size = CGSize(width: 720, height: 960)
+        let ctx = try XCTUnwrap(CGContext(data: nil, width: 720, height: 960, bitsPerComponent: 8, bytesPerRow: 0,
+                                          space: CGColorSpaceCreateDeviceRGB(),
+                                          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        ctx.setFillColor(CGColor(red: 0.2, green: 0.2, blue: 0.22, alpha: 1))
+        ctx.fill(CGRect(origin: .zero, size: size))
+        ctx.setFillColor(CGColor(red: 0.95, green: 0.95, blue: 0.95, alpha: 1))
+        ctx.fill(CGRect(x: 60, y: 600, width: 180, height: 200))    // small, near the top
+        ctx.fill(CGRect(x: 300, y: 100, width: 360, height: 400))   // large, lower down
+        let quads = RectangleDetector.detect(in: try XCTUnwrap(ctx.makeImage()))
+        XCTAssertGreaterThanOrEqual(quads.count, 2)
+        let areas = quads.map(RectangleDetector.area)
+        XCTAssertEqual(areas, areas.sorted(by: >), "Largest first")
+        XCTAssertEqual(areas[0], 0.5 * 0.4167, accuracy: 0.02, "The large face (360 × 400 px of 720 × 960) leads")
+    }
+
+    func testAVisionFailureFindsNothingInsteadOfCrashing() throws {
+        struct VisionDown: Error {}
+        let quads = RectangleDetector.detect(in: try image(with: CGRect(x: 0.2, y: 0.3, width: 0.5, height: 0.3)),
+                                             perform: { _, _ in throw VisionDown() })
+        XCTAssertEqual(quads, [])
+    }
+
+    func testNoResultsFromVisionFindsNothing() throws {
+        // A request that never ran has no results at all (nil, not empty).
+        let quads = RectangleDetector.detect(in: try image(with: CGRect(x: 0.2, y: 0.3, width: 0.5, height: 0.3)),
+                                             perform: { _, _ in })
+        XCTAssertEqual(quads, [])
+    }
+
     func testAreaOfAKnownQuad() {
         let q = DetectedQuad(corners: [CGPoint(x: 0, y: 0), CGPoint(x: 0.5, y: 0), CGPoint(x: 0.5, y: 0.2), CGPoint(x: 0, y: 0.2)])
         XCTAssertEqual(RectangleDetector.area(q), 0.1, accuracy: 1e-9)

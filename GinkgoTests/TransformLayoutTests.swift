@@ -122,3 +122,85 @@ final class TransformExampleTests: XCTestCase {
         XCTAssertNil(TransformLayout.example(bundle: Bundle(for: TransformExampleTests.self)))
     }
 }
+
+/// Furniture other than the sample nightstand: every panel type, and pieces with no top or no sides.
+final class TransformFurnitureTests: XCTestCase {
+    private func part(_ id: String, _ type: TypeEnum, w: Double, h: Double, t: Double = 19) -> Part {
+        Part(damaged: false, heightMm: h, id: id, keepOuts: [], material: .solidWood, thicknessMm: t, type: type, widthMm: w)
+    }
+
+    private func poses(_ parts: [Part]) -> [String: PanelPose] {
+        TransformLayout.furniture(Inventory(parts: parts, scanID: "s"))
+    }
+
+    /// A 600 wide, 400 deep, 800 tall cabinet.
+    private let cabinet: [Part] = [
+        Part(damaged: false, heightMm: 400, id: "top", keepOuts: [], material: .solidWood, thicknessMm: 20, type: .top,
+             widthMm: 600),
+        Part(damaged: false, heightMm: 800, id: "side", keepOuts: [], material: .solidWood, thicknessMm: 20, type: .side,
+             widthMm: 400),
+    ]
+
+    func testTheBackStandsAtTheBackOnTheFloor() throws {
+        let back = try XCTUnwrap(poses(cabinet + [part("back", .back, w: 560, h: 780, t: 6)])["back"])
+        XCTAssertEqual(back.position.x, 0, accuracy: 1e-6)
+        XCTAssertEqual(back.position.y, 0.39, accuracy: 1e-6, "Half its height: it stands on the floor")
+        XCTAssertEqual(back.position.z, -(0.2 - 0.003), accuracy: 1e-6, "Flush with the back edge")
+        XCTAssertEqual(back.rotation, TransformLayout.rotation(degrees: TransformLayout.upright))
+    }
+
+    func testAShelfLiesFlatHalfwayUp() throws {
+        let shelf = try XCTUnwrap(poses(cabinet + [part("shelf", .shelf, w: 560, h: 380)])["shelf"])
+        XCTAssertEqual(shelf.position, SIMD3(0, 0.4, 0))
+        XCTAssertEqual(shelf.rotation, TransformLayout.rotation(degrees: TransformLayout.flat))
+    }
+
+    func testDrawerBoxesLegsAndRailsStandUprightOnTheFloorAtTheCenter() throws {
+        let extras = [part("box", .drawerBox, w: 300, h: 120), part("leg", .leg, w: 40, h: 700),
+                      part("rail", .rail, w: 500, h: 60)]
+        let all = poses(cabinet + extras)
+        for extra in extras {
+            let pose = try XCTUnwrap(all[extra.id])
+            XCTAssertEqual(pose.position, SIMD3(0, Float(extra.heightMm / 2000), 0), extra.id)
+            XCTAssertEqual(pose.rotation, TransformLayout.rotation(degrees: TransformLayout.upright), extra.id)
+            XCTAssertEqual(pose.size, SIMD3(Float(extra.widthMm / 1000), Float(extra.heightMm / 1000), 0.019), extra.id)
+        }
+    }
+
+    func testWithNoTopTheSidesSetTheWidthAndDepth() throws {
+        // No top: width falls back to the first side's height, depth to its width.
+        let all = poses([part("left", .side, w: 300, h: 500), part("right", .side, w: 300, h: 500),
+                         part("front", .drawerFront, w: 400, h: 100)])
+        XCTAssertEqual(try XCTUnwrap(all["right"]).position.x, 0.25 - 0.0095, accuracy: 1e-6)
+        XCTAssertEqual(try XCTUnwrap(all["front"]).position.z, 0.15 - 0.0095, accuracy: 1e-6)
+        XCTAssertEqual(try XCTUnwrap(all["front"]).position.y, 0.5 - 0.05, accuracy: 1e-6, "Its top at the sides' top")
+    }
+
+    func testWithNoTopAndNoSidesTheDefaultBoxIsUsed() throws {
+        // 400 × 400 footprint, 500 tall.
+        let all = poses([part("front", .drawerFront, w: 400, h: 100), part("shelf", .shelf, w: 300, h: 300)])
+        XCTAssertEqual(try XCTUnwrap(all["front"]).position, SIMD3(0, 0.45, 0.2 - 0.0095))
+        XCTAssertEqual(try XCTUnwrap(all["shelf"]).position.y, 0.25, accuracy: 1e-6)
+    }
+
+    func testEmptyFurnitureHasNoPanels() {
+        XCTAssertEqual(poses([]), [:])
+    }
+
+    func testACutPieceKeepsItsPanelsThickness() throws {
+        let inventory = Inventory(parts: cabinet, scanID: "s")
+        let plan = try XCTUnwrap(RuleBasedPlanner.bench(inventory: Inventory(parts: cabinet + [
+            Part(damaged: false, heightMm: 800, id: "side2", keepOuts: [], material: .solidWood, thicknessMm: 20,
+                 type: .side, widthMm: 400),
+        ], scanID: "s"))?.plan)
+        let scene = TransformLayout.scene(plan: plan, inventory: Inventory(parts: inventory.parts + [
+            Part(damaged: false, heightMm: 800, id: "side2", keepOuts: [], material: .solidWood, thicknessMm: 20,
+                 type: .side, widthMm: 400),
+        ], scanID: "s"))
+        XCTAssertFalse(scene.pieces.isEmpty)
+        for piece in scene.pieces {
+            XCTAssertEqual(piece.start.size.z, 0.02, accuracy: 1e-6, piece.name)
+            XCTAssertEqual(piece.end.size.z, 0.02, accuracy: 1e-6, piece.name)
+        }
+    }
+}

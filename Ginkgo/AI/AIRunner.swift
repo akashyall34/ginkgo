@@ -35,8 +35,11 @@ struct AIRunner: Sendable {
         let attempts: [(model: String, error: Error)]
     }
 
+    /// No model or no attempt to run: a setup mistake, reported like any failure so the caller falls back.
+    struct Misconfigured: Error, Equatable {}
+
     func run<T: Sendable>(_ call: @Sendable (String) async throws -> T) async throws -> T {
-        precondition(!models.isEmpty && attemptsPerModel > 0, "Need at least one model and one attempt")
+        guard !models.isEmpty, attemptsPerModel > 0 else { throw Misconfigured() }
         var failures: [(model: String, error: Error)] = []
         for model in models {
             for attempt in 1...attemptsPerModel {

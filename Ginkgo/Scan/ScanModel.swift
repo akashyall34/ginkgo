@@ -65,7 +65,7 @@ final class ScanModel {
             savedScanID = nil
             photoData = nil
             saveFailed = false
-            faces = captured.image.cgImage.map(RectangleDetector.detect) ?? []
+            faces = captured.image.cgImage.map { RectangleDetector.detect(in: $0) } ?? []
             corners = nil
             status = faces.isEmpty ? .noFaceFound : .chooseFace
         case .failure(let error):

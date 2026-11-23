@@ -21,8 +21,12 @@ enum RectangleDetector {
     /// Vision's normalized points have their origin at the bottom-left; flip to top-left.
     static func fromVision(_ p: CGPoint) -> CGPoint { CGPoint(x: p.x, y: 1 - p.y) }
 
-    /// Finds rectangular faces, largest first.
-    static func detect(in image: CGImage) -> [DetectedQuad] {
+    /// Runs Vision. Tests swap it to simulate a failure or no results.
+    typealias Perform = (VNImageRequestHandler, [VNRequest]) throws -> Void
+
+    /// Finds rectangular faces, largest first. If Vision fails, nothing is found (the user can still
+    /// place the corners by hand).
+    static func detect(in image: CGImage, perform: Perform = { try $0.perform($1) }) -> [DetectedQuad] {
         let request = VNDetectRectanglesRequest()
         request.maximumObservations = 8
         request.minimumConfidence = 0.5
@@ -33,7 +37,7 @@ enum RectangleDetector {
 
         let handler = VNImageRequestHandler(cgImage: image, options: [:])
         do {
-            try handler.perform([request])
+            try perform(handler, [request])
         } catch {
             return []
         }

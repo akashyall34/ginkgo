@@ -81,10 +81,10 @@ enum TransformLayout {
 
     static func scene(plan: Plan, inventory: Inventory) -> TransformScene {
         let old = furniture(inventory)
-        let thickness = Dictionary(inventory.parts.map { ($0.id, meters($0.thicknessMm)) }, uniquingKeysWith: { a, _ in a })
         let pieces = plan.newParts.compactMap { part -> TransformPiece? in
             guard let source = old[part.sourcePartID] else { return nil }
-            let size = SIMD3(meters(part.widthMm), meters(part.heightMm), thickness[part.sourcePartID] ?? source.size.z)
+            // A cut piece keeps its panel's thickness.
+            let size = SIMD3(meters(part.widthMm), meters(part.heightMm), source.size.z)
             let end = PanelPose(size: size,
                                 position: SIMD3(meters(part.positionMm.x), meters(part.positionMm.y), meters(part.positionMm.z)),
                                 rotation: rotation(degrees: part.rotationDeg))

@@ -40,4 +40,22 @@ final class WalkAroundRecordingCloudTests: XCTestCase {
         XCTAssertEqual(loaded.cloudPoints, cloud)
         XCTAssertNil(WalkAroundRecording(points: [], floorY: 0, aim: nil).cloud, "No depth, no cloud field")
     }
+
+    func testARecordingWithoutACloudHasNoCloudPoints() {
+        XCTAssertEqual(WalkAroundRecording(points: [SIMD3(1, 2, 3)], floorY: 0, aim: nil).cloudPoints, [])
+    }
+}
+
+final class WalkAroundRecordingFolderTests: XCTestCase {
+    func testRecordingsLiveInDocumentsWalkArounds() {
+        let folder = WalkAroundRecording.folder()
+        XCTAssertEqual(folder.lastPathComponent, "WalkArounds")
+        XCTAssertEqual(folder.deletingLastPathComponent().lastPathComponent, "Documents")
+        XCTAssertTrue(folder.hasDirectoryPath)
+    }
+
+    func testRecordingsAreKeptApartFromWalkAroundScans() {
+        XCTAssertNotEqual(WalkAroundRecording.folder().standardizedFileURL,
+                          WalkAroundStore.standard().root.standardizedFileURL)
+    }
 }

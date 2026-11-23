@@ -100,6 +100,54 @@ final class AIRunnerTests: XCTestCase {
         XCTAssertEqual(Duration.milliseconds(1500).seconds, 1.5, accuracy: 1e-9)
     }
 
+    func testStandardRunnerWaitsLongerAfterEachFailure() {
+        XCTAssertEqual(AIRunner.standard.backoff(1), .milliseconds(800))
+        XCTAssertEqual(AIRunner.standard.backoff(2), .milliseconds(1600))
+        XCTAssertEqual(AIRunner.standard.backoff(3), .milliseconds(2400))
+    }
+
+    func testStandardRunnerReallySleeps() async throws {
+        let clock = ContinuousClock()
+        let start = clock.now
+        try await AIRunner.standard.sleep(.milliseconds(50))
+        XCTAssertGreaterThanOrEqual(clock.now - start, .milliseconds(50))
+    }
+
+    func testStandardRunnerSleepStopsWhenCancelled() async {
+        let task = Task { try await AIRunner.standard.sleep(.seconds(30)) }
+        task.cancel()
+        do {
+            try await task.value
+            XCTFail("A cancelled sleep must throw")
+        } catch {
+            XCTAssertTrue(error is CancellationError)
+        }
+    }
+
+    func testNoModelsIsReportedNotCrashed() async {
+        let script = Script([true])
+        do {
+            _ = try await runner(script, models: []).run { try await script.call($0) }
+            XCTFail("Expected Misconfigured")
+        } catch {
+            XCTAssertEqual(error as? AIRunner.Misconfigured, AIRunner.Misconfigured())
+        }
+        let calls = await script.calls
+        XCTAssertEqual(calls, [], "Nothing is called")
+    }
+
+    func testZeroAttemptsIsReportedNotCrashed() async {
+        let script = Script([true])
+        do {
+            _ = try await runner(script, attempts: 0).run { try await script.call($0) }
+            XCTFail("Expected Misconfigured")
+        } catch {
+            XCTAssertEqual(error as? AIRunner.Misconfigured, AIRunner.Misconfigured())
+        }
+        let calls = await script.calls
+        XCTAssertEqual(calls, [])
+    }
+
     func testStandardRunnerUsesTheCurrentModels() {
         XCTAssertEqual(AIRunner.standard.models, ["gemini-3.8-flash", "gemini-3.5-flash-lite"])
         XCTAssertEqual(AIRunner.standard.attemptsPerModel, 1)

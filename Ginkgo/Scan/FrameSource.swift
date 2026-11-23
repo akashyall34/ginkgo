@@ -16,20 +16,27 @@ protocol FrameSource: AnyObject {
 /// Serves the demo scene: a known 19.05 x 12 cm face, for the simulator and demo mode.
 @MainActor
 final class DemoFrameSource: FrameSource {
+    private let makeFrame: () -> CapturedFrame?
+
+    /// `makeFrame` is the demo scene; tests pass a failing one.
+    init(makeFrame: @escaping () -> CapturedFrame? = DemoScene.frame) {
+        self.makeFrame = makeFrame
+    }
+
     var isSupported: Bool { true }
     var previewSession: ARSession? { nil }
     func start() {}
     func pause() {}
 
     func capture() -> Result<CapturedFrame, CaptureError> {
-        DemoScene.frame().map(Result.success) ?? .failure(.unreadableFrame)
+        makeFrame().map(Result.success) ?? .failure(.unreadableFrame)
     }
 }
 
 enum FrameSources {
     /// The demo scene when launched with `-demoScene`, otherwise the real camera.
     @MainActor
-    static func makeDefault() -> FrameSource {
-        DemoScene.isEnabled ? DemoFrameSource() : DepthCapture()
+    static func makeDefault(demo: Bool = DemoScene.isEnabled) -> FrameSource {
+        demo ? DemoFrameSource() : DepthCapture()
     }
 }
