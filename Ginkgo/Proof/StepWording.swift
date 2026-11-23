@@ -21,6 +21,12 @@ enum StepWording {
         }
     }
 
+    /// The status the screen shows. The rule-based fallback is logged as "info", but when it has a plan, that plan
+    /// passed every check, so it shows as passed (green), not as a neutral note.
+    static func shownStatus(_ step: AgentStep) -> Status {
+        step.tool == .fallback && step.status == .info ? .accepted : step.status
+    }
+
     /// One line per problem, in plain words. Passing checks need no lines: the headline says it.
     static func problems(_ step: AgentStep) -> [String] {
         guard step.tool == .checkFit || step.tool == .checkSag || step.tool == .submitPlan else { return [] }

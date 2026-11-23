@@ -45,6 +45,13 @@ final class StepWordingTests: XCTestCase {
         XCTAssertEqual(StepWording.problems(info), [])
     }
 
+    func testAFallbackWithAPlanShowsAsPassedAndOneWithoutStaysAnError() {
+        XCTAssertEqual(StepWording.shownStatus(step(.fallback, .info, "Showing the rule-based bench")), .accepted)
+        XCTAssertEqual(StepWording.shownStatus(step(.fallback, .error, "No safe plan")), .error)
+        XCTAssertEqual(StepWording.shownStatus(step(.note, .info, "reminded it")), .info, "Other notes stay neutral")
+        XCTAssertEqual(StepWording.shownStatus(step(.checkFit, .fail, "seat from top: 4 mm short")), .fail)
+    }
+
     func testANoteKeepsItsOwnWords() {
         let note = step(.note, .info, "Gemini answered without using the tools; reminded it to check and submit.")
         XCTAssertEqual(StepWording.headline(note), note.summary)

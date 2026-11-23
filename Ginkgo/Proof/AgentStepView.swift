@@ -7,8 +7,8 @@ struct AgentStepView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xSmall) {
-            Label(StepWording.headline(step), systemImage: PlanningView.icon(step.status))
-                .foregroundStyle(PlanningView.color(step.status))
+            Label(StepWording.headline(step), systemImage: PlanningView.icon(StepWording.shownStatus(step)))
+                .foregroundStyle(PlanningView.color(StepWording.shownStatus(step)))
                 .font(.subheadline.weight(.semibold))
             ForEach(StepWording.problems(step), id: \.self) { problem in
                 Text(problem)
