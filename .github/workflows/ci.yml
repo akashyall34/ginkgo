@@ -47,6 +47,13 @@ jobs:
           echo "Using $name"
           echo "SIMULATOR=$name" >> "$GITHUB_ENV"
 
+      # Started on its own so a stuck simulator fails here, clearly, instead of looking like slow tests.
+      - name: Boot the simulator
+        timeout-minutes: 10
+        run: |
+          xcrun simctl boot "$SIMULATOR" || true
+          xcrun simctl bootstatus "$SIMULATOR" -b
+
       - name: Generate the Xcode project
         run: xcodegen generate
 
@@ -65,6 +72,8 @@ jobs:
         timeout-minutes: 20
         env:
           SPM_DIR: build/spm
+          # One simulator, no clones: starting clones hung for 17 minutes on the cloud runner (Nov 23).
+          PARALLEL: "NO"
         run: scripts/ci.sh
 
       - name: Keep the test results

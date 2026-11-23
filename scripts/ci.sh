@@ -5,7 +5,8 @@
 #   scripts/ci.sh --quick   while building: core package, lint, build, unit tests. Skips the slow UI tests
 #                           and the app coverage gate (UI tests cover part of it), so it can't replace a full run.
 #
-# Optional: SIMULATOR picks the simulator; SPM_DIR keeps Swift packages in a folder CI can cache.
+# Optional: SIMULATOR picks the simulator; SPM_DIR keeps Swift packages in a folder CI can cache;
+# PARALLEL=NO runs the tests on one simulator instead of clones (slow cloud machines hang starting clones).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 SIMULATOR="${SIMULATOR:-iPhone 17}"
@@ -42,7 +43,7 @@ set +e
 # so a slow or stuck step is visible (locally and in the GitHub Actions console).
 xcodebuild test -project Ginkgo.xcodeproj -scheme Ginkgo \
   -destination "platform=iOS Simulator,name=$SIMULATOR" \
-  -parallel-testing-enabled YES -parallel-testing-worker-count "${CI_WORKERS:-3}" \
+  -parallel-testing-enabled "${PARALLEL:-YES}" -parallel-testing-worker-count "${CI_WORKERS:-3}" \
   ${ONLY[@]+"${ONLY[@]}"} ${SPM[@]+"${SPM[@]}"} \
   -resultBundlePath build/ci.xcresult 2>&1 | tee build/ci.log | grep --line-buffered -E \
   "^Resolve Package Graph|^Fetching from|^Resolved source packages|^Testing started|Test [Cc]ase .*(passed|failed)|error:" \
