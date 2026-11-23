@@ -23,6 +23,8 @@ public enum RouteReason: String, Sendable, Codable, CaseIterable {
     case numbersOnDevice = "numbers_on_device"
     case needsPhoto = "needs_photo"
     case deviceFailedValidator = "device_failed_validator"
+    /// The on-device model stopped or errored before the validator rejected it enough times to give up.
+    case deviceDidNotFinish = "device_did_not_finish"
     case deviceUnavailable = "device_unavailable"
     case offlineNoDeviceModel = "offline_no_device_model"
     case offlineDeviceFailed = "offline_device_failed"
@@ -35,6 +37,7 @@ public enum RouteReason: String, Sendable, Codable, CaseIterable {
         case .deviceFailedValidator:
             return "Sent to Gemini: the on-device plan failed the validator \(HybridRouter.deviceAttempts) times"
         case .deviceUnavailable: return "Sent to Gemini: the on-device model isn't available"
+        case .deviceDidNotFinish: return "Sent to Gemini: the on-device model didn't finish a plan in time"
         case .offlineNoDeviceModel: return "No network and no on-device model: rule-based plan"
         case .offlineDeviceFailed: return "No network, and the on-device plans failed the validator: rule-based plan"
         case .offlinePhotoTemplate: return "No network: parts from the LiDAR faces"
@@ -48,11 +51,14 @@ public struct RouteConditions: Sendable, Equatable {
     public var online: Bool
     /// On-device plans for this piece that the validator rejected so far.
     public var deviceRejections: Int
+    /// The on-device model already ran and ended without an accepted plan, for any reason.
+    public var deviceFinishedWithoutPlan: Bool
 
-    public init(deviceModelAvailable: Bool, online: Bool, deviceRejections: Int = 0) {
+    public init(deviceModelAvailable: Bool, online: Bool, deviceRejections: Int = 0, deviceFinishedWithoutPlan: Bool = false) {
         self.deviceModelAvailable = deviceModelAvailable
         self.online = online
         self.deviceRejections = deviceRejections
+        self.deviceFinishedWithoutPlan = deviceFinishedWithoutPlan
     }
 }
 
@@ -81,12 +87,15 @@ public enum HybridRouter {
                 ? Route(venue: .cloud, reason: .needsPhoto)
                 : Route(venue: .code, reason: .offlinePhotoTemplate)
         case .planFromNumbers:
-            let deviceSpent = conditions.deviceRejections >= deviceAttempts
+            let rejectedEnough = conditions.deviceRejections >= deviceAttempts
+            let deviceSpent = rejectedEnough || conditions.deviceFinishedWithoutPlan
             if conditions.deviceModelAvailable && !deviceSpent {
                 return Route(venue: .device, reason: .numbersOnDevice)
             }
             if conditions.online {
-                return Route(venue: .cloud, reason: deviceSpent ? .deviceFailedValidator : .deviceUnavailable)
+                let why: RouteReason = rejectedEnough ? .deviceFailedValidator
+                    : deviceSpent ? .deviceDidNotFinish : .deviceUnavailable
+                return Route(venue: .cloud, reason: why)
             }
             return Route(venue: .code, reason: deviceSpent ? .offlineDeviceFailed : .offlineNoDeviceModel)
         }

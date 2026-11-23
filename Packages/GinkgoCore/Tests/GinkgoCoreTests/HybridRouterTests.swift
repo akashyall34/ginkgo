@@ -49,6 +49,24 @@ final class HybridRouterTests: XCTestCase {
                        Route(venue: .code, reason: .offlineDeviceFailed))
     }
 
+    func testADeviceRunThatStoppedEarlyGoesToTheCloudWithAnHonestReason() {
+        let route = HybridRouter.route(.planFromNumbers, RouteConditions(deviceModelAvailable: true, online: true,
+                                                                         deviceRejections: 1, deviceFinishedWithoutPlan: true))
+        XCTAssertEqual(route, Route(venue: .cloud, reason: .deviceDidNotFinish))
+    }
+
+    func testThreeRejectionsStillSayFailedTheValidatorEvenIfTheRunEnded() {
+        let route = HybridRouter.route(.planFromNumbers, RouteConditions(deviceModelAvailable: true, online: true,
+                                                                         deviceRejections: 3, deviceFinishedWithoutPlan: true))
+        XCTAssertEqual(route.reason, .deviceFailedValidator)
+    }
+
+    func testADeviceRunThatStoppedEarlyOfflineUsesTheRules() {
+        let route = HybridRouter.route(.planFromNumbers, RouteConditions(deviceModelAvailable: true, online: false,
+                                                                         deviceFinishedWithoutPlan: true))
+        XCTAssertEqual(route, Route(venue: .code, reason: .offlineDeviceFailed))
+    }
+
     // MARK: - Reading the photo: the cloud, or the LiDAR template offline
 
     func testPhotoGoesToTheCloudEvenWhenTheDeviceModelIsAvailable() {

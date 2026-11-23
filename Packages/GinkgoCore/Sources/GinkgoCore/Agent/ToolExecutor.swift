@@ -4,6 +4,11 @@ import Foundation
 public struct AcceptedPlan: Sendable, Equatable {
     public var plan: Plan
     public var validation: ValidationResult
+
+    public init(plan: Plan, validation: ValidationResult) {
+        self.plan = plan
+        self.validation = validation
+    }
 }
 
 /// What one tool call produced: the answer for the model, the trace line for the screen, and the plan if accepted.
