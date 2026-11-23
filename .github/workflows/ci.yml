@@ -21,7 +21,7 @@ jobs:
     # Xcode 27 matches the team's Macs and is needed for Foundation Models + GeminiLanguageModel (iOS 27).
     # macos-latest only has Xcode 26.x, which rejects code Xcode 27 accepts.
     runs-on: xcode-27
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -67,14 +67,16 @@ jobs:
           key: spm-${{ runner.os }}-${{ hashFiles('project.yml', 'Packages/GinkgoCore/Package.swift') }}
           restore-keys: spm-${{ runner.os }}-
 
-      # Locally this takes about 4 minutes; a run this long is stuck, so fail fast and keep the log.
-      - name: CI (models, lint, build, tests, coverage)
-        timeout-minutes: 20
+      # GitHub's Xcode 27 preview machine builds about 20x slower than a team Mac (GinkgoCore: 7.5 min vs 20 s,
+      # Nov 23), so it runs the quick suite: models, lint, build, unit tests. The full suite, UI tests included,
+      # runs on a Mac before every push (scripts/ci.sh).
+      - name: CI (models, lint, build, unit tests)
+        timeout-minutes: 40
         env:
           SPM_DIR: build/spm
           # One simulator, no clones: starting clones hung for 17 minutes on the cloud runner (Nov 23).
           PARALLEL: "NO"
-        run: scripts/ci.sh
+        run: scripts/ci.sh --quick
 
       - name: Keep the test results
         if: always()
