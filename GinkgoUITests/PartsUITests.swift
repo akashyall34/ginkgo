@@ -12,13 +12,13 @@ final class PartsUITests: XCTestCase {
         let any = app.descendants(matching: .any)
         XCTAssertTrue(any["partsSource"].firstMatch.waitForExistence(timeout: 10))
         XCTAssertTrue(any["partsSource"].firstMatch.label.contains("Estimated from the measured size"))
-        XCTAssertTrue(any["partsFlag"].firstMatch.exists, "Says the parts are an estimate to check")
-        XCTAssertTrue(any["material-top"].firstMatch.exists)
+        XCTAssertTrue(any["partsFlag"].firstMatch.waitForExistence(timeout: 5), "Says the parts are an estimate to check")
+        XCTAssertTrue(any["material-top"].firstMatch.waitForExistence(timeout: 5))
         app.buttons["planFromParts"].firstMatch.tap()
         let bench = app.buttons["idea-bench"].firstMatch
         XCTAssertTrue(bench.waitForExistence(timeout: 10))
         XCTAssertTrue(bench.label.contains("reused"), bench.label)
-        XCTAssertTrue(app.buttons["idea-bookshelf"].firstMatch.exists)
+        XCTAssertTrue(app.buttons["idea-bookshelf"].firstMatch.waitForExistence(timeout: 5))
         bench.tap()
         // Offline: Gemini can't plan, so Ginkgo's rule-based plan takes over and says so.
         let headline = any["planningHeadline"].firstMatch
@@ -26,7 +26,7 @@ final class PartsUITests: XCTestCase {
         let made = NSPredicate(format: "label CONTAINS %@", "Ginkgo made its own safe plan")
         XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: made, evaluatedWith: headline)], timeout: 30), .completed,
                        headline.label)
-        XCTAssertTrue(any["fallbackReason"].firstMatch.exists)
+        XCTAssertTrue(any["fallbackReason"].firstMatch.waitForExistence(timeout: 5))
         app.buttons["seeProof"].firstMatch.tap()
         XCTAssertTrue(any["verdict"].waitForExistence(timeout: 10))
         XCTAssertTrue(any["verdict"].label.contains("Proven to fit"), any["verdict"].label)

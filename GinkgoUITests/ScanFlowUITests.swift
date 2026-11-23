@@ -25,7 +25,7 @@ final class ScanFlowUITests: XCTestCase {
         let (w, h) = try scan.size()
         XCTAssertEqual(w, 19.05, accuracy: 0.2, scan.result)
         XCTAssertEqual(h, 12.0, accuracy: 0.2, scan.result)
-        for i in 0..<4 { XCTAssertTrue(scan.element("corner\(i)").exists, "Corner \(i) handle missing") }
+        for i in 0..<4 { XCTAssertTrue(scan.element("corner\(i)").waitForExistence(timeout: 5), "Corner \(i) handle missing") }
     }
 
     func testDraggingTheRightEdgeOutwardWidensTheFace() throws {

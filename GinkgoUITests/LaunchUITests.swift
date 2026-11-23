@@ -9,7 +9,7 @@ final class LaunchUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["appTitle"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.staticTexts["appTitle"].label, "Ginkgo")
-        XCTAssertTrue(app.staticTexts["tagline"].exists)
+        XCTAssertTrue(app.staticTexts["tagline"].waitForExistence(timeout: 5))
     }
 
     @MainActor
@@ -29,7 +29,7 @@ final class LaunchUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
         XCTAssertTrue(app.staticTexts["appTitle"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["snapFurniture"].exists)
+        XCTAssertTrue(app.buttons["snapFurniture"].waitForExistence(timeout: 5))
     }
 
     @MainActor
@@ -47,8 +47,8 @@ final class LaunchUITests: XCTestCase {
         app.launch()
         app.buttons["Guide"].tap()
         XCTAssertTrue(app.staticTexts["guideTitle"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Frame one flat face"].exists)
-        XCTAssertTrue(app.buttons["guideStartScan"].exists)
+        XCTAssertTrue(app.staticTexts["Frame one flat face"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["guideStartScan"].waitForExistence(timeout: 5))
     }
 
     @MainActor
@@ -65,9 +65,9 @@ final class LaunchUITests: XCTestCase {
         app.launch()
         app.buttons["appearanceSettings"].tap()
 
-        XCTAssertTrue(app.buttons["appearance-light"].exists)
-        XCTAssertTrue(app.buttons["appearance-dark"].exists)
-        XCTAssertTrue(app.buttons["appearance-system"].exists)
+        XCTAssertTrue(app.buttons["appearance-light"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["appearance-dark"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["appearance-system"].waitForExistence(timeout: 5))
 
         app.buttons["appearance-dark"].tap()
         XCTAssertTrue(app.buttons["appearance-dark"].isSelected)

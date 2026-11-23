@@ -30,7 +30,7 @@ struct GeminiClient: Sendable {
 
     /// Returns the model's JSON text for a photo and a prompt, constrained to `schema`.
     func json(prompt: String, image: Data, mimeType: String = "image/jpeg", schema: Schema) async throws -> String {
-        guard FirebaseApp.app() != nil else { throw GeminiError.notConfigured }
+        guard FirebaseApp.app() != nil, !GeminiAgentModel.isDisabled else { throw GeminiError.notConfigured }
         return try await runner.run { modelName in
             let model = FirebaseAI.firebaseAI(backend: .googleAI()).generativeModel(
                 modelName: modelName,
@@ -46,7 +46,7 @@ struct GeminiClient: Sendable {
 
     /// Returns the model's JSON text, already constrained to `schema`.
     func json(prompt: String, schema: Schema) async throws -> String {
-        guard FirebaseApp.app() != nil else { throw GeminiError.notConfigured }
+        guard FirebaseApp.app() != nil, !GeminiAgentModel.isDisabled else { throw GeminiError.notConfigured }
         return try await runner.run { modelName in
             let model = FirebaseAI.firebaseAI(backend: .googleAI()).generativeModel(
                 modelName: modelName,
