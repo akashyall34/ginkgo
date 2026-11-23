@@ -18,6 +18,8 @@ struct PlanningView: View {
                     if model.isRunning { ProgressView() }
                     Text(model.headline).font(.headline).accessibilityIdentifier("planningHeadline")
                 }
+                // While planning, the headline says where; the badge confirms where the result came from.
+                if let route = model.route, !model.isRunning { RouteBadge(route: route) }
                 if !model.isRunning { StepStoryView(trace: model.steps) }
                 if let reason = model.fallbackReason {
                     Text(reason).font(.footnote).foregroundStyle(Palette.secondaryText).accessibilityIdentifier("fallbackReason")
@@ -47,7 +49,18 @@ struct PlanningView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             guard model.outcome == nil else { return }
-            await model.run(model: GeminiAgentModel(), request: request)
+            // Offline test runs (-noGemini) switch off both models: no network, no on-device model.
+            let offlineTest = GeminiAgentModel.isDisabled
+            let online = offlineTest ? false : await Connectivity.isOnline()
+            let planner = HybridPlanner(
+                device: OnDevicePlanner(enabled: !offlineTest),
+                cloud: { inventory, request, onStep in
+                    await PlanAgent(model: GeminiAgentModel(), maxTurns: 6)
+                        .run(inventory: inventory, limits: nil, request: request, onStep: onStep)
+                },
+                cloudModelName: GeminiAgentModel().modelName)
+            await model.run(planner: planner, online: online, request: request)
+            try? RoutingLogStore.standard().append(model.routing)
         }
     }
 
@@ -64,6 +77,27 @@ struct PlanningView: View {
         case .pass, .accepted: return Palette.verified
         case .fail, .error: return Palette.fails
         case .info: return Palette.secondaryText
+        }
+    }
+}
+
+/// Where the plan was made, and why: "Planned on this iPhone", "Sent to Gemini: …", or the rules offline.
+struct RouteBadge: View {
+    let route: Route
+
+    var body: some View {
+        Label(route.reason.message, systemImage: Self.icon(route.venue))
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Palette.brand)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("routeBadge")
+    }
+
+    static func icon(_ venue: Venue) -> String {
+        switch venue {
+        case .device: return "iphone"
+        case .cloud: return "cloud"
+        case .code: return "checkmark.shield"
         }
     }
 }

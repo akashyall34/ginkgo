@@ -9,6 +9,10 @@ import Observation
 final class PlanningModel {
     private(set) var steps: [AgentStep] = []
     private(set) var outcome: AgentOutcome?
+    /// Where the plan is being made, and why (shown as a badge). Nil for a cloud-only run.
+    private(set) var route: Route?
+    /// What the hybrid run recorded, for the routing log.
+    private(set) var routing: [RoutingEntry] = []
     let inventory: Inventory
 
     init(inventory: Inventory) { self.inventory = inventory }
@@ -18,8 +22,12 @@ final class PlanningModel {
     /// What happened, in one line for the top of the screen.
     var headline: String {
         switch outcome {
-        case nil: return "Gemini is planning, and Ginkgo checks every step…"
-        case .accepted: return "Gemini's plan passed every check"
+        case nil:
+            return route?.venue == .device ? "Planning on this iPhone, and Ginkgo checks every step…"
+                                           : "Gemini is planning, and Ginkgo checks every step…"
+        case .accepted:
+            return route?.venue == .device ? "Planned on this iPhone, and it passed every check"
+                                           : "Gemini's plan passed every check"
         case .fallback(let plan, _, _, _):
             return plan == nil ? "No safe plan can be made from these parts"
                                : "Gemini's plan didn't pass, so Ginkgo made its own safe plan"
@@ -38,6 +46,22 @@ final class PlanningModel {
     var proof: ProofModel? {
         guard let plan = outcome?.plan, let validation = outcome?.validation else { return nil }
         return ProofModel(plan: plan, result: validation, inventory: inventory)
+    }
+
+    /// The hybrid way: on this iPhone first, the cloud when it helps, tested rules with no network.
+    func run(planner: HybridPlanner, online: Bool, request: String = Prompts.defaultRequest) async {
+        steps = []
+        outcome = nil
+        routing = []
+        let conditions = RouteConditions(deviceModelAvailable: planner.device.isAvailable, online: online)
+        route = HybridRouter.route(.planFromNumbers, conditions)
+        let result = await planner.run(inventory: inventory, request: request, online: online) { step in
+            Task { @MainActor in self.steps.append(step) }
+        }
+        steps = result.outcome.trace
+        route = result.route
+        routing = result.entries
+        outcome = result.outcome
     }
 
     func run(model: any AgentModel, request: String = Prompts.defaultRequest,

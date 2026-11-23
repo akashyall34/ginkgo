@@ -72,6 +72,26 @@ final class PlanningModelTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(model.proof).verdict, .proven, "The fallback is always a proven plan")
     }
 
+    func testAPlanMadeOnThisIPhoneSaysSo() async throws {
+        let inventory = try inventory()
+        let safe = try XCTUnwrap(RuleBasedPlanner.bench(inventory: inventory))
+        let device = StubDevice(result: DevicePlanResult(accepted: AcceptedPlan(plan: safe.plan, validation: safe.validation),
+                                                         trace: [], rejections: 0, model: "apple-on-device"))
+        let planner = HybridPlanner(device: device, cloud: { _, _, _ in fatalError("The cloud isn't needed") },
+                                    cloudModelName: "gemini")
+        let model = PlanningModel(inventory: inventory)
+        await model.run(planner: planner, online: false)
+        XCTAssertEqual(model.route, Route(venue: .device, reason: .numbersOnDevice))
+        XCTAssertEqual(model.headline, "Planned on this iPhone, and it passed every check")
+        XCTAssertEqual(model.routing.map(\.venue), [.device])
+        XCTAssertNotNil(model.proof)
+    }
+
+    func testWhileTheDevicePlansTheHeadlineSaysSo() throws {
+        let model = PlanningModel(inventory: try inventory())
+        XCTAssertEqual(model.headline, "Gemini is planning, and Ginkgo checks every step…", "Before any route is known")
+    }
+
     func testNoUsablePartsMeansNoPlan() async throws {
         let damaged = try inventory().with(parts: try inventory().parts.map { $0.with(damaged: true) })
         let model = PlanningModel(inventory: damaged)
@@ -107,5 +127,13 @@ final class AgentBridgeTests: XCTestCase {
         let turn = AgentBridge.turn([FunctionCallPart(name: "check_fit", args: ["reason": .string("Check it.")])], text: nil)
         XCTAssertEqual(turn.calls, [ToolCall(name: "check_fit", args: .object(["reason": .string("Check it.")]))])
         XCTAssertEqual(AgentBridge.turn([], text: "All done.").text, "All done.")
+    }
+}
+
+private struct StubDevice: DevicePlanning {
+    var isAvailable = true
+    var result: DevicePlanResult
+    func plan(inventory: Inventory, request: String, onStep: @escaping @Sendable (AgentStep) -> Void) async -> DevicePlanResult {
+        result
     }
 }
