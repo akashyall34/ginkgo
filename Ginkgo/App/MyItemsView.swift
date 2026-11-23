@@ -55,17 +55,7 @@ struct MyItemsView: View {
 
     private var header: some View {
         HStack {
-            HStack(spacing: 7) {
-                Image("GinkgoMark")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 24, height: 24)
-                    .accessibilityHidden(true)
-
-                Text("Ginkgo")
-                    .font(.system(size: 23, weight: .heavy))
-                    .foregroundStyle(Palette.brand)
-            }
+            Wordmark()
 
             Spacer()
             NavigationLink { AppearanceSettingsView(pushed: true) } label: {
@@ -109,7 +99,7 @@ struct MyItemsView: View {
                         .font(.headline)
                     Text(item.scan.date.formatted(date: .long, time: .omitted))
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Palette.secondaryText)
                 }
 
                 Spacer()
@@ -124,7 +114,7 @@ struct MyItemsView: View {
 
                     Text(MeasurementFormat.plusMinus(meters: item.scan.result.uncertainty))
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Palette.secondaryText)
                 }
             }
         }

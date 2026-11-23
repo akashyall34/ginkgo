@@ -51,8 +51,10 @@ struct DemoView: View {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(step.title).font(.headline)
-                            Text(step.detail).font(.subheadline).foregroundStyle(.secondary)
+                            Text(step.detail).font(.subheadline).foregroundStyle(Palette.secondaryText)
                         }
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     } icon: {
                         Image(systemName: step.icon).foregroundStyle(Palette.brand)
                     }
@@ -60,6 +62,8 @@ struct DemoView: View {
                 }
                 .accessibilityIdentifier("demo-\(step.rawValue)")
             }
+            .scrollContentBackground(.hidden)
+            .background(Palette.background)
             .navigationTitle("Demo")
             .navigationDestination(for: Step.self) { step in
                 switch step {

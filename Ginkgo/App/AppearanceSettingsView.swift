@@ -38,7 +38,7 @@ struct AppearanceSettingsView: View {
 
             Text("Follow System matches your iPhone's appearance setting.")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.secondaryText)
 
             Spacer(minLength: 0)
         }

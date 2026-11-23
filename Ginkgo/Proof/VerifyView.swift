@@ -48,7 +48,7 @@ struct VerifyView: View {
     /// One status line: the icon is decoration, the text is what VoiceOver reads and tests find.
     private func statusLine(_ text: String, icon: String, color: Color?) -> some View {
         HStack(spacing: Spacing.small) {
-            Image(systemName: icon).foregroundStyle(color ?? .secondary).accessibilityHidden(true)
+            Image(systemName: icon).foregroundStyle(color ?? Palette.secondaryText).accessibilityHidden(true)
             Text(text)
                 .font(color == nil ? .body : .headline)
                 .foregroundStyle(color ?? .primary)
@@ -85,7 +85,7 @@ struct VerifyView: View {
                 }
             }
             if let planned = model.planned(index) {
-                Text(String(format: "Plan assumes %.1f cm", planned / 10)).font(.subheadline).foregroundStyle(.secondary)
+                Text(String(format: "Plan assumes %.1f cm", planned / 10)).font(.subheadline).foregroundStyle(Palette.secondaryText)
             }
             HStack(spacing: Spacing.small) {
                 TextField("Tape, cm", text: binding(for: index))

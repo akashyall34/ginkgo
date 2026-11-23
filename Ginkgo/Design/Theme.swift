@@ -11,11 +11,13 @@ enum Palette {
     static let unusedPanel = UIColor(white: 0.62, alpha: 1)
     static let background = Color("LaunchBackground")
     static let onBrand = Color("LaunchBackground")
+    /// Secondary text (captions, details). Darker than the system grey so it meets 4.5:1 on the cream background.
+    static let secondaryText = Color("SecondaryText")
 
     /// Every named color, so tests can check each one exists and is readable.
-    static let allNames = ["Brand", "Verified", "Fails", "LaunchBackground"]
+    static let allNames = ["Brand", "Verified", "Fails", "LaunchBackground", "SecondaryText"]
     /// Colors used for text or icons on the background, which must meet contrast rules.
-    static let foregroundNames = ["Brand", "Verified", "Fails"]
+    static let foregroundNames = ["Brand", "Verified", "Fails", "SecondaryText"]
 }
 
 enum AppearancePreference: String, CaseIterable, Identifiable {

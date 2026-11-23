@@ -28,9 +28,9 @@ struct SavedScanDetailView: View {
                     .foregroundStyle(Palette.brand)
                     .accessibilityIdentifier("savedScanSize")
                 Text(MeasurementFormat.plusMinus(meters: scan.result.uncertainty))
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(.subheadline).foregroundStyle(Palette.secondaryText)
                 Text(scan.date.formatted(date: .long, time: .shortened))
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(.footnote).foregroundStyle(Palette.secondaryText)
 
                 if deleteFailed {
                     Text("This scan couldn't be deleted. Try again.").font(.footnote).foregroundStyle(Palette.fails)

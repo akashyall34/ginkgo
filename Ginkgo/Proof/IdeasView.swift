@@ -43,9 +43,9 @@ struct IdeasView: View {
             if idea == .bench, let bench = RuleBasedPlanner.bench(inventory: inventory) {
                 let impact = Impact.of(plan: bench.plan, inventory: inventory, result: bench.validation)
                 Text(impact.summary).font(.subheadline.monospacedDigit())
-                Text(impact.difficulty).font(.footnote).foregroundStyle(.secondary)
+                Text(impact.difficulty).font(.footnote).foregroundStyle(Palette.secondaryText)
             } else {
-                Text("Gemini plans it; Ginkgo proves it fits.").font(.subheadline).foregroundStyle(.secondary)
+                Text("Gemini plans it; Ginkgo proves it fits.").font(.subheadline).foregroundStyle(Palette.secondaryText)
             }
         }
         .padding(.vertical, Spacing.xSmall)

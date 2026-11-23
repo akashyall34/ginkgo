@@ -24,7 +24,7 @@ struct ContrastView: View {
             Text(side == .chatbot ? "A chatbot's cut list, checked against the real measurements."
                                   : "Ginkgo's plan: built from the measurements, then proven.")
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.secondaryText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, Spacing.medium)
                 .accessibilityIdentifier("contrastCaption")

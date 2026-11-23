@@ -1,22 +1,14 @@
 import SwiftUI
 
 struct GuideView: View {
+    /// The step number circle grows with the number inside it.
+    @ScaledMetric(relativeTo: .caption) private var badgeSize: CGFloat = 36
     let onAppearanceSettings: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.large) {
             HStack {
-                HStack(spacing: 7) {
-                    Image("GinkgoMark")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)
-                        .accessibilityHidden(true)
-
-                    Text("Ginkgo")
-                        .font(.title2.weight(.heavy))
-                        .foregroundStyle(Palette.brand)
-                }
+                Wordmark()
 
                 Spacer()
                 Button(action: onAppearanceSettings) {
@@ -40,7 +32,7 @@ struct GuideView: View {
 
                 Text("Measure a piece of furniture in a few simple steps.")
                     .font(.body)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Palette.secondaryText)
             }
 
             VStack(spacing: Spacing.small) {
@@ -75,7 +67,7 @@ struct GuideView: View {
 
             Label("Need another try? Tap Retake to capture a new frame.", systemImage: "arrow.counterclockwise")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.secondaryText)
                 .padding(Spacing.medium)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Palette.brand.opacity(0.07), in: RoundedRectangle(cornerRadius: 18))
@@ -101,7 +93,7 @@ struct GuideView: View {
             Text(number)
                 .font(.caption.bold())
                 .foregroundStyle(Palette.brand)
-                .frame(width: 36, height: 36)
+                .frame(minWidth: badgeSize, minHeight: badgeSize)
                 .background(Palette.brand.opacity(0.12), in: Circle())
 
             VStack(alignment: .leading, spacing: Spacing.xSmall) {
@@ -111,7 +103,7 @@ struct GuideView: View {
 
                 Text(detail)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Palette.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -19,7 +19,7 @@ struct PlanningView: View {
                     Text(model.headline).font(.headline).accessibilityIdentifier("planningHeadline")
                 }
                 if let reason = model.fallbackReason {
-                    Text(reason).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("fallbackReason")
+                    Text(reason).font(.footnote).foregroundStyle(Palette.secondaryText).accessibilityIdentifier("fallbackReason")
                 }
             }
             if !model.steps.isEmpty {
@@ -61,7 +61,7 @@ struct PlanningView: View {
                 .foregroundStyle(Self.color(step.status))
                 .font(.subheadline.weight(.semibold))
             if !step.reason.isEmpty && step.status != .error {
-                Text("“\(step.reason)”").font(.footnote).foregroundStyle(.secondary)
+                Text("“\(step.reason)”").font(.footnote).foregroundStyle(Palette.secondaryText)
             }
         }
         .accessibilityElement(children: .combine)
@@ -80,7 +80,7 @@ struct PlanningView: View {
         switch status {
         case .pass, .accepted: return Palette.verified
         case .fail, .error: return Palette.fails
-        case .info: return .secondary
+        case .info: return Palette.secondaryText
         }
     }
 }

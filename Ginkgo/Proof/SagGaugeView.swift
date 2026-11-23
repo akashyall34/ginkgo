@@ -13,7 +13,7 @@ struct SagGaugeView: View {
             HStack {
                 Text(row.name).font(.body.weight(.semibold))
                 Spacer()
-                Text(row.summary).font(.footnote.monospacedDigit()).foregroundStyle(.secondary)
+                Text(row.summary).font(.footnote.monospacedDigit()).foregroundStyle(Palette.secondaryText)
             }
             GeometryReader { geo in
                 let fill = min(row.shareOfLimit, Self.fullScale) / Self.fullScale

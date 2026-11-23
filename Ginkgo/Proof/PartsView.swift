@@ -58,7 +58,8 @@ struct PartsView: View {
                 ForEach(result.flags, id: \.message) { flag in
                     Label(flag.message, systemImage: "exclamationmark.circle")
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Palette.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("partsFlag")
                 }
             }
@@ -89,7 +90,7 @@ struct PartsView: View {
                 }
             }
             Text(String(format: "%.1f × %.1f cm, %.0f mm thick", part.widthMm / 10, part.heightMm / 10, part.thicknessMm))
-                .font(.subheadline).foregroundStyle(.secondary)
+                .font(.subheadline).foregroundStyle(Palette.secondaryText)
             Picker("Material", selection: Binding(
                 get: { part.material },
                 set: { if let current = inventory { inventory = PartsStep.setting($0, of: part.id, in: current) } }

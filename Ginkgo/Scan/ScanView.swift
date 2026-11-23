@@ -4,6 +4,7 @@ import SwiftUI
 struct ScanView: View {
     @State private var model: ScanModel
     @State private var showDepthQuality = true
+    @Environment(\.dynamicTypeSize) private var typeSize
     /// When set (from Verify), a measured face can be handed back with "Use this measurement".
     private let onUse: ((QuadResult) -> Void)?
 
@@ -63,9 +64,32 @@ struct ScanView: View {
         .accessibilityIdentifier("unsupported")
     }
 
-    private var content: some View {
+    /// Normally everything fits on one screen. At accessibility text sizes the words need more room than a
+    /// screen has, so the page scrolls, the photo keeps a fixed, usable height instead of shrinking, and the
+    /// capture controls stay pinned at the bottom where a thumb can always reach them.
+    @ViewBuilder private var content: some View {
+        if typeSize.isAccessibilitySize {
+            ScrollView { details(photoHeight: Self.accessibilityPhotoHeight).padding(Spacing.medium) }
+                .safeAreaInset(edge: .bottom) {
+                    controls.padding(Spacing.medium).background(Palette.background)
+                }
+                .modifier(ScanLifecycle(model: model))
+        } else {
+            VStack(spacing: Spacing.medium) {
+                details(photoHeight: nil)
+                controls
+            }
+            .padding(Spacing.medium)
+            .modifier(ScanLifecycle(model: model))
+        }
+    }
+
+    static let accessibilityPhotoHeight: CGFloat = 420
+
+    private func details(photoHeight: CGFloat?) -> some View {
         VStack(spacing: Spacing.medium) {
             photoArea
+                .frame(height: photoHeight)
             MeasurementPanelView(model: model)
             if let onUse, case .measured(let result) = model.status {
                 Button {
@@ -79,15 +103,6 @@ struct ScanView: View {
                 .accessibilityIdentifier("useMeasurement")
             }
             saveStatus
-            controls
-        }
-        .padding(Spacing.medium)
-        .onAppear { model.source.start() }
-        .onDisappear { model.source.pause() }
-        .sensoryFeedback(trigger: model.status) { _, new in
-            if case .measured = new { return .success }
-            if case .problem = new { return .warning }
-            return nil
         }
     }
 
@@ -100,7 +115,7 @@ struct ScanView: View {
                     .accessibilityLabel("Live camera")
             } else {
                 Palette.brand.opacity(0.08)
-                    .overlay(Label("Demo scene", systemImage: "cube").foregroundStyle(.secondary))
+                    .overlay(Label("Demo scene", systemImage: "cube").foregroundStyle(Palette.secondaryText))
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -142,5 +157,21 @@ struct ScanView: View {
         .buttonStyle(.bordered)
         .tint(Palette.brand)
         .accessibilityIdentifier(id)
+    }
+}
+
+/// Starts and pauses the camera with the screen, and plays the result haptics.
+private struct ScanLifecycle: ViewModifier {
+    let model: ScanModel
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear { model.source.start() }
+            .onDisappear { model.source.pause() }
+            .sensoryFeedback(trigger: model.status) { _, new in
+                if case .measured = new { return .success }
+                if case .problem = new { return .warning }
+                return nil
+            }
     }
 }

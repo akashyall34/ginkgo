@@ -14,7 +14,7 @@ struct RecordedRunView: View {
                     .font(.headline)
                     .foregroundStyle(Palette.brand)
                     .accessibilityIdentifier("recordedLabel")
-                Text(run.detail).font(.subheadline.monospacedDigit()).foregroundStyle(.secondary)
+                Text(run.detail).font(.subheadline.monospacedDigit()).foregroundStyle(Palette.secondaryText)
             }
             Section("Every step, checked") {
                 ForEach(run.trace.prefix(shown), id: \.index) { step in
@@ -23,7 +23,7 @@ struct RecordedRunView: View {
                             .foregroundStyle(PlanningView.color(step.status))
                             .font(.subheadline.weight(.semibold))
                         if !step.reason.isEmpty {
-                            Text("“\(step.reason)”").font(.footnote).foregroundStyle(.secondary)
+                            Text("“\(step.reason)”").font(.footnote).foregroundStyle(Palette.secondaryText)
                         }
                     }
                     .accessibilityElement(children: .combine)

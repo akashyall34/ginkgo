@@ -138,7 +138,7 @@ private struct TransformStage: View {
                 .accessibilityIdentifier("arButton")
             }
             .padding(Spacing.medium)
-            .background(.regularMaterial)
+            .background(Palette.background)
         }
         .fullScreenCover(item: $arFile) { url in
             ARQuickLook(url: url).ignoresSafeArea()

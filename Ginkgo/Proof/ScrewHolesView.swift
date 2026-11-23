@@ -11,7 +11,7 @@ struct ScrewHolesView: View {
             VStack(alignment: .leading, spacing: Spacing.medium) {
                 Text("Tap each screw hole on the \(ProofModel.displayName(part.id).lowercased()). Tap a hole again to remove it.")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Palette.secondaryText)
                 GeometryReader { geometry in
                     let size = geometry.size
                     ZStack(alignment: .topLeading) {
@@ -36,7 +36,7 @@ struct ScrewHolesView: View {
                 .accessibilityIdentifier("holePanel")
                 Text(String(format: "%.1f × %.1f cm · %d marked", part.widthMm / 10, part.heightMm / 10, part.keepOuts.count))
                     .font(.footnote.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Palette.secondaryText)
                     .accessibilityIdentifier("holeCount")
                 Spacer(minLength: 0)
             }

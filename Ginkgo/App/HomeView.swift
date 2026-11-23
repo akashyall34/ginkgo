@@ -3,6 +3,9 @@ import SwiftUI
 /// The first screen: what Ginkgo does, and the way in.
 struct HomeView: View {
     @State private var selectedTab = 0
+    /// The step number badge grows with the text inside it.
+    @ScaledMetric(relativeTo: .caption2) private var badgeSize: CGFloat = 32
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var isAppearanceSettingsPresented = false
     @State private var isDemoPresented = false
     @AppStorage("appearancePreference") private var appearancePreferenceRawValue = AppearancePreference.system.rawValue
@@ -12,36 +15,40 @@ struct HomeView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .bottom) {
-                ScrollView {
-                    Group {
-                        if selectedTab == 2 {
-                            GuideView(onAppearanceSettings: {
-                                isAppearanceSettingsPresented = true
-                            })
-                        } else if selectedTab == 1 {
-                            MyItemsView(store: ScanStore.standard(), onAppearanceSettings: {
-                                isAppearanceSettingsPresented = true
-                            })
-                        } else {
-                            homeContent
-                        }
-                    }
-                    .padding(.horizontal, Spacing.large)
-                }
-
-                bottomNavigation
+        // The system tab bar: Liquid Glass on iOS 26+, scales with the text size, keeps content clear of it.
+        TabView(selection: $selectedTab) {
+            tab { homeContent }
+                .tabItem { Label("Home", systemImage: "house") }
+                .tag(0)
+            tab {
+                MyItemsView(store: ScanStore.standard(), onAppearanceSettings: { isAppearanceSettingsPresented = true })
             }
-            .background(Palette.background)
-            .toolbar(.hidden, for: .navigationBar)
+            .tabItem { Label("My items", systemImage: "tray.full") }
+            .tag(1)
+            tab { GuideView(onAppearanceSettings: { isAppearanceSettingsPresented = true }) }
+                .tabItem { Label("Guide", systemImage: "book") }
+                .tag(2)
         }
+        .tint(Palette.brand)
         .preferredColorScheme(appearancePreference.colorScheme)
         .sheet(isPresented: $isAppearanceSettingsPresented) {
             AppearanceSettingsView()
         }
         .fullScreenCover(isPresented: $isDemoPresented) {
             DemoView(onClose: { isDemoPresented = false })
+        }
+    }
+
+    /// One tab: its own navigation, scrolling content on the app background.
+    private func tab(@ViewBuilder _ content: () -> some View) -> some View {
+        NavigationStack {
+            ScrollView {
+                content()
+                    .padding(.horizontal, Spacing.large)
+                    .padding(.bottom, Spacing.large)
+            }
+            .background(Palette.background)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -79,8 +86,7 @@ struct HomeView: View {
                 .padding(.top, Spacing.small)
 
             impactSection
-                .padding(.top, 36)
-                .padding(.bottom, 112)
+                .padding(.top, Spacing.xLarge)
         }
     }
 
@@ -110,18 +116,7 @@ struct HomeView: View {
 
     private var header: some View {
         HStack(alignment: .center) {
-            HStack(spacing: 7) {
-                Image("GinkgoMark")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 24, height: 24)
-                    .accessibilityHidden(true)
-
-                Text("Ginkgo")
-                    .font(.title2.weight(.heavy))
-                    .foregroundStyle(Palette.brand)
-                    .accessibilityIdentifier("appTitle")
-            }
+            Wordmark()
 
             Spacer()
             appearanceSettingsButton
@@ -150,9 +145,9 @@ struct HomeView: View {
                 .font(.largeTitle.weight(.heavy))
                 .foregroundStyle(Palette.brand)
 
-            Text("Snap your furniture. Find the best way\nto repurpose it.")
+            Text("Snap your furniture. Find the best way to repurpose it.")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("tagline")
         }
@@ -189,7 +184,11 @@ struct HomeView: View {
                 .font(.title3.weight(.heavy))
                 .foregroundStyle(Palette.brand)
 
-            HStack(alignment: .top, spacing: 8) {
+            // Side by side normally; stacked at accessibility text sizes so nothing is squeezed.
+            let layout = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.medium))
+                : AnyLayout(HStackLayout(alignment: .top, spacing: Spacing.small))
+            layout {
                 step(number: "01", title: "Snap it", detail: "Take a clear photo")
                 step(number: "02", title: "Find a way", detail: "Explore your options")
                 step(number: "03", title: "Pass it on", detail: "Give it a new life")
@@ -202,7 +201,7 @@ struct HomeView: View {
             Text(number)
                 .font(.caption2.bold())
                 .foregroundStyle(Palette.brand)
-                .frame(width: 32, height: 32)
+                .frame(minWidth: badgeSize, minHeight: badgeSize)
                 .background(Palette.brand.opacity(0.14))
                 .clipShape(Capsule())
 
@@ -212,62 +211,10 @@ struct HomeView: View {
 
             Text(detail)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var bottomNavigation: some View {
-        HStack {
-            navButton(index: 0, icon: "house", title: "Home")
-            navButton(index: 1, icon: "tray.full", title: "My items")
-            navButton(index: 2, icon: "book", title: "Guide")
-        }
-        .padding(8)
-        .background {
-            if #available(iOS 26.0, *) {
-                Capsule()
-                    .fill(.clear)
-                    .glassEffect(.regular, in: Capsule())
-            } else {
-                Capsule()
-                    .fill(.ultraThinMaterial)
-                    .overlay {
-                        Capsule()
-                            .strokeBorder(Palette.brand.opacity(0.18), lineWidth: 1)
-                    }
-            }
-        }
-        .padding(.horizontal, Spacing.large)
-        .padding(.bottom, 8)
-        .accessibilityElement(children: .contain)
-    }
-
-    private func navButton(index: Int, icon: String, title: String) -> some View {
-        Button {
-            selectedTab = index
-        } label: {
-            VStack(spacing: 6) {
-                Image(systemName: selectedTab == index ? "\(icon).fill" : icon)
-                    .font(.title3)
-                Text(title)
-                    .font(.caption2)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(minHeight: 56)
-            .background {
-                if selectedTab == index {
-                    Capsule()
-                        .fill(Palette.brand.opacity(0.12))
-                        .padding(2)
-                }
-            }
-        }
-        .foregroundStyle(selectedTab == index ? Palette.brand : Color.secondary)
-        .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .accessibilityAddTraits(selectedTab == index ? .isSelected : [])
     }
 }
 

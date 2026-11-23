@@ -94,7 +94,7 @@ struct VerdictHeaderView: View {
                     .foregroundStyle(proven ? Palette.verified : Palette.fails)
                 Text(model.reuse)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Palette.secondaryText)
             }
         }
         .accessibilityElement(children: .combine)
@@ -105,6 +105,7 @@ struct VerdictHeaderView: View {
 /// One planned piece: fits, or what's wrong with it.
 struct CutRowView: View {
     let row: ProofModel.CutRow
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Spacing.small) {
@@ -112,12 +113,15 @@ struct CutRowView: View {
                 .foregroundStyle(row.fits ? Palette.verified : Palette.fails)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Spacing.xSmall) {
-                HStack {
+                let line = typeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.xSmall))
+                    : AnyLayout(HStackLayout())
+                line {
                     Text(row.name).font(.body.weight(.semibold))
-                    Spacer()
+                    if !typeSize.isAccessibilitySize { Spacer() }
                     Text(row.size).font(.body.monospacedDigit())
                 }
-                Text(row.source).font(.footnote).foregroundStyle(.secondary)
+                Text(row.source).font(.footnote).foregroundStyle(Palette.secondaryText)
                 ForEach(row.problems, id: \.self) { ProblemText(text: $0) }
             }
         }

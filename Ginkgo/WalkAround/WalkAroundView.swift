@@ -46,7 +46,7 @@ struct WalkAroundView: View {
                 Text(WalkAroundModel.summary(box))
                     .font(.title2.weight(.semibold).monospacedDigit())
                     .accessibilityIdentifier("walkAroundResult")
-                Text("Length × width × height").font(.footnote).foregroundStyle(.secondary)
+                Text("Length × width × height").font(.footnote).foregroundStyle(Palette.secondaryText)
                 NavigationLink {
                     PartsView(box: box, photo: photo)
                 } label: {
@@ -74,7 +74,7 @@ struct WalkAroundView: View {
             }
             Text(model.instruction)
                 .font(.body)
-                .foregroundStyle(model.status == .scanning ? Color.primary : Color.secondary)
+                .foregroundStyle(model.status == .scanning ? Color.primary : Palette.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("walkAroundInstruction")
             Button {
