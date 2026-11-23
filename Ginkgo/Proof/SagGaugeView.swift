@@ -10,9 +10,9 @@ struct SagGaugeView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xSmall) {
-            HStack {
+            SplitRow {
                 Text(row.name).font(.body.weight(.semibold))
-                Spacer()
+            } trailing: {
                 Text(row.summary).font(.footnote.monospacedDigit()).foregroundStyle(Palette.secondaryText)
             }
             GeometryReader { geo in

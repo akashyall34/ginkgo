@@ -105,7 +105,6 @@ struct VerdictHeaderView: View {
 /// One planned piece: fits, or what's wrong with it.
 struct CutRowView: View {
     let row: ProofModel.CutRow
-    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Spacing.small) {
@@ -113,12 +112,9 @@ struct CutRowView: View {
                 .foregroundStyle(row.fits ? Palette.verified : Palette.fails)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Spacing.xSmall) {
-                let line = typeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.xSmall))
-                    : AnyLayout(HStackLayout())
-                line {
+                SplitRow {
                     Text(row.name).font(.body.weight(.semibold))
-                    if !typeSize.isAccessibilitySize { Spacer() }
+                } trailing: {
                     Text(row.size).font(.body.monospacedDigit())
                 }
                 Text(row.source).font(.footnote).foregroundStyle(Palette.secondaryText)

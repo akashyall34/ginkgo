@@ -4,6 +4,9 @@ import SwiftUI
 /// What the confirmed parts can become, with what each saves. Tapping one plans it with Gemini,
 /// checked by Ginkgo at every step.
 struct IdeasView: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
+    /// The icon tile grows with the title beside it, so a large icon never spills out of it.
+    @ScaledMetric(relativeTo: .title3) private var iconBox: CGFloat = TapTarget.minimum
     let inventory: Inventory
 
     var body: some View {
@@ -31,11 +34,14 @@ struct IdeasView: View {
 
     private func card(_ idea: Idea) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xSmall) {
-            HStack(spacing: Spacing.small) {
+            let header = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.small))
+                : AnyLayout(HStackLayout(spacing: Spacing.small))
+            header {
                 Image(systemName: idea.icon)
                     .font(.title3)
                     .foregroundStyle(Palette.brand)
-                    .frame(width: TapTarget.minimum, height: TapTarget.minimum)
+                    .frame(width: iconBox, height: iconBox)
                     .background(Palette.brand.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
                     .accessibilityHidden(true)
                 Text(idea.title).font(.title3.weight(.semibold))

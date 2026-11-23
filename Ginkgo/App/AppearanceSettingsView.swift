@@ -4,6 +4,7 @@ import SwiftUI
 struct AppearanceSettingsView: View {
     @AppStorage("appearancePreference") private var appearancePreferenceRawValue = AppearancePreference.system.rawValue
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     private var appearancePreference: AppearancePreference {
         AppearancePreference(rawValue: appearancePreferenceRawValue) ?? .system
@@ -24,13 +25,28 @@ struct AppearanceSettingsView: View {
                     }
                 }
             }
-            .presentationDetents([.medium])
+            // Half height normally; it can grow when large text needs the room.
+            .presentationDetents([.medium, .large])
         }
     }
 
     private var options: some View {
+        ScrollView {
+            optionList
+        }
+        .navigationTitle("Appearance")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
+        .tint(Palette.brand)
+    }
+
+    private var optionList: some View {
         VStack(alignment: .leading, spacing: Spacing.large) {
-            HStack(spacing: Spacing.small) {
+            // Three across normally; one per line at accessibility text sizes.
+            let row = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(spacing: Spacing.small))
+                : AnyLayout(HStackLayout(spacing: Spacing.small))
+            row {
                 ForEach(AppearancePreference.allCases) { preference in
                     appearanceOption(preference)
                 }
@@ -39,14 +55,9 @@ struct AppearanceSettingsView: View {
             Text("Follow System matches your iPhone's appearance setting.")
                 .font(.subheadline)
                 .foregroundStyle(Palette.secondaryText)
-
-            Spacer(minLength: 0)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(Spacing.large)
-        .navigationTitle("Appearance")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.visible, for: .navigationBar)
-        .tint(Palette.brand)
     }
 
     private func appearanceOption(_ preference: AppearancePreference) -> some View {
@@ -59,8 +70,8 @@ struct AppearanceSettingsView: View {
                     .font(.title3)
                 Text(preference.title)
                     .font(.caption)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(Palette.brand)
             .frame(maxWidth: .infinity, minHeight: 76)

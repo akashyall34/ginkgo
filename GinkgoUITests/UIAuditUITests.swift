@@ -4,7 +4,8 @@ import XCTest
 /// screenshots it, and runs Apple's accessibility audit (contrast, clipped text, dynamic type,
 /// tap targets, labels). Issues are recorded as attachments and printed, for review.
 final class UIAuditUITests: XCTestCase {
-    private static let screens = ["home", "scan", "example", "transform", "contrast", "demo", "parts"]
+    private static let screens = ["home", "scan", "example", "transform", "contrast", "demo", "parts", "my-items",
+                                  "guide", "settings", "ideas", "planning", "verify", "recorded-run", "walk-around"]
     private static let largestText = "UICTContentSizeCategoryAccessibilityXXXL"
 
     @MainActor
@@ -18,7 +19,9 @@ final class UIAuditUITests: XCTestCase {
         for appearance in appearances {
             XCUIDevice.shared.appearance = appearance
             for large in [false, true] {
-                for screen in Self.screens {
+                // GINKGO_UI_AUDIT_SCREENS=verify,ideas re-checks just those screens after a fix.
+                let only = ProcessInfo.processInfo.environment["GINKGO_UI_AUDIT_SCREENS"]?.split(separator: ",").map(String.init)
+                for screen in only ?? Self.screens {
                     report += audit(screen, appearance: appearance, large: large)
                 }
             }

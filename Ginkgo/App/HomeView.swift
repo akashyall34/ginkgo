@@ -2,7 +2,12 @@ import SwiftUI
 
 /// The first screen: what Ginkgo does, and the way in.
 struct HomeView: View {
-    @State private var selectedTab = 0
+    @State private var selectedTab: Int
+
+    /// `initialTab`: 0 Home, 1 My items, 2 Guide (tests open a tab directly).
+    init(initialTab: Int = 0) {
+        _selectedTab = State(initialValue: initialTab)
+    }
     /// The step number badge grows with the text inside it.
     @ScaledMetric(relativeTo: .caption2) private var badgeSize: CGFloat = 32
     @Environment(\.dynamicTypeSize) private var typeSize

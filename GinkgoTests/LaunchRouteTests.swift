@@ -14,6 +14,15 @@ final class LaunchRouteTests: XCTestCase {
         XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "contrast"]), .contrast)
         XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "demo"]), .demo)
         XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "parts"]), .parts)
+        XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "my-items"]), .myItems)
+        XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "recorded-run"]), .recordedRun)
+        XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "walk-around"]), .walkAround)
+    }
+
+    func testEveryRouteOpensByItsName() {
+        for route in LaunchRoute.allCases {
+            XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", route.rawValue]), route)
+        }
     }
 
     func testFoundAmongOtherArguments() {
@@ -22,7 +31,7 @@ final class LaunchRouteTests: XCTestCase {
     }
 
     func testUnknownScreenFallsBackToHome() {
-        XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "settings"]), .home)
+        XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "nowhere"]), .home)
         XCTAssertEqual(LaunchRoute(arguments: ["Ginkgo", "-openScreen", "Scan"]), .home)
     }
 

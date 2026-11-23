@@ -1,6 +1,6 @@
-/// Which screen the app opens on. Normally Home; tests pass `-openScreen scan` or
-/// `-openScreen example` so they reach a screen without depending on Home's design.
-enum LaunchRoute: Equatable {
+/// Which screen the app opens on. Normally Home; tests pass `-openScreen <name>` (for example `scan` or
+/// `my-items`) so they reach a screen directly, without depending on the taps that lead there.
+enum LaunchRoute: String, CaseIterable, Equatable {
     case home
     case scan
     case example
@@ -8,20 +8,21 @@ enum LaunchRoute: Equatable {
     case contrast
     case demo
     case parts
+    case myItems = "my-items"
+    case guide
+    case settings
+    case ideas
+    case planning
+    case verify
+    case recordedRun = "recorded-run"
+    case walkAround = "walk-around"
 
     init(arguments: [String]) {
-        guard let flag = arguments.firstIndex(of: "-openScreen"), flag + 1 < arguments.count else {
+        guard let flag = arguments.firstIndex(of: "-openScreen"), flag + 1 < arguments.count,
+              let route = LaunchRoute(rawValue: arguments[flag + 1]) else {
             self = .home
             return
         }
-        switch arguments[flag + 1] {
-        case "scan": self = .scan
-        case "example": self = .example
-        case "transform": self = .transform
-        case "contrast": self = .contrast
-        case "demo": self = .demo
-        case "parts": self = .parts
-        default: self = .home
-        }
+        self = route
     }
 }

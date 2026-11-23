@@ -93,7 +93,7 @@ struct MyItemsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                 .accessibilityLabel("Previously scanned furniture")
 
-            HStack(alignment: .firstTextBaseline) {
+            SplitRow {
                 VStack(alignment: .leading, spacing: Spacing.xSmall) {
                     Text("Furniture scan")
                         .font(.headline)
@@ -101,10 +101,8 @@ struct MyItemsView: View {
                         .font(.footnote)
                         .foregroundStyle(Palette.secondaryText)
                 }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: Spacing.xSmall) {
+            } trailing: {
+                VStack(alignment: .leading, spacing: Spacing.xSmall) {
                     Text(MeasurementFormat.size(
                         widthMeters: item.scan.result.width,
                         heightMeters: item.scan.result.height

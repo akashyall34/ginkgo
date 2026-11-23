@@ -43,20 +43,23 @@ struct DemoView: View {
     @State private var path: [Step] = []
     /// Changing it rebuilds every screen from scratch.
     @State private var run = 0
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         NavigationStack(path: $path) {
             List(Step.allCases) { step in
                 NavigationLink(value: step) {
-                    Label {
+                    // Icon beside the words normally; above them at accessibility sizes, so the words get the width.
+                    let row = typeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.small))
+                        : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: Spacing.medium))
+                    row {
+                        Image(systemName: step.icon).foregroundStyle(Palette.brand).accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(step.title).font(.headline)
                             Text(step.detail).font(.subheadline).foregroundStyle(Palette.secondaryText)
                         }
-                        .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    } icon: {
-                        Image(systemName: step.icon).foregroundStyle(Palette.brand)
                     }
                     .frame(minHeight: TapTarget.minimum)
                 }

@@ -1,5 +1,6 @@
 import FirebaseAppCheck
 import FirebaseCore
+import GinkgoCore
 import SwiftUI
 
 @main
@@ -10,7 +11,8 @@ struct GinkgoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            switch LaunchRoute(arguments: ProcessInfo.processInfo.arguments) {
+            let route = LaunchRoute(arguments: ProcessInfo.processInfo.arguments)
+            switch route {
             case .home:
                 HomeView()
             case .scan:
@@ -29,6 +31,18 @@ struct GinkgoApp: App {
                     PartsView(box: FittedBox(length: 0.6, width: 0.35, height: 0.7, baseCenter: .zero, yaw: 0,
                                              uncertainty: 0.01, pointCount: 4000), photo: nil)
                 }
+            case .myItems:
+                HomeView(initialTab: 1)
+            case .guide:
+                HomeView(initialTab: 2)
+            case .settings:
+                AppearanceSettingsView()
+            case .ideas, .planning, .verify:
+                SampleRouteView(route: route)
+            case .recordedRun:
+                NavigationStack { ExampleRecordedRunView() }
+            case .walkAround:
+                NavigationStack { WalkAroundView() }
             }
         }
     }
@@ -81,5 +95,26 @@ enum FirebaseSetup {
         #else
         return DeviceCheckProviderFactory()
         #endif
+    }
+}
+
+/// Screens that need a piece of furniture, opened on the sample nightstand (for tests and the screen audit).
+struct SampleRouteView: View {
+    let route: LaunchRoute
+
+    var body: some View {
+        if let inventory = ExampleRecordedRunView.sampleInventory(),
+           let bench = RuleBasedPlanner.bench(inventory: inventory) {
+            NavigationStack {
+                switch route {
+                case .ideas: IdeasView(inventory: inventory)
+                case .verify: VerifyView(plan: bench.plan, inventory: inventory, result: bench.validation)
+                default: PlanningView(inventory: inventory)
+                }
+            }
+        } else {
+            ContentUnavailableView("Example unavailable", systemImage: "doc.questionmark",
+                                   description: Text("The sample furniture couldn't be loaded."))
+        }
     }
 }

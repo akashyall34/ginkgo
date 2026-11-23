@@ -3,6 +3,7 @@ import SwiftUI
 
 /// Re-measure what the plan depends on most; the plan turns Verified only when the real numbers pass.
 struct VerifyView: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var model: VerifyModel
     @State private var typed: [Int: String] = [:]
     @State private var measuring: Int?
@@ -47,11 +48,12 @@ struct VerifyView: View {
 
     /// One status line: the icon is decoration, the text is what VoiceOver reads and tests find.
     private func statusLine(_ text: String, icon: String, color: Color?) -> some View {
-        HStack(spacing: Spacing.small) {
+        HStack(alignment: .firstTextBaseline, spacing: Spacing.small) {
             Image(systemName: icon).foregroundStyle(color ?? Palette.secondaryText).accessibilityHidden(true)
             Text(text)
                 .font(color == nil ? .body : .headline)
                 .foregroundStyle(color ?? .primary)
+                .multilineTextAlignment(.leading)
                 .accessibilityIdentifier("verifyStatus")
         }
     }
@@ -87,7 +89,10 @@ struct VerifyView: View {
             if let planned = model.planned(index) {
                 Text(String(format: "Plan assumes %.1f cm", planned / 10)).font(.subheadline).foregroundStyle(Palette.secondaryText)
             }
-            HStack(spacing: Spacing.small) {
+            let inputs = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.small))
+                : AnyLayout(HStackLayout(spacing: Spacing.small))
+            inputs {
                 TextField("Tape, cm", text: binding(for: index))
                     .keyboardType(.decimalPad)
                     .textFieldStyle(.roundedBorder)
@@ -98,7 +103,11 @@ struct VerifyView: View {
                     .buttonStyle(.bordered)
                     .frame(minHeight: TapTarget.minimum)
                     .accessibilityIdentifier("use-\(index)")
-                Button { measuring = index } label: { Label("Measure", systemImage: "viewfinder") }
+                // An icon keeps the row on one line on the smallest iPhone; VoiceOver still says "Measure".
+                Button { measuring = index } label: {
+                    Image(systemName: "viewfinder").frame(minWidth: TapTarget.minimum / 2)
+                }
+                    .accessibilityLabel("Measure with LiDAR")
                     .buttonStyle(.borderedProminent)
                     .tint(Palette.brand)
                     .frame(minHeight: TapTarget.minimum)
