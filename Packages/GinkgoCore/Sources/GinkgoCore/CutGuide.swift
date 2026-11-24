@@ -79,7 +79,8 @@ public enum CutGuide {
             CutLine(direction: .horizontal, positionMm: bottom, fromMm: left, toMm: right, piece: name),
             CutLine(direction: .horizontal, positionMm: top, fromMm: left, toMm: right, piece: name),
         ]
-        let instruction = "\(name), \(Format.mm(placement.widthMm)) × \(Format.mm(placement.heightMm)) mm: "
+        let size = "\(Format.mm(placement.widthMm)) × \(Format.mm(placement.heightMm)) mm"
+        let instruction = "\(Format.partName(name).capitalizedFirst), \(size): "
             + "mark \(Format.mm(left)) mm and \(Format.mm(right)) mm from the left edge, "
             + "and \(Format.mm(bottom)) mm and \(Format.mm(top)) mm from the bottom edge."
         return PieceGuide(name: name, xMm: left, yMm: bottom, widthMm: placement.widthMm, heightMm: placement.heightMm,

@@ -30,7 +30,7 @@ final class CutGuideTests: XCTestCase {
         let seat = try XCTUnwrap(top.pieces.first { $0.name == "seat" })
         XCTAssertEqual([seat.xMm, seat.yMm, seat.widthMm, seat.heightMm], [4, 34, 400, 300])
         XCTAssertEqual(seat.instruction,
-                       "seat, 400 × 300 mm: mark 4 mm and 404 mm from the left edge, and 34 mm and 334 mm from the bottom edge.")
+                       "Seat, 400 × 300 mm: mark 4 mm and 404 mm from the left edge, and 34 mm and 334 mm from the bottom edge.")
     }
 
     func testEachPieceIsOutlinedByFourLines() throws {
@@ -101,7 +101,7 @@ final class CutGuideTests: XCTestCase {
         let piece = try XCTUnwrap(CutGuide.guides(for: result([cut]), inventory: inventory).first?.pieces.first)
         XCTAssertTrue(piece.rotated)
         XCTAssertEqual(piece.instruction,
-                       "rail, 60 × 380 mm: mark 4 mm and 64 mm from the left edge, and 4 mm and 384 mm from the bottom edge.")
+                       "Rail, 60 × 380 mm: mark 4 mm and 64 mm from the left edge, and 4 mm and 384 mm from the bottom edge.")
     }
 
     func testHalfMillimetresAreKept() throws {
