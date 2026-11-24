@@ -64,6 +64,17 @@ enum PartsStep {
         return "Guessed. Rated as particleboard until you confirm. Tap if it's \(name.lowercased())."
     }
 
+    /// For solid wood whose wood lines haven't been checked: the warning shown under the grain picker.
+    static func grainNote(_ part: Part) -> String? {
+        guard part.material == .solidWood, part.grain == nil else { return nil }
+        return "Not checked: rated as across the grain, which is much weaker. Look at the wood lines and pick their direction."
+    }
+
+    /// The inventory with one part's grain set.
+    static func setting(grain: Grain, of partID: String, in inventory: Inventory) -> Inventory {
+        inventory.with(parts: inventory.parts.map { $0.id == partID ? $0.with(grain: grain) : $0 })
+    }
+
     /// The inventory with one part's material changed (picked on Confirm).
     static func setting(_ material: Material, of partID: String, in inventory: Inventory) -> Inventory {
         inventory.with(parts: inventory.parts.map {

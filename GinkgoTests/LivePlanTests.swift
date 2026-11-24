@@ -20,7 +20,8 @@ final class LivePlanTests: XCTestCase {
     }
 
     func testANightstandBecomesAProvenBench() throws {
-        let model = try LivePlan.proof(from: box(length: 0.46, width: 0.40, height: 0.58), scanID: "scan-1", material: .solidWood).get()
+        let model = try LivePlan.proof(from: box(length: 0.46, width: 0.40, height: 0.58), scanID: "scan-1",
+                                       material: .solidWood, grainConfirmed: true).get()
         XCTAssertEqual(model.verdict, .proven)
         XCTAssertEqual(model.plan.newParts.map(\.name), ["seat", "leg_left", "leg_right"])
         XCTAssertTrue(model.result.passes)
@@ -34,7 +35,8 @@ final class LivePlanTests: XCTestCase {
     }
 
     func testTheBenchCanBeShownInThreeD() throws {
-        let model = try LivePlan.proof(from: box(length: 0.46, width: 0.40, height: 0.58), scanID: "s", material: .solidWood).get()
+        let model = try LivePlan.proof(from: box(length: 0.46, width: 0.40, height: 0.58), scanID: "s",
+                                       material: .solidWood, grainConfirmed: true).get()
         let scene = TransformLayout.scene(plan: model.plan, inventory: model.inventory)
         XCTAssertEqual(scene.pieces.count, 3)
     }
@@ -50,7 +52,7 @@ final class LivePlanTests: XCTestCase {
             ("small cabinet", box(length: 0.60, width: 0.35, height: 0.70)),
         ]
         for (name, box) in pieces {
-            switch LivePlan.proof(from: box, scanID: name, material: .solidWood) {
+            switch LivePlan.proof(from: box, scanID: name, material: .solidWood, grainConfirmed: true) {
             case .success(let model):
                 XCTAssertEqual(model.verdict, .proven, name)
                 XCTAssertTrue(model.result.violations.isEmpty, name)
@@ -60,13 +62,15 @@ final class LivePlanTests: XCTestCase {
             }
         }
         // Most everyday pieces must actually yield a bench, or the feature is useless.
-        let proven = pieces.filter { (try? LivePlan.proof(from: $0.box, scanID: $0.name, material: .solidWood).get()) != nil }
+        let proven = pieces.filter { (try? LivePlan.proof(from: $0.box, scanID: $0.name,
+                                       material: .solidWood, grainConfirmed: true).get()) != nil }
         XCTAssertGreaterThanOrEqual(proven.count, 5, "Only proven: \(proven.map(\.name))")
     }
 
     func testSomethingTooSmallForABenchGetsAWholePartsPlan() throws {
         // Too small to cut a bench from: the planner offers its parts reused whole, never a failing plan.
-        let tiny = try LivePlan.proof(from: box(length: 0.12, width: 0.10, height: 0.08), scanID: "s", material: .solidWood).get()
+        let tiny = try LivePlan.proof(from: box(length: 0.12, width: 0.10, height: 0.08), scanID: "s",
+                                       material: .solidWood, grainConfirmed: true).get()
         XCTAssertEqual(tiny.plan.template, .noCut)
         XCTAssertEqual(tiny.verdict, .proven)
         XCTAssertFalse(LivePlan.Failure.noBenchFits.explanation.isEmpty)
@@ -93,7 +97,8 @@ final class LivePlanTests: XCTestCase {
     }
 
     func testABenchPlanAsksForTheSeatPanelsThicknessFirst() throws {
-        let model = try LivePlan.proof(from: box(length: 0.46, width: 0.40, height: 0.58), scanID: "s", material: .solidWood).get()
+        let model = try LivePlan.proof(from: box(length: 0.46, width: 0.40, height: 0.58), scanID: "s",
+                                       material: .solidWood, grainConfirmed: true).get()
         XCTAssertEqual(model.result.verify.first?.dimension, .thickness)
         XCTAssertEqual(model.checksBeforeCutting.first, "Measure the top's thickness: the sag check used 18 mm, an estimate.")
     }

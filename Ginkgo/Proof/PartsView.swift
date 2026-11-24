@@ -67,7 +67,12 @@ struct PartsView: View {
                 }
             }
             Section("Confirm the parts") {
-                ForEach(inventory.parts, id: \.id) { part in partRow(part) }
+                ForEach(inventory.parts, id: \.id) { part in
+                    partRow(part)
+                    // Its own row: a list row treats a tap anywhere as a tap on its first control, so a second
+                    // picker in the material's row would open the material menu instead.
+                    if part.material == .solidWood { grainPicker(part) }
+                }
             }
             Section {
                 NavigationLink {
@@ -126,5 +131,24 @@ struct PartsView: View {
             .accessibilityIdentifier("holes-\(part.id)")
         }
         .padding(.vertical, Spacing.xSmall)
+    }
+
+    /// Which way a solid-wood panel's grain runs: unchecked, it's rated as across the grain.
+    @ViewBuilder private func grainPicker(_ part: GinkgoCore.Part) -> some View {
+        Picker("Wood lines", selection: Binding(
+            get: { part.grain },
+            set: { grain in
+                if let grain, let current = inventory { inventory = PartsStep.setting(grain: grain, of: part.id, in: current) }
+            }
+        )) {
+            Text("Not checked").tag(Grain?.none)
+            Text("Side to side").tag(Grain?.some(.alongWidth))
+            Text("Top to bottom").tag(Grain?.some(.alongHeight))
+        }
+        .accessibilityIdentifier("grain-\(part.id)")
+        if let note = PartsStep.grainNote(part) {
+            Text(note).font(.footnote).foregroundStyle(Palette.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }

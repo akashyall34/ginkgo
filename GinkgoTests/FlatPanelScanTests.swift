@@ -85,7 +85,7 @@ final class FlatPanelScanTests: XCTestCase {
     private func verify() throws -> VerifyModel {
         let box = FittedBox(length: 0.46, width: 0.40, height: 0.58, baseCenter: .zero, yaw: 0, uncertainty: 0.002,
                             pointCount: 4000)
-        let model = try LivePlan.proof(from: box, scanID: "s", material: .solidWood).get()
+        let model = try LivePlan.proof(from: box, scanID: "s", material: .solidWood, grainConfirmed: true).get()
         return VerifyModel(plan: model.plan, inventory: model.inventory, result: model.result)
     }
 

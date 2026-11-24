@@ -129,3 +129,33 @@ final class PartSourcesWordingTests: XCTestCase {
         XCTAssertTrue(kept.materialIsConfirmed, "Tapping the confirm line keeps the material and confirms it")
     }
 }
+
+final class GrainWordingTests: XCTestCase {
+    private func part(_ material: GinkgoCore.Material, grain: Grain?) -> GinkgoCore.Part {
+        GinkgoCore.Part(damaged: false, grain: grain, heightMm: 350, id: "top", keepOuts: [], material: material,
+                        materialSource: .confirmed, thicknessMm: 18, thicknessSource: .tape, type: .top, widthMm: 600)
+    }
+
+    func testUncheckedSolidWoodSaysItsRatedAcrossTheGrain() {
+        XCTAssertTrue(PartsStep.grainNote(part(.solidWood, grain: nil))?.hasPrefix("Not checked: rated as across the grain") == true)
+    }
+
+    func testNoNoteOnceCheckedOrForOtherMaterials() {
+        XCTAssertNil(PartsStep.grainNote(part(.solidWood, grain: .alongWidth)))
+        XCTAssertNil(PartsStep.grainNote(part(.plywood, grain: nil)))
+    }
+
+    func testPickingTheGrainSetsIt() {
+        let inventory = GinkgoCore.Inventory(parts: [part(.solidWood, grain: nil)], scanID: "s")
+        XCTAssertEqual(PartsStep.setting(grain: .alongHeight, of: "top", in: inventory).parts[0].grain, .alongHeight)
+    }
+
+    func testAScanConfirmedForGrainRunsTheTopSideToSideAndTheSidesUp() {
+        let box = FittedBox(length: 0.46, width: 0.40, height: 0.58, baseCenter: .zero, yaw: 0, uncertainty: 0.002,
+                            pointCount: 4000)
+        let parts = LivePlan.inventory(from: box, scanID: "s", material: .solidWood, grainConfirmed: true).parts
+        XCTAssertEqual(parts.first { $0.type == .top }?.grain, .alongWidth)
+        XCTAssertTrue(parts.filter { $0.type == .side }.allSatisfy { $0.grain == .alongHeight })
+        XCTAssertTrue(LivePlan.inventory(from: box, scanID: "s").parts.allSatisfy { $0.grain == nil })
+    }
+}

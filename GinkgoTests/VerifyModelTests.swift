@@ -6,7 +6,7 @@ final class VerifyModelTests: XCTestCase {
     /// A proven bench from a typical piece of furniture.
     private func verify() throws -> VerifyModel {
         let box = FittedBox(length: 0.46, width: 0.40, height: 0.58, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 5000)
-        let model = try LivePlan.proof(from: box, scanID: "s", material: .solidWood).get()
+        let model = try LivePlan.proof(from: box, scanID: "s", material: .solidWood, grainConfirmed: true).get()
         XCTAssertEqual(model.plan.template, .bench, "These tests are about a plan with cuts")
         return VerifyModel(plan: model.plan, inventory: model.inventory, result: model.result)
     }
@@ -86,7 +86,7 @@ final class VerifyModelTests: XCTestCase {
         // A dresser-sized box gets the reuse-whole plan; a whole panel that turns out bigger gets a matching
         // reuse-whole plan for the real size.
         let box = FittedBox(length: 1.2, width: 0.5, height: 0.85, baseCenter: .zero, yaw: 0, uncertainty: 0.003, pointCount: 5000)
-        let model = try LivePlan.proof(from: box, scanID: "s", material: .solidWood).get()
+        let model = try LivePlan.proof(from: box, scanID: "s", material: .solidWood, grainConfirmed: true).get()
         XCTAssertEqual(model.plan.template, .noCut)
         var v = VerifyModel(plan: model.plan, inventory: model.inventory, result: model.result)
         guard !v.checks.isEmpty else { throw XCTSkip("no checks for this plan") }
@@ -101,7 +101,7 @@ final class VerifyThicknessTests: XCTestCase {
     private func verify() throws -> VerifyModel {
         let box = FittedBox(length: 0.46, width: 0.40, height: 0.58, baseCenter: .zero, yaw: 0, uncertainty: 0.002,
                             pointCount: 4000)
-        let model = try LivePlan.proof(from: box, scanID: "s", material: .solidWood).get()
+        let model = try LivePlan.proof(from: box, scanID: "s", material: .solidWood, grainConfirmed: true).get()
         return VerifyModel(plan: model.plan, inventory: model.inventory, result: model.result)
     }
 

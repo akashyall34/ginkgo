@@ -24,6 +24,14 @@ final class PartsUITests: XCTestCase {
             confirm.tap()
             XCTAssertTrue(confirm.waitForNonExistence(timeout: 5), "\(id): the guess note goes once confirmed")
         }
+        // The seat comes from the top: its wood lines must be checked, or it's rated as across the grain.
+        let grain = any["grain-top"].firstMatch
+        reveal(grain, in: app)
+        grain.tap()
+        // The choices open as a menu: its items aren't plain buttons, so match any element with the words.
+        let sideToSide = any.matching(NSPredicate(format: "label == %@", "Side to side")).firstMatch
+        XCTAssertTrue(sideToSide.waitForExistence(timeout: 5), "The wood-lines menu didn't open")
+        sideToSide.tap()
         let plan = app.buttons["planFromParts"].firstMatch
         reveal(plan, in: app)
         plan.tap()
@@ -68,9 +76,10 @@ final class ScrewHolesUITests: XCTestCase {
     }
 }
 
-/// Scrolls until the element is on screen (lists load rows lazily), or fails after a few swipes.
+/// Scrolls until the element is on screen (lists load rows lazily): down the list first, then back up.
 @MainActor
 func reveal(_ element: XCUIElement, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
     for _ in 0..<6 where !(element.exists && element.isHittable) { app.swipeUp() }
+    for _ in 0..<10 where !(element.exists && element.isHittable) { app.swipeDown() }
     XCTAssertTrue(element.exists && element.isHittable, "Couldn't scroll to \(element)", file: file, line: line)
 }

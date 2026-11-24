@@ -4,7 +4,9 @@ import XCTest
 @testable import Ginkgo
 
 final class ScrewHolesTests: XCTestCase {
-    private let top = Part(damaged: false, heightMm: 400, id: "top", keepOuts: [], material: .solidWood,
+    // A hole in the middle leaves room for the seat only turned sideways, so the grain runs that way (top to bottom):
+    // this test is about cutting around holes; the grain rule has its own tests.
+    private let top = Part(damaged: false, grain: .alongHeight, heightMm: 400, id: "top", keepOuts: [], material: .solidWood,
                            materialSource: .confirmed, thicknessMm: 18, thicknessSource: .tape, type: .top, widthMm: 600)
 
     func testATapBecomesAKeepOutCenteredOnIt() {
@@ -35,8 +37,9 @@ final class ScrewHolesTests: XCTestCase {
 
     func testTheValidatorCutsAroundAMarkedHole() throws {
         // A hole marked in the middle of the top: the plan still passes, and the seat is cut clear of it.
-        let side = Part(damaged: false, heightMm: 560, id: "side_left", keepOuts: [], material: .solidWood,
-                        materialSource: .confirmed, thicknessMm: 18, thicknessSource: .tape, type: .side, widthMm: 400)
+        let side = Part(damaged: false, grain: .alongHeight, heightMm: 560, id: "side_left", keepOuts: [],
+                        material: .solidWood, materialSource: .confirmed, thicknessMm: 18, thicknessSource: .tape,
+                        type: .side, widthMm: 400)
         let holedTop = ScrewHoles.toggling(at: CGPoint(x: 0.5, y: 0.5), on: top)
         let hole = try XCTUnwrap(holedTop.keepOuts.first)
         let inventory = Inventory(parts: [holedTop, side, side.with(id: "side_right")], scanID: "s")
