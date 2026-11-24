@@ -45,10 +45,12 @@ public enum Verifier {
         return .withdrawn(reason: "\(problems) No \(plan.template.rawValue) fits the new measurement.")
     }
 
-    static func resized(_ part: Part, _ measured: Remeasurement) -> Part {
-        let width = measured.dimension == .width ? measured.valueMm : part.widthMm
-        let height = measured.dimension == .height ? measured.valueMm : part.heightMm
-        return Part(damaged: part.damaged, heightMm: height, id: part.id, keepOuts: part.keepOuts, material: part.material,
-                    thicknessMm: part.thicknessMm, type: part.type, widthMm: width)
+    /// The part with the re-measured dimension. A re-measured thickness counts as measured from then on.
+    public static func resized(_ part: Part, _ measured: Remeasurement) -> Part {
+        switch measured.dimension {
+        case .width: return part.with(widthMm: measured.valueMm)
+        case .height: return part.with(heightMm: measured.valueMm)
+        case .thickness: return part.with(thicknessMm: measured.valueMm, thicknessSource: .tape)
+        }
     }
 }

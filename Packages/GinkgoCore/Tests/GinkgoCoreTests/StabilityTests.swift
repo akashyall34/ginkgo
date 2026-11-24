@@ -22,8 +22,8 @@ final class StabilityTests: XCTestCase {
     /// The stool prop, as the parts reader would see it: a padded seat board, rails and curved legs, all solid wood.
     private var stool: Inventory {
         func part(_ id: String, _ type: TypeEnum, _ size: [Double], _ thickness: Double) -> Part {
-            Part(damaged: false, heightMm: size[1], id: id, keepOuts: [], material: .solidWood, thicknessMm: thickness,
-                 type: type, widthMm: size[0])
+            Part(damaged: false, heightMm: size[1], id: id, keepOuts: [], material: .solidWood, materialSource: .confirmed,
+                 thicknessMm: thickness, thicknessSource: .tape, type: type, widthMm: size[0])
         }
         return Inventory(parts: [
             part("top", .top, [420, 330], 18),

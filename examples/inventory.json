@@ -7,7 +7,9 @@
       "width_mm": 460,
       "height_mm": 400,
       "thickness_mm": 19,
+      "thickness_source": "tape",
       "material": "solid_wood",
+      "material_source": "confirmed",
       "damaged": false,
       "keep_outs": [
         { "x_mm": 20, "y_mm": 20, "width_mm": 10, "height_mm": 10 },
@@ -20,7 +22,9 @@
       "width_mm": 380,
       "height_mm": 560,
       "thickness_mm": 19,
+      "thickness_source": "tape",
       "material": "solid_wood",
+      "material_source": "confirmed",
       "damaged": false,
       "keep_outs": []
     },
@@ -30,7 +34,9 @@
       "width_mm": 380,
       "height_mm": 560,
       "thickness_mm": 19,
+      "thickness_source": "tape",
       "material": "solid_wood",
+      "material_source": "confirmed",
       "damaged": false,
       "keep_outs": []
     },
@@ -40,7 +46,9 @@
       "width_mm": 420,
       "height_mm": 140,
       "thickness_mm": 19,
+      "thickness_source": "tape",
       "material": "solid_wood",
+      "material_source": "confirmed",
       "damaged": true,
       "keep_outs": []
     }

@@ -241,7 +241,13 @@ public struct Part: Codable, Equatable, Sendable {
     /// Screw holes and damage that no cut may include.
     public let keepOuts: [Rect]
     public let material: Material
+    /// Whether the person confirmed the material. Missing means guessed: a guessed wood product
+    /// is rated as the weakest one.
+    public let materialSource: MaterialSource?
     public let thicknessMm: Double
+    /// How the thickness was found. Missing means estimated: only a scanned or tape thickness
+    /// can verify a load-bearing part.
+    public let thicknessSource: ThicknessSource?
     public let type: TypeEnum
     public let widthMm: Double
 
@@ -251,18 +257,22 @@ public struct Part: Codable, Equatable, Sendable {
         case id = "id"
         case keepOuts = "keep_outs"
         case material = "material"
+        case materialSource = "material_source"
         case thicknessMm = "thickness_mm"
+        case thicknessSource = "thickness_source"
         case type = "type"
         case widthMm = "width_mm"
     }
 
-    public init(damaged: Bool, heightMm: Double, id: String, keepOuts: [Rect], material: Material, thicknessMm: Double, type: TypeEnum, widthMm: Double) {
+    public init(damaged: Bool, heightMm: Double, id: String, keepOuts: [Rect], material: Material, materialSource: MaterialSource?, thicknessMm: Double, thicknessSource: ThicknessSource?, type: TypeEnum, widthMm: Double) {
         self.damaged = damaged
         self.heightMm = heightMm
         self.id = id
         self.keepOuts = keepOuts
         self.material = material
+        self.materialSource = materialSource
         self.thicknessMm = thicknessMm
+        self.thicknessSource = thicknessSource
         self.type = type
         self.widthMm = widthMm
     }
@@ -292,7 +302,9 @@ public extension Part {
         id: String? = nil,
         keepOuts: [Rect]? = nil,
         material: Material? = nil,
+        materialSource: MaterialSource?? = nil,
         thicknessMm: Double? = nil,
+        thicknessSource: ThicknessSource?? = nil,
         type: TypeEnum? = nil,
         widthMm: Double? = nil
     ) -> Part {
@@ -302,7 +314,9 @@ public extension Part {
             id: id ?? self.id,
             keepOuts: keepOuts ?? self.keepOuts,
             material: material ?? self.material,
+            materialSource: materialSource ?? self.materialSource,
             thicknessMm: thicknessMm ?? self.thicknessMm,
+            thicknessSource: thicknessSource ?? self.thicknessSource,
             type: type ?? self.type,
             widthMm: widthMm ?? self.widthMm
         )
@@ -394,6 +408,21 @@ public enum Material: String, Codable, Equatable, Sendable {
     case plastic = "plastic"
     case plywood = "plywood"
     case solidWood = "solid_wood"
+}
+
+/// Whether the person confirmed the material. Missing means guessed: a guessed wood product
+/// is rated as the weakest one.
+public enum MaterialSource: String, Codable, Equatable, Sendable {
+    case confirmed = "confirmed"
+    case guessed = "guessed"
+}
+
+/// How the thickness was found. Missing means estimated: only a scanned or tape thickness
+/// can verify a load-bearing part.
+public enum ThicknessSource: String, Codable, Equatable, Sendable {
+    case estimated = "estimated"
+    case scanned = "scanned"
+    case tape = "tape"
 }
 
 public enum TypeEnum: String, Codable, Equatable, Sendable {
@@ -1045,6 +1074,7 @@ public extension VerifyItem {
 
 public enum Dimension: String, Codable, Equatable, Sendable {
     case height = "height"
+    case thickness = "thickness"
     case width = "width"
 }
 

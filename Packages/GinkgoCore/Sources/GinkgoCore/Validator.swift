@@ -26,7 +26,7 @@ public enum Validator {
         return ValidationResult(
             passes: violations.isEmpty, placements: packs.flatMap(\.placements), planID: plan.id,
             reusePercent: reusePercent(plan, inventory: inventory), sag: sag.results,
-            verify: verifyItems(packs), violations: violations)
+            verify: thicknessChecks(plan, parts: parts) + verifyItems(packs), violations: violations)
     }
 
     // MARK: - 1 to 4: parts
@@ -149,7 +149,8 @@ public enum Validator {
         for newPart in plan.newParts {
             guard let part = parts[newPart.sourcePartID] else { continue }
             do {
-                guard let result = try Sag.check(newPart, source: part) else { continue }
+                // A guessed material is rated as the weakest wood product until the person confirms it.
+                guard let result = try Sag.check(newPart, source: part.ratedForStrength) else { continue }
                 results.append(result)
                 if !result.passes {
                     let load = Format.mm(Sag.designLoadKg(for: newPart.role) ?? 0)
@@ -223,6 +224,18 @@ public enum Validator {
         let total = inventory.parts.reduce(0) { $0 + area($1.widthMm, $1.heightMm) }
         guard total > 0 else { return 0 }
         return min(100, (used / total * 1000).rounded() / 10)
+    }
+
+    /// Every load-bearing panel (a seat's or shelf's source) whose thickness was only estimated. Sag grows with the
+    /// cube of the thickness, so these must be measured before cutting; they come first and are never cut off by
+    /// `verifyCount`. One per source panel, in plan order.
+    static func thicknessChecks(_ plan: Plan, parts: [String: Part]) -> [VerifyItem] {
+        var seen: Set<String> = []
+        return plan.newParts.compactMap { newPart in
+            guard Sag.designLoadKg(for: newPart.role) != nil, let part = parts[newPart.sourcePartID],
+                  !part.thicknessIsMeasured, seen.insert(part.id).inserted else { return nil }
+            return VerifyItem(dimension: .thickness, marginMm: 0, sourcePartID: part.id)
+        }
     }
 
     /// The smallest spare margins: the measurements the plan depends on most.

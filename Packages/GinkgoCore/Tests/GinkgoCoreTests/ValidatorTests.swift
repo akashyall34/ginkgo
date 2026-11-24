@@ -125,8 +125,8 @@ final class ValidatorTests: XCTestCase {
 
     func testLongPlywoodShelfSags() throws {
         var inventory = try Fixtures.inventory()
-        let board = Part(damaged: false, heightMm: 300, id: "board", keepOuts: [], material: .plywood, thicknessMm: 18,
-                         type: .shelf, widthMm: 1000)
+        let board = Part(damaged: false, heightMm: 300, id: "board", keepOuts: [], material: .plywood,
+                         materialSource: .confirmed, thicknessMm: 18, thicknessSource: .tape, type: .shelf, widthMm: 1000)
         inventory = Inventory(parts: inventory.parts + [board], scanID: inventory.scanID)
         let shelf = EditablePart(name: "shelf", source: "board", width: 900, height: 280, role: .shelf, span: 900)
         let result = Validator.validate(plan: plan(try Fixtures.planBench().newParts + [shelf.newPart]),

@@ -4,8 +4,9 @@ import XCTest
 final class RuleBasedPlannerTests: XCTestCase {
     private func part(_ id: String, _ type: TypeEnum, _ size: [Double], _ material: Material = .solidWood,
                       damaged: Bool = false) -> Part {
-        Part(damaged: damaged, heightMm: size[1], id: id, keepOuts: [], material: material, thicknessMm: 19,
-             type: type, widthMm: size[0])
+        // Confirmed material and measured thickness: these tests are about planning, not about guesses.
+        Part(damaged: damaged, heightMm: size[1], id: id, keepOuts: [], material: material, materialSource: .confirmed,
+             thicknessMm: 19, thicknessSource: .tape, type: type, widthMm: size[0])
     }
 
     private func inventory(_ parts: [Part]) -> Inventory {

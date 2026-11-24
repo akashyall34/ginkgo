@@ -153,7 +153,10 @@ final class PartsReaderTests: XCTestCase {
             part(.side, [100, 200, 900, 240], estimate: [400, 600]),
             part(.side, [100, 760, 900, 800], estimate: [400, 600]),
         ])
-        let result = try XCTUnwrap(RuleBasedPlanner.bench(inventory: inventory))
+        // Gemini's material is a guess, so it is rated as particleboard: no bench until the person confirms.
+        XCTAssertNotEqual(RuleBasedPlanner.bench(inventory: inventory)?.plan.template, .bench)
+        let confirmed = Inventory(parts: inventory.parts.map { $0.with(materialSource: .confirmed) }, scanID: inventory.scanID)
+        let result = try XCTUnwrap(RuleBasedPlanner.bench(inventory: confirmed))
         XCTAssertTrue(result.validation.passes)
         XCTAssertEqual(result.plan.template, .bench)
     }

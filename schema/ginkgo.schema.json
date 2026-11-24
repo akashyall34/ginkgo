@@ -50,7 +50,17 @@
         "width_mm": { "type": "number", "exclusiveMinimum": 0 },
         "height_mm": { "type": "number", "exclusiveMinimum": 0 },
         "thickness_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "thickness_source": {
+          "type": "string",
+          "enum": ["scanned", "tape", "estimated"],
+          "description": "How the thickness was found. Missing means estimated: only a scanned or tape thickness can verify a load-bearing part."
+        },
         "material": { "type": "string", "enum": ["solid_wood", "plywood", "particleboard_mdf", "plastic", "cardboard"] },
+        "material_source": {
+          "type": "string",
+          "enum": ["confirmed", "guessed"],
+          "description": "Whether the person confirmed the material. Missing means guessed: a guessed wood product is rated as the weakest one."
+        },
         "damaged": { "type": "boolean" },
         "keep_outs": {
           "type": "array",
@@ -178,7 +188,7 @@
       "required": ["source_part_id", "dimension", "margin_mm"],
       "properties": {
         "source_part_id": { "type": "string" },
-        "dimension": { "type": "string", "enum": ["width", "height"] },
+        "dimension": { "type": "string", "enum": ["width", "height", "thickness"] },
         "margin_mm": { "type": "number" }
       }
     },
