@@ -55,12 +55,13 @@ public enum Sag {
     /// Checks one seat or shelf cut from `source` (its thickness and material set the stiffness).
     /// Returns nil for roles that carry no load (side, support, back, other).
     public static func check(name: String, role: Role, spanMm: Double, depthMm: Double,
-                             source: Part) throws -> SagResult? {
+                             source: Part, stiffnessFactor: Double = 1) throws -> SagResult? {
         guard let loadKg = designLoadKg(for: role) else { return nil }
-        guard let modulus = stiffness(of: source.material) else {
+        guard let material = stiffness(of: source.material) else {
             throw SagError.notLoadBearing("\(source.id) is \(source.material.displayName), which isn't load-bearing, "
                 + "so it can't be a seat or shelf")
         }
+        let modulus = material * stiffnessFactor
         let bend = try deflection(loadKg: loadKg, spanMm: spanMm, depthMm: depthMm,
                                   thicknessMm: source.thicknessMm, stiffness: modulus)
         let allowed = limit(spanMm: spanMm)
@@ -68,9 +69,9 @@ public enum Sag {
     }
 
     /// Checks a part of a plan: span is `span_mm` (or the width when it's missing), depth is the part's height.
-    public static func check(_ part: NewPart, source: Part) throws -> SagResult? {
+    public static func check(_ part: NewPart, source: Part, stiffnessFactor: Double = 1) throws -> SagResult? {
         try check(name: part.name, role: part.role, spanMm: part.spanMm ?? part.widthMm,
-                  depthMm: part.heightMm, source: source)
+                  depthMm: part.heightMm, source: source, stiffnessFactor: stiffnessFactor)
     }
 
     static func requirePositive(_ value: Double, _ name: String, unit: String) throws {

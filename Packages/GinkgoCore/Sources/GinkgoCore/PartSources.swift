@@ -7,8 +7,17 @@ public extension Part {
     /// The original fields, with the sources left unstated, which means estimated thickness and guessed material.
     init(damaged: Bool, heightMm: Double, id: String, keepOuts: [Rect], material: Material, thicknessMm: Double,
          type: TypeEnum, widthMm: Double) {
-        self.init(damaged: damaged, heightMm: heightMm, id: id, keepOuts: keepOuts, material: material,
+        self.init(damaged: damaged, grain: nil, heightMm: heightMm, id: id, keepOuts: keepOuts, material: material,
                   materialSource: nil, thicknessMm: thicknessMm, thicknessSource: nil, type: type, widthMm: widthMm)
+    }
+
+    /// With the sources stated, and the grain unknown (rated as across the grain for solid wood).
+    init(damaged: Bool, heightMm: Double, id: String, keepOuts: [Rect], material: Material,
+         materialSource: MaterialSource?, thicknessMm: Double, thicknessSource: ThicknessSource?, type: TypeEnum,
+         widthMm: Double) {
+        self.init(damaged: damaged, grain: nil, heightMm: heightMm, id: id, keepOuts: keepOuts, material: material,
+                  materialSource: materialSource, thicknessMm: thicknessMm, thicknessSource: thicknessSource, type: type,
+                  widthMm: widthMm)
     }
 
     var thicknessIsMeasured: Bool { thicknessSource == .scanned || thicknessSource == .tape }

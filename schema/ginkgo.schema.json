@@ -56,6 +56,11 @@
           "description": "How the thickness was found. Missing means estimated: only a scanned or tape thickness can verify a load-bearing part."
         },
         "material": { "type": "string", "enum": ["solid_wood", "plywood", "particleboard_mdf", "plastic", "cardboard"] },
+        "grain": {
+          "type": "string",
+          "enum": ["along_width", "along_height"],
+          "description": "Which way a solid-wood panel's grain (its wood lines) runs. Missing means unknown: rated as across the grain."
+        },
         "material_source": {
           "type": "string",
           "enum": ["confirmed", "guessed"],

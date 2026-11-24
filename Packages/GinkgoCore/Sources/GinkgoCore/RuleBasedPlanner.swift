@@ -36,9 +36,11 @@ public enum RuleBasedPlanner {
         guard supports.count == 2, let leg = supportSize(on: supports, seatDepth: seat.depth) else { return nil }
         let span = seat.width - supports[0].thicknessMm - supports[1].thicknessMm
         guard span > 0 else { return nil }
+        // No deeper than its legs: a seat overhanging them front or back tips when someone sits on that edge.
+        let depth = min(seat.depth, leg.width)
 
         let parts = [
-            DraftPart(heightMm: seat.depth, name: "seat", role: .seat, sourcePartID: seatSource.id, spanMm: span,
+            DraftPart(heightMm: depth, name: "seat", role: .seat, sourcePartID: seatSource.id, spanMm: span,
                       widthMm: seat.width),
             DraftPart(heightMm: leg.height, name: "leg_left", role: .support, sourcePartID: supports[0].id, spanMm: nil,
                       widthMm: leg.width),
@@ -47,7 +49,7 @@ public enum RuleBasedPlanner {
         ]
         let legSize = "\(Format.mm(leg.width)) × \(Format.mm(leg.height)) mm"
         let steps = [
-            "Cut the seat, \(Format.mm(seat.width)) × \(Format.mm(seat.depth)) mm, from the \(seatSource.id), clear of any screw holes.",
+            "Cut the seat, \(Format.mm(seat.width)) × \(Format.mm(depth)) mm, from the \(seatSource.id), clear of any screw holes.",
             "Cut leg_left from the \(supports[0].id) and leg_right from the \(supports[1].id), each \(legSize).",
             "Stand the legs upright under the ends of the seat, flush with its edges.",
             "Screw the seat to each leg with 4 wood screws, 40 mm.",

@@ -236,6 +236,9 @@ public extension Inventory {
 // MARK: - Part
 public struct Part: Codable, Equatable, Sendable {
     public let damaged: Bool
+    /// Which way a solid-wood panel's grain (its wood lines) runs. Missing means unknown: rated
+    /// as across the grain.
+    public let grain: Grain?
     public let heightMm: Double
     public let id: String
     /// Screw holes and damage that no cut may include.
@@ -253,6 +256,7 @@ public struct Part: Codable, Equatable, Sendable {
 
     public enum CodingKeys: String, CodingKey {
         case damaged = "damaged"
+        case grain = "grain"
         case heightMm = "height_mm"
         case id = "id"
         case keepOuts = "keep_outs"
@@ -264,8 +268,9 @@ public struct Part: Codable, Equatable, Sendable {
         case widthMm = "width_mm"
     }
 
-    public init(damaged: Bool, heightMm: Double, id: String, keepOuts: [Rect], material: Material, materialSource: MaterialSource?, thicknessMm: Double, thicknessSource: ThicknessSource?, type: TypeEnum, widthMm: Double) {
+    public init(damaged: Bool, grain: Grain?, heightMm: Double, id: String, keepOuts: [Rect], material: Material, materialSource: MaterialSource?, thicknessMm: Double, thicknessSource: ThicknessSource?, type: TypeEnum, widthMm: Double) {
         self.damaged = damaged
+        self.grain = grain
         self.heightMm = heightMm
         self.id = id
         self.keepOuts = keepOuts
@@ -298,6 +303,7 @@ public extension Part {
 
     func with(
         damaged: Bool? = nil,
+        grain: Grain?? = nil,
         heightMm: Double? = nil,
         id: String? = nil,
         keepOuts: [Rect]? = nil,
@@ -310,6 +316,7 @@ public extension Part {
     ) -> Part {
         return Part(
             damaged: damaged ?? self.damaged,
+            grain: grain ?? self.grain,
             heightMm: heightMm ?? self.heightMm,
             id: id ?? self.id,
             keepOuts: keepOuts ?? self.keepOuts,
@@ -329,6 +336,13 @@ public extension Part {
     func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
         return String(data: try self.jsonData(), encoding: encoding)
     }
+}
+
+/// Which way a solid-wood panel's grain (its wood lines) runs. Missing means unknown: rated
+/// as across the grain.
+public enum Grain: String, Codable, Equatable, Sendable {
+    case alongHeight = "along_height"
+    case alongWidth = "along_width"
 }
 
 //

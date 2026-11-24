@@ -11,7 +11,7 @@ public enum Validator {
     public static func validate(plan: Plan, inventory: Inventory, limits: SizeLimits?) -> ValidationResult {
         let parts = Dictionary(inventory.parts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let packs = pack(plan, inventory: inventory)
-        let sag = sagResults(plan, parts: parts)
+        let sag = sagResults(plan, parts: parts, placements: packs.flatMap(\.placements))
         let empty = plan.newParts.isEmpty
             ? [Violation(code: .emptyPlan, message: "The plan has no parts, so there is nothing to build.", newPart: "plan")]
             : []
@@ -23,6 +23,7 @@ public enum Validator {
             + sag.violations
             + unstableSupports(plan)
             + sizeViolations(plan, limits: limits)
+            + Overhang.violations(plan, parts: parts, placed: Set(packs.flatMap(\.placements).map(\.newPart)))
         return ValidationResult(
             passes: violations.isEmpty, placements: packs.flatMap(\.placements), planID: plan.id,
             reusePercent: reusePercent(plan, inventory: inventory), sag: sag.results,
@@ -143,14 +144,20 @@ public enum Validator {
 
     // MARK: - 6: sag
 
-    static func sagResults(_ plan: Plan, parts: [String: Part]) -> (results: [SagResult], violations: [Violation]) {
+    static func sagResults(_ plan: Plan, parts: [String: Part], placements: [Placement] = [])
+        -> (results: [SagResult], violations: [Violation]) {
+        let rotation = Dictionary(placements.map { ($0.newPart, $0.rotated) }, uniquingKeysWith: { first, _ in first })
         var results: [SagResult] = []
         var violations: [Violation] = []
         for newPart in plan.newParts {
             guard let part = parts[newPart.sourcePartID] else { continue }
             do {
                 // A guessed material is rated as the weakest wood product until the person confirms it.
-                guard let result = try Sag.check(newPart, source: part.ratedForStrength) else { continue }
+                // Across the grain (or grain unknown) solid wood gets its across-grain stiffness.
+                let factor = WoodGrain.stiffnessFactor(source: part, rotated: rotation[newPart.name])
+                guard let result = try Sag.check(newPart, source: part.ratedForStrength, stiffnessFactor: factor) else {
+                    continue
+                }
                 results.append(result)
                 if !result.passes {
                     let load = Format.mm(Sag.designLoadKg(for: newPart.role) ?? 0)

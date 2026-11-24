@@ -3,6 +3,7 @@
   "parts": [
     {
       "id": "top",
+      "grain": "along_width",
       "type": "top",
       "width_mm": 460,
       "height_mm": 400,
@@ -18,6 +19,7 @@
     },
     {
       "id": "side_left",
+      "grain": "along_height",
       "type": "side",
       "width_mm": 380,
       "height_mm": 560,
@@ -30,6 +32,7 @@
     },
     {
       "id": "side_right",
+      "grain": "along_height",
       "type": "side",
       "width_mm": 380,
       "height_mm": 560,
@@ -42,6 +45,7 @@
     },
     {
       "id": "drawer_front",
+      "grain": "along_width",
       "type": "drawer_front",
       "width_mm": 420,
       "height_mm": 140,

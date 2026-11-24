@@ -45,12 +45,25 @@ final class StabilityTests: XCTestCase {
         XCTAssertTrue(try validate(supportWidth: 300).passes)
     }
 
+    /// The width rule's own complaints (the 300 mm deep seat on narrower supports also overhangs: tested separately).
+    private func widthComplaints(_ result: ValidationResult) -> [String] {
+        result.violations.filter { $0.code == .unstable && $0.message.contains("mm wide") }.map(\.message)
+    }
+
     func testBoundaryIs150Millimetres() throws {
-        XCTAssertTrue(try validate(supportWidth: 150).passes, "exactly 150 mm is enough")
-        let narrow = try validate(supportWidth: 149)
-        XCTAssertEqual(narrow.violations.map(\.code), [.unstable, .unstable])
-        XCTAssertEqual(narrow.violations.first?.message,
+        XCTAssertEqual(widthComplaints(try validate(supportWidth: 150)), [], "exactly 150 mm is wide enough")
+        let narrow = widthComplaints(try validate(supportWidth: 149))
+        XCTAssertEqual(narrow.count, 2)
+        XCTAssertEqual(narrow.first,
                        "leg_left: only 149 mm wide, so the build would tip over. Supports must be flat boards at least 150 mm wide.")
+    }
+
+    func testASeatDeeperThanItsSupportsOverhangsAndTips() throws {
+        // 300 mm deep seat on 150 mm deep supports: 75 mm over the front and the back.
+        let result = try validate(supportWidth: 150)
+        XCTAssertFalse(result.passes)
+        XCTAssertTrue(result.violations.contains { $0.message.contains("overhangs its supports by 75 mm") },
+                      "\(result.violations.map(\.message))")
     }
 
     func testNoCutPlansHaveNoSupportsToCheck() throws {
@@ -68,7 +81,8 @@ final class StabilityTests: XCTestCase {
         let outcome = ToolExecutor(inventory: try Fixtures.inventory(), limits: nil)
             .run(ToolCall(name: "submit_plan", args: ["reason": "Use leg strips.", "plan": draft]), index: 0)
         XCTAssertNil(outcome.accepted)
-        XCTAssertEqual(outcome.step.summary.hasPrefix("rejected, 2 problems: leg_left: only 37 mm wide"), true)
+        XCTAssertEqual(outcome.step.summary.hasPrefix("rejected, 3 problems: leg_left: only 37 mm wide"), true,
+                       outcome.step.summary)
     }
 
     func testThePromptsTellGeminiTheRules() {
