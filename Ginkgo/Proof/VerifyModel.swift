@@ -66,11 +66,13 @@ struct VerifyModel {
         }
     }
 
-    /// Replaces the estimate with a real measurement and re-checks the plan against it.
-    mutating func record(_ millimeters: Double, for index: Int) {
+    /// Replaces the estimate with a real measurement and re-checks the plan against it. `scanned` marks a thickness
+    /// read by the flat-panel scan rather than typed from a tape.
+    mutating func record(_ millimeters: Double, for index: Int, scanned: Bool = false) {
         guard checks.indices.contains(index), millimeters > 0, millimeters.isFinite else { return }
         let check = checks[index]
-        let remeasured = Remeasurement(sourcePartID: check.sourcePartID, dimension: check.dimension, valueMm: millimeters)
+        let remeasured = Remeasurement(sourcePartID: check.sourcePartID, dimension: check.dimension, valueMm: millimeters,
+                                       thicknessSource: scanned ? .scanned : .tape)
         let outcome = Verifier.recheck(plan: plan, inventory: inventory, limits: nil, measured: remeasured)
         inventory = inventory.with(parts: inventory.parts.map {
             $0.id == check.sourcePartID ? Verifier.resized($0, remeasured) : $0

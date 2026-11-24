@@ -37,11 +37,20 @@ struct VerifyView: View {
         .navigationTitle("Verify")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $measuring) { index in
-            ScanView(source: FrameSources.makeDefault()) { result in
-                let meters = model.checks[index].dimension == .width ? result.width : result.height
-                model.record(Double(meters) * 1000, for: index)
-                typed[index] = String(format: "%.1f", Double(meters) * 100)
-                measuring = nil
+            if model.checks[index].dimension == .thickness {
+                // Thickness: lay the panel flat and scan it; the reading counts as scanned, not typed.
+                ScanView(flatPanelFrom: FrameSources.makeDefault()) { result in
+                    model.record(Double(result.thickness) * 1000, for: index, scanned: true)
+                    typed[index] = String(format: "%.1f", Double(result.thickness) * 100)
+                    measuring = nil
+                }
+            } else {
+                ScanView(source: FrameSources.makeDefault()) { result in
+                    let meters = model.checks[index].dimension == .width ? result.width : result.height
+                    model.record(Double(meters) * 1000, for: index)
+                    typed[index] = String(format: "%.1f", Double(meters) * 100)
+                    measuring = nil
+                }
             }
         }
     }

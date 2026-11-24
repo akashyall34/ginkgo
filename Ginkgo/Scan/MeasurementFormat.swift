@@ -20,4 +20,13 @@ enum MeasurementFormat {
         String(format: "%.1f by %.1f centimeters, plus or minus %.1f",
                widthMeters * 100, heightMeters * 100, uncertaintyMeters * 100)
     }
+
+    /// "18.0 mm thick ± 0.9 mm": panel thickness reads in millimeters, the unit it's sold and specified in.
+    static func thickness(meters: Float, uncertaintyMeters: Float) -> String {
+        String(format: "%.1f mm thick ± %.1f mm", meters * 1000, uncertaintyMeters * 1000)
+    }
+
+    static func spokenThickness(meters: Float, uncertaintyMeters: Float) -> String {
+        String(format: "%.1f millimeters thick, plus or minus %.1f", meters * 1000, uncertaintyMeters * 1000)
+    }
 }

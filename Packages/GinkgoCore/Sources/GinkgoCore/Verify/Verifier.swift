@@ -5,11 +5,14 @@ public struct Remeasurement: Sendable, Equatable {
     public var sourcePartID: String
     public var dimension: Dimension
     public var valueMm: Double
+    /// How a thickness was taken: a flat-panel LiDAR scan, or a tape typed in.
+    public var thicknessSource: ThicknessSource
 
-    public init(sourcePartID: String, dimension: Dimension, valueMm: Double) {
+    public init(sourcePartID: String, dimension: Dimension, valueMm: Double, thicknessSource: ThicknessSource = .tape) {
         self.sourcePartID = sourcePartID
         self.dimension = dimension
         self.valueMm = valueMm
+        self.thicknessSource = thicknessSource
     }
 }
 
@@ -50,7 +53,7 @@ public enum Verifier {
         switch measured.dimension {
         case .width: return part.with(widthMm: measured.valueMm)
         case .height: return part.with(heightMm: measured.valueMm)
-        case .thickness: return part.with(thicknessMm: measured.valueMm, thicknessSource: .tape)
+        case .thickness: return part.with(thicknessMm: measured.valueMm, thicknessSource: measured.thicknessSource)
         }
     }
 }

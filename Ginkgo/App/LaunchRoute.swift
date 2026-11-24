@@ -3,6 +3,8 @@
 enum LaunchRoute: String, CaseIterable, Equatable {
     case home
     case scan
+    /// The flat-panel scan: thickness as well as size.
+    case panel
     case example
     case transform
     case contrast

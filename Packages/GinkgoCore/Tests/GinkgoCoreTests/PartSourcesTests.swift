@@ -118,3 +118,21 @@ final class PartSourcesTests: XCTestCase {
         if case .verified = outcome { XCTFail("An 8 mm top can't carry the same seat: \(outcome)") }
     }
 }
+
+final class RemeasurementSourceTests: XCTestCase {
+    func testARemeasureDefaultsToTapeAndCanSayScanned() {
+        XCTAssertEqual(Remeasurement(sourcePartID: "top", dimension: .thickness, valueMm: 18).thicknessSource, .tape)
+        let part = Part(damaged: false, heightMm: 400, id: "top", keepOuts: [], material: .solidWood, thicknessMm: 18,
+                        type: .top, widthMm: 460)
+        let scanned = Verifier.resized(part, Remeasurement(sourcePartID: "top", dimension: .thickness, valueMm: 18.3,
+                                                           thicknessSource: .scanned))
+        XCTAssertEqual(scanned.thicknessSource, .scanned)
+        XCTAssertEqual(scanned.thicknessMm, 18.3)
+    }
+
+    func testWidthAndHeightRemeasuresLeaveTheThicknessSourceAlone() {
+        let part = Part(damaged: false, heightMm: 400, id: "top", keepOuts: [], material: .solidWood, thicknessMm: 18,
+                        type: .top, widthMm: 460)
+        XCTAssertNil(Verifier.resized(part, Remeasurement(sourcePartID: "top", dimension: .width, valueMm: 455)).thicknessSource)
+    }
+}

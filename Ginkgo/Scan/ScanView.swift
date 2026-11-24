@@ -7,18 +7,29 @@ struct ScanView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     /// When set (from Verify), a measured face can be handed back with "Use this measurement".
     private let onUse: ((QuadResult) -> Void)?
+    /// Flat-panel mode (from Verify's thickness check): hands back the panel's thickness instead.
+    private let onUseThickness: ((ThicknessResult) -> Void)?
 
     init(source: FrameSource, onUse: ((QuadResult) -> Void)? = nil) {
         self.onUse = onUse
+        self.onUseThickness = nil
         _model = State(initialValue: ScanModel(source: source, store: ScanStore.standard(),
                                                  lifter: VisionSubjectLifter()))
+    }
+
+    /// Flat-panel mode: the panel lies on the floor and the scan reads its thickness too.
+    init(flatPanelFrom source: FrameSource, onUseThickness: ((ThicknessResult) -> Void)? = nil) {
+        self.onUse = nil
+        self.onUseThickness = onUseThickness
+        _model = State(initialValue: ScanModel(source: source, store: ScanStore.standard(),
+                                                 lifter: VisionSubjectLifter(), measuresThickness: true))
     }
 
     var body: some View {
         Group {
             if model.source.isSupported { content } else { unsupported }
         }
-        .navigationTitle("Scan")
+        .navigationTitle(model.measuresThickness ? "Scan a panel" : "Scan")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
         .toolbar {
@@ -103,6 +114,17 @@ struct ScanView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(Palette.verified)
                 .accessibilityIdentifier("useMeasurement")
+            }
+            if let onUseThickness, let thickness = model.thickness {
+                Button {
+                    onUseThickness(thickness)
+                } label: {
+                    Label("Use this thickness", systemImage: "checkmark")
+                        .font(.headline).frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Palette.verified)
+                .accessibilityIdentifier("useThickness")
             }
             saveStatus
         }

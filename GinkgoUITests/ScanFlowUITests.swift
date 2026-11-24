@@ -17,6 +17,22 @@ final class ScanFlowUITests: XCTestCase {
         return ScanScreen(app: app, test: self)
     }
 
+    func testAFlatPanelScanReadsTheKnownThickness() throws {
+        // The demo panel lies 18 mm above the floor: the flat-panel scan reads it along with the size.
+        let app = XCUIApplication()
+        app.launchArguments = ["-demoScene", "-openScreen", "panel"]
+        app.launch()
+        XCTAssertTrue(app.buttons["capture"].waitForExistence(timeout: 5))
+        let scan = ScanScreen(app: app, test: self)
+        scan.waitForResult(containing: "Lay the panel flat")
+        app.buttons["capture"].tap()
+        scan.tapFace()
+        let thickness = scan.element("thickness")
+        XCTAssertTrue(thickness.waitForExistence(timeout: 5))
+        XCTAssertTrue(thickness.label.hasPrefix("18.0 mm thick"), thickness.label)
+        scan.waitForResult(containing: "18.0 millimeters thick")
+    }
+
     func testCaptureThenTapTheFaceMeasuresItsKnownSize() throws {
         let scan = openScan()
         scan.app.buttons["capture"].tap()

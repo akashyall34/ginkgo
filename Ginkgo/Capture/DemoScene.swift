@@ -11,6 +11,8 @@ enum DemoScene {
     static let widthMeters: Float = 0.1905   // across the portrait photo
     static let heightMeters: Float = 0.12    // down the portrait photo
     static let distanceMeters: Float = 0.5
+    /// The face is a panel lying on a floor this much further away, so a flat-panel scan has a known thickness.
+    static let thicknessMeters: Float = 0.018
 
     /// Raw landscape image size and intrinsics, like a scaled-down iPhone capture.
     static let intrinsics = Intrinsics(fx: 700, fy: 700, cx: 480, cy: 360, imageWidth: 960, imageHeight: 720)
@@ -18,6 +20,12 @@ enum DemoScene {
     /// The face's corners on the portrait photo (normalized, top-left origin):
     /// top-left, top-right, bottom-right, bottom-left.
     static var portraitCorners: [CGPoint] {
+        // Inverse of Geometry.rawImagePoint(fromPortrait:): raw (u, v) → portrait (1 − v, u).
+        rawCorners.map { CGPoint(x: CGFloat(1 - $0.y), y: CGFloat($0.x)) }
+    }
+
+    /// The face's corners on the raw landscape image (normalized), where the depth map lives.
+    static var rawCorners: [SIMD2<Float>] {
         // Portrait x runs along the camera's −y axis; portrait y along its +x axis.
         let halfW = widthMeters / 2, halfH = heightMeters / 2
         let camera: [SIMD3<Float>] = [
@@ -25,10 +33,17 @@ enum DemoScene {
             SIMD3(halfH, halfW, -distanceMeters), SIMD3(halfH, -halfW, -distanceMeters),
         ]
         return camera.map { p in
-            let u = (intrinsics.fx * p.x / distanceMeters + intrinsics.cx) / intrinsics.imageWidth
-            let v = (intrinsics.fy * -p.y / distanceMeters + intrinsics.cy) / intrinsics.imageHeight
-            // Inverse of Geometry.rawImagePoint(fromPortrait:): raw (u, v) → portrait (1 − v, u).
-            return CGPoint(x: CGFloat(1 - v), y: CGFloat(u))
+            SIMD2((intrinsics.fx * p.x / distanceMeters + intrinsics.cx) / intrinsics.imageWidth,
+                  (intrinsics.fy * -p.y / distanceMeters + intrinsics.cy) / intrinsics.imageHeight)
+        }
+    }
+
+    /// Depth in a `width` × `height` map: the face at `distanceMeters`, the floor `thicknessMeters` behind it.
+    static func depth(width: Int, height: Int) -> [Float] {
+        let face = rawCorners.map { SIMD2($0.x * Float(width), $0.y * Float(height)) }
+        return (0..<(width * height)).map { i in
+            let center = SIMD2(Float(i % width) + 0.5, Float(i / width) + 0.5)
+            return Polygon.contains(face, center) ? distanceMeters : distanceMeters + thicknessMeters
         }
     }
 
@@ -48,7 +63,7 @@ enum DemoScene {
 
         let w = 192, h = 144
         guard let snapshot = DepthSnapshot(width: w, height: h,
-                                           depth: Array(repeating: distanceMeters, count: w * h),
+                                           depth: depth(width: w, height: h),
                                            confidence: Array(repeating: 2, count: w * h),
                                            intrinsics: intrinsics),
               let overlay = UIImage.confidenceOverlay(for: snapshot) else { return nil }

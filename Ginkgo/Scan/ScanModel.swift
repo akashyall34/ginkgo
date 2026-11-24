@@ -36,20 +36,29 @@ final class ScanModel {
     /// True when the last measurement couldn't be saved. The measurement itself still stands.
     private(set) var saveFailed = false
     private var photoData: Data?
+    /// Flat-panel mode: the panel lies on the floor, and every measurement of its face also measures its thickness.
+    let measuresThickness: Bool
+    /// The panel's thickness from the same frame, in flat-panel mode once the face is measured.
+    private(set) var thickness: ThicknessResult?
+    /// Why the thickness couldn't be read, in flat-panel mode (the face's size still stands).
+    private(set) var thicknessProblem: String?
 
     static let crossedCornersMessage = "The corners cross. Drag them back into a four-sided shape."
 
-    init(source: FrameSource, store: ScanStore? = nil, lifter: SubjectLifting? = nil) {
+    init(source: FrameSource, store: ScanStore? = nil, lifter: SubjectLifting? = nil, measuresThickness: Bool = false) {
         self.source = source
         self.store = store
         self.lifter = lifter
+        self.measuresThickness = measuresThickness
     }
 
     var instruction: String { instruction(for: status) }
 
     func instruction(for status: Status) -> String {
         switch status {
-        case .aiming: return "Aim at one flat face of the furniture, then capture."
+        case .aiming:
+            return measuresThickness ? "Lay the panel flat on the floor. Hold the phone 30 to 50 cm above it, then capture."
+                                     : "Aim at one flat face of the furniture, then capture."
         case .chooseFace: return "Tap the outlined face you want to measure, or tap the furniture to lift it out."
         case .noFaceFound: return "No outlined face. Tap the furniture to lift it out, or tap Place corners."
         case .adjusting: return "Drag the corner onto the face's corner."
@@ -119,6 +128,8 @@ final class ScanModel {
         saveFailed = false
         faces = []
         corners = nil
+        thickness = nil
+        thicknessProblem = nil
         status = .aiming
     }
 
@@ -129,11 +140,21 @@ final class ScanModel {
             status = .problem(Self.crossedCornersMessage)
             return
         }
+        thickness = nil
+        thicknessProblem = nil
         switch QuadMeasurer.measure(corners: face.rawCorners, in: frame.snapshot) {
         case .success(let result):
             status = .measured(result)
+            if measuresThickness { measureThickness(face, in: frame) }
             save(result, frame: frame, corners: corners)
         case .failure(let error): status = .problem(error.explanation)
+        }
+    }
+
+    private func measureThickness(_ face: DetectedQuad, in frame: CapturedFrame) {
+        switch ThicknessMeasurer.measure(corners: face.rawCorners, in: frame.snapshot) {
+        case .success(let result): thickness = result
+        case .failure(let error): thicknessProblem = error.explanation
         }
     }
 

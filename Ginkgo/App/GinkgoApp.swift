@@ -17,6 +17,8 @@ struct GinkgoApp: App {
                 HomeView()
             case .scan:
                 NavigationStack { ScanView(source: FrameSources.makeDefault()) }
+            case .panel:
+                NavigationStack { ScanView(flatPanelFrom: FrameSources.makeDefault()) }
             case .example:
                 NavigationStack { ExampleProofView() }
             case .transform:
