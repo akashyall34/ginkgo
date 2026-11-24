@@ -84,13 +84,18 @@ struct ProofModel {
 
     /// The measurements with the least room to spare, tightest first.
     var checksBeforeCutting: [String] {
-        result.verify.sorted { $0.marginMm < $1.marginMm }.map {
-            let side = String(format: "Check the %@'s %@", Self.displayName($0.sourcePartID).lowercased(), $0.dimension.rawValue)
+        result.verify.sorted { $0.marginMm < $1.marginMm }.map { check in
+            let name = Self.displayName(check.sourcePartID).lowercased()
+            if check.dimension == .thickness {
+                let used = inventory.parts.first { $0.id == check.sourcePartID }?.thicknessMm ?? 0
+                return String(format: "Measure the %@'s thickness: the sag check used %.0f mm, an estimate.", name, used)
+            }
+            let side = String(format: "Check the %@'s %@", name, check.dimension.rawValue)
             // Spare is what's left after the saw cut and measuring allowance (Packer.margin).
-            if $0.marginMm < 0.5 {
+            if check.marginMm < 0.5 {
                 return side + String(format: ": a tight fit, with only the %.0f mm cutting allowance to spare.", Packer.margin)
             }
-            return side + String(format: ": %.0f mm to spare.", $0.marginMm)
+            return side + String(format: ": %.0f mm to spare.", check.marginMm)
         }
     }
 

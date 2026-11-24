@@ -92,7 +92,7 @@ struct PartsView: View {
                     Text("Damaged").font(.caption.weight(.semibold)).foregroundStyle(Palette.fails)
                 }
             }
-            Text(String(format: "%.1f × %.1f cm, %.0f mm thick", part.widthMm / 10, part.heightMm / 10, part.thicknessMm))
+            Text(PartsStep.sizeLine(part))
                 .font(.subheadline).foregroundStyle(Palette.secondaryText)
             Picker("Material", selection: Binding(
                 get: { part.material },
@@ -101,6 +101,19 @@ struct PartsView: View {
                 ForEach(Self.materials, id: \.0) { Text($0.1).tag($0.0) }
             }
             .accessibilityIdentifier("material-\(part.id)")
+            if let note = PartsStep.materialNote(part) {
+                Button {
+                    if let current = inventory { inventory = PartsStep.setting(part.material, of: part.id, in: current) }
+                } label: {
+                    Label(note, systemImage: "questionmark.circle")
+                        .font(.footnote)
+                        .multilineTextAlignment(.leading)
+                        .frame(minHeight: TapTarget.minimum)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityHint("Confirms the material shown above")
+                .accessibilityIdentifier("confirmMaterial-\(part.id)")
+            }
             Button {
                 markingHolesOf = part.id
             } label: {

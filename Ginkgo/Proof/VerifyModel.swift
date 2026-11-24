@@ -59,7 +59,11 @@ struct VerifyModel {
     func planned(_ index: Int) -> Double? {
         let check = checks[index]
         guard let part = inventory.parts.first(where: { $0.id == check.sourcePartID }) else { return nil }
-        return check.dimension == .width ? part.widthMm : part.heightMm
+        switch check.dimension {
+        case .width: return part.widthMm
+        case .height: return part.heightMm
+        case .thickness: return part.thicknessMm
+        }
     }
 
     /// Replaces the estimate with a real measurement and re-checks the plan against it.
@@ -69,7 +73,7 @@ struct VerifyModel {
         let remeasured = Remeasurement(sourcePartID: check.sourcePartID, dimension: check.dimension, valueMm: millimeters)
         let outcome = Verifier.recheck(plan: plan, inventory: inventory, limits: nil, measured: remeasured)
         inventory = inventory.with(parts: inventory.parts.map {
-            $0.id == check.sourcePartID ? (check.dimension == .width ? $0.with(widthMm: millimeters) : $0.with(heightMm: millimeters)) : $0
+            $0.id == check.sourcePartID ? Verifier.resized($0, remeasured) : $0
         })
         measured[index] = millimeters
         switch outcome {

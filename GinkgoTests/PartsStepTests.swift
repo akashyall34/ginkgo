@@ -89,3 +89,43 @@ final class GeminiSchemaTests: XCTestCase {
                        "box_2d, upholstered, curved and note are optional")
     }
 }
+
+/// What the Parts screen says about guessed and estimated numbers, and how confirming works.
+final class PartSourcesWordingTests: XCTestCase {
+    private func part(_ material: GinkgoCore.Material, _ materialSource: MaterialSource?,
+                      thickness: ThicknessSource?) -> GinkgoCore.Part {
+        GinkgoCore.Part(damaged: false, heightMm: 350, id: "top", keepOuts: [], material: material, materialSource: materialSource,
+             thicknessMm: 18, thicknessSource: thickness, type: .top, widthMm: 600)
+    }
+
+    func testAnEstimatedThicknessSaysSo() {
+        XCTAssertEqual(PartsStep.sizeLine(part(.solidWood, nil, thickness: .estimated)), "60.0 × 35.0 cm, 18 mm thick (estimated)")
+        XCTAssertEqual(PartsStep.sizeLine(part(.solidWood, nil, thickness: nil)), "60.0 × 35.0 cm, 18 mm thick (estimated)")
+    }
+
+    func testAMeasuredThicknessDoesNot() {
+        XCTAssertEqual(PartsStep.sizeLine(part(.solidWood, nil, thickness: .scanned)), "60.0 × 35.0 cm, 18 mm thick")
+    }
+
+    func testGuessedWoodOffersAOneTapConfirm() {
+        XCTAssertEqual(PartsStep.materialNote(part(.solidWood, .guessed, thickness: nil)),
+                       "Guessed. Rated as particleboard until you confirm. Tap if it's solid wood.")
+        XCTAssertEqual(PartsStep.materialNote(part(.plywood, nil, thickness: nil)),
+                       "Guessed. Rated as particleboard until you confirm. Tap if it's plywood.")
+    }
+
+    func testNoNoteOnceConfirmedOrWhenAGuessCantBeWeaker() {
+        XCTAssertNil(PartsStep.materialNote(part(.solidWood, .confirmed, thickness: nil)))
+        XCTAssertNil(PartsStep.materialNote(part(.particleboardMDF, .guessed, thickness: nil)))
+        XCTAssertNil(PartsStep.materialNote(part(.plastic, nil, thickness: nil)))
+    }
+
+    func testPickingOrConfirmingAMaterialMarksItConfirmed() {
+        let inventory = GinkgoCore.Inventory(parts: [part(.solidWood, .guessed, thickness: nil)], scanID: "s")
+        let picked = PartsStep.setting(.plywood, of: "top", in: inventory).parts[0]
+        XCTAssertEqual(picked.material, .plywood)
+        XCTAssertTrue(picked.materialIsConfirmed)
+        let kept = PartsStep.setting(.solidWood, of: "top", in: inventory).parts[0]
+        XCTAssertTrue(kept.materialIsConfirmed, "Tapping the confirm line keeps the material and confirms it")
+    }
+}

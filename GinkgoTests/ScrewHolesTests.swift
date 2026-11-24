@@ -5,7 +5,7 @@ import XCTest
 
 final class ScrewHolesTests: XCTestCase {
     private let top = Part(damaged: false, heightMm: 400, id: "top", keepOuts: [], material: .solidWood,
-                           thicknessMm: 18, type: .top, widthMm: 600)
+                           materialSource: .confirmed, thicknessMm: 18, thicknessSource: .tape, type: .top, widthMm: 600)
 
     func testATapBecomesAKeepOutCenteredOnIt() {
         // Tap 25% across and 25% down: 150 mm from the left, 300 mm up from the bottom.
@@ -36,7 +36,7 @@ final class ScrewHolesTests: XCTestCase {
     func testTheValidatorCutsAroundAMarkedHole() throws {
         // A hole marked in the middle of the top: the plan still passes, and the seat is cut clear of it.
         let side = Part(damaged: false, heightMm: 560, id: "side_left", keepOuts: [], material: .solidWood,
-                        thicknessMm: 18, type: .side, widthMm: 400)
+                        materialSource: .confirmed, thicknessMm: 18, thicknessSource: .tape, type: .side, widthMm: 400)
         let holedTop = ScrewHoles.toggling(at: CGPoint(x: 0.5, y: 0.5), on: top)
         let hole = try XCTUnwrap(holedTop.keepOuts.first)
         let inventory = Inventory(parts: [holedTop, side, side.with(id: "side_right")], scanID: "s")

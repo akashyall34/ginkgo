@@ -17,7 +17,16 @@ final class PartsUITests: XCTestCase {
                                         timeout: 5), .completed, any["partsSource"].firstMatch.label)
         XCTAssertTrue(any["partsFlag"].firstMatch.waitForExistence(timeout: 5), "Says the parts are an estimate to check")
         XCTAssertTrue(any["material-top"].firstMatch.waitForExistence(timeout: 5))
-        app.buttons["planFromParts"].firstMatch.tap()
+        // Each material is a guess until the person confirms it; a guessed seat panel can't promise a bench.
+        for id in ["top", "side_left", "side_right"] {
+            let confirm = app.buttons["confirmMaterial-\(id)"].firstMatch
+            reveal(confirm, in: app)
+            confirm.tap()
+            XCTAssertTrue(confirm.waitForNonExistence(timeout: 5), "\(id): the guess note goes once confirmed")
+        }
+        let plan = app.buttons["planFromParts"].firstMatch
+        reveal(plan, in: app)
+        plan.tap()
         let bench = app.buttons["idea-bench"].firstMatch
         XCTAssertTrue(bench.waitForExistence(timeout: 10))
         XCTAssertTrue(bench.label.contains("reused"), bench.label)
@@ -57,4 +66,11 @@ final class ScrewHolesUITests: XCTestCase {
         app.buttons["holesDone"].tap()
         XCTAssertTrue(app.buttons["holes-top"].firstMatch.label.contains("1 screw holes marked"))
     }
+}
+
+/// Scrolls until the element is on screen (lists load rows lazily), or fails after a few swipes.
+@MainActor
+func reveal(_ element: XCUIElement, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+    for _ in 0..<6 where !(element.exists && element.isHittable) { app.swipeUp() }
+    XCTAssertTrue(element.exists && element.isHittable, "Couldn't scroll to \(element)", file: file, line: line)
 }

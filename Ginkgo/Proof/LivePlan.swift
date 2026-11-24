@@ -17,13 +17,16 @@ enum LivePlan {
         }
     }
 
-    /// A panel piece seen as a box: the top (length × width) on two sides (width × height).
-    static func inventory(from box: FittedBox, scanID: String) -> Inventory {
+    /// A panel piece seen as a box: the top (length × width) on two sides (width × height). The thickness is always
+    /// an estimate here; the material is a guess (solid wood) unless the person confirmed `material`.
+    static func inventory(from box: FittedBox, scanID: String, material: Material? = nil) -> Inventory {
         let length = (Double(box.length) * 1000).rounded(), width = (Double(box.width) * 1000).rounded()
         let height = (Double(box.height) * 1000).rounded()
         let t = assumedThicknessMm
         func panel(_ id: String, _ type: TypeEnum, _ w: Double, _ h: Double) -> Part {
-            Part(damaged: false, heightMm: h, id: id, keepOuts: [], material: .solidWood, thicknessMm: t, type: type, widthMm: w)
+            Part(damaged: false, heightMm: h, id: id, keepOuts: [], material: material ?? .solidWood,
+                 materialSource: material == nil ? .guessed : .confirmed,
+                 thicknessMm: t, thicknessSource: .estimated, type: type, widthMm: w)
         }
         return Inventory(parts: [
             panel("top", .top, length, width),
@@ -37,7 +40,7 @@ enum LivePlan {
         return .success(ProofModel(plan: bench.plan, result: bench.validation, inventory: inventory))
     }
 
-    static func proof(from box: FittedBox, scanID: String) -> Result<ProofModel, Failure> {
-        proof(from: inventory(from: box, scanID: scanID))
+    static func proof(from box: FittedBox, scanID: String, material: Material? = nil) -> Result<ProofModel, Failure> {
+        proof(from: inventory(from: box, scanID: scanID, material: material))
     }
 }

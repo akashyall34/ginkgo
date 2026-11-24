@@ -50,8 +50,24 @@ enum PartsStep {
                     flags: [PartFlag(message: offlineMessage, partID: "all")], fromGemini: false)
     }
 
+    /// "60.0 × 35.0 cm, 18 mm thick (estimated)": an unmeasured thickness says so.
+    static func sizeLine(_ part: Part) -> String {
+        String(format: "%.1f × %.1f cm, %.0f mm thick", part.widthMm / 10, part.heightMm / 10, part.thicknessMm)
+            + (part.thicknessIsMeasured ? "" : " (estimated)")
+    }
+
+    /// For a guessed wood material: what it's rated as until confirmed, as a tap-to-confirm line. Nil once confirmed,
+    /// and for materials a guess can't make weaker.
+    static func materialNote(_ part: Part) -> String? {
+        guard !part.materialIsConfirmed, part.ratedForStrength.material != part.material else { return nil }
+        let name = PartsView.materials.first { $0.0 == part.material }?.1 ?? part.material.rawValue
+        return "Guessed. Rated as particleboard until you confirm. Tap if it's \(name.lowercased())."
+    }
+
     /// The inventory with one part's material changed (picked on Confirm).
     static func setting(_ material: Material, of partID: String, in inventory: Inventory) -> Inventory {
-        inventory.with(parts: inventory.parts.map { $0.id == partID ? $0.with(material: material) : $0 })
+        inventory.with(parts: inventory.parts.map {
+            $0.id == partID ? $0.with(material: material, materialSource: .confirmed) : $0
+        })
     }
 }
