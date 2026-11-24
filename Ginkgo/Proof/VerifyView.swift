@@ -21,20 +21,29 @@ struct VerifyView: View {
             if model.isBuildable {
                 Section {
                     NavigationLink {
-                        CutGuideView(result: model.result, inventory: model.inventory)
+                        CutGuideView(plan: model.plan, result: model.result, inventory: model.inventory)
                     } label: {
                         Label("Mark the cuts", systemImage: "pencil.and.ruler").font(.headline)
                             .frame(minHeight: TapTarget.minimum)
                     }
                     .accessibilityIdentifier("markTheCuts")
                 }
+                // Steps and hardware from tested rules (AssemblyGuide), never the AI's own text.
+                let assembly = AssemblyGuide.guide(for: model.plan, inventory: model.inventory)
                 Section("Steps") {
-                    ForEach(Array(model.plan.steps.enumerated()), id: \.offset) { index, step in
-                        Text("\(index + 1). \(step)").accessibilityIdentifier("step")
+                    ForEach(Array(assembly.steps.enumerated()), id: \.offset) { index, step in
+                        Text("\(index + 1). \(step.text)").accessibilityIdentifier("step")
                     }
+                    NavigationLink {
+                        AssemblyView(plan: model.plan, inventory: model.inventory)
+                    } label: {
+                        Label("Assemble step by step in 3D", systemImage: "cube.transparent").font(.headline)
+                            .frame(minHeight: TapTarget.minimum)
+                    }
+                    .accessibilityIdentifier("assembleIn3D")
                 }
                 Section("Hardware") {
-                    ForEach(model.plan.hardware, id: \.item) { item in
+                    ForEach(assembly.hardware, id: \.item) { item in
                         Text("\(item.quantity) × \(item.item)").accessibilityIdentifier("hardware")
                     }
                 }

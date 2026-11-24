@@ -5,7 +5,8 @@ import XCTest
 /// tap targets, labels). Issues are recorded as attachments and printed, for review.
 final class UIAuditUITests: XCTestCase {
     private static let screens = ["home", "scan", "panel", "example", "transform", "contrast", "demo", "parts", "my-items",
-                                  "guide", "settings", "ideas", "planning", "verify", "cuts", "recorded-run", "walk-around"]
+                                  "guide", "settings", "ideas", "planning", "verify", "cuts", "cut-check", "assembly",
+                                  "recorded-run", "walk-around"]
     private static let largestText = "UICTContentSizeCategoryAccessibilityXXXL"
 
     @MainActor

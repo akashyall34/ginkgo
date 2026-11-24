@@ -6,9 +6,13 @@ import SwiftUI
 /// AR-capable iPhone, the same lines drawn on the real panel.
 struct CutGuideView: View {
     @State private var model: CutGuideModel
+    private let plan: Plan
+    private let result: ValidationResult
 
-    init(result: ValidationResult, inventory: Inventory) {
+    init(plan: Plan, result: ValidationResult, inventory: Inventory) {
         _model = State(initialValue: CutGuideModel(result: result, inventory: inventory))
+        self.plan = plan
+        self.result = result
     }
 
     var body: some View {
@@ -63,6 +67,15 @@ struct CutGuideView: View {
                 }
                 .buttonStyle(.borderless)
                 .frame(minHeight: TapTarget.minimum)
+            }
+            Section {
+                NavigationLink {
+                    CutCheckView(plan: plan, result: result, inventory: model.inventory)
+                } label: {
+                    Label("Check the cut pieces", systemImage: "checkmark.rectangle.stack").font(.headline)
+                        .frame(minHeight: TapTarget.minimum)
+                }
+                .accessibilityIdentifier("checkCutPieces")
             }
         }
         .scrollContentBackground(.hidden)

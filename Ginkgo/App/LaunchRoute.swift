@@ -18,6 +18,10 @@ enum LaunchRoute: String, CaseIterable, Equatable {
     case verify
     /// Marking the cuts, on the sample bench.
     case cuts
+    /// Checking the cut pieces, on the sample bench.
+    case cutCheck = "cut-check"
+    /// Step-by-step assembly, on the sample bench.
+    case assembly
     case recordedRun = "recorded-run"
     case walkAround = "walk-around"
 
