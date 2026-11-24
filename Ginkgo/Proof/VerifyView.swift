@@ -19,6 +19,15 @@ struct VerifyView: View {
                 ForEach(model.checks.indices, id: \.self) { checkRow($0) }
             }
             if model.isBuildable {
+                Section {
+                    NavigationLink {
+                        CutGuideView(result: model.result, inventory: model.inventory)
+                    } label: {
+                        Label("Mark the cuts", systemImage: "pencil.and.ruler").font(.headline)
+                            .frame(minHeight: TapTarget.minimum)
+                    }
+                    .accessibilityIdentifier("markTheCuts")
+                }
                 Section("Steps") {
                     ForEach(Array(model.plan.steps.enumerated()), id: \.offset) { index, step in
                         Text("\(index + 1). \(step)").accessibilityIdentifier("step")

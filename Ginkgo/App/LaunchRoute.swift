@@ -16,6 +16,8 @@ enum LaunchRoute: String, CaseIterable, Equatable {
     case ideas
     case planning
     case verify
+    /// Marking the cuts, on the sample bench.
+    case cuts
     case recordedRun = "recorded-run"
     case walkAround = "walk-around"
 
