@@ -6,6 +6,8 @@ public enum AITask: String, Sendable, Codable, CaseIterable {
     case planFromNumbers = "plan_from_numbers"
     /// Read the furniture photo into a parts list (needs image input).
     case readPhoto = "read_photo"
+    /// Replan a plan made on the phone or by the rules, in the cloud, once the network is back.
+    case improvePlan = "improve_plan"
 }
 
 /// Where a task runs.
@@ -29,6 +31,8 @@ public enum RouteReason: String, Sendable, Codable, CaseIterable {
     case offlineNoDeviceModel = "offline_no_device_model"
     case offlineDeviceFailed = "offline_device_failed"
     case offlinePhotoTemplate = "offline_photo_template"
+    case improvedInCloud = "improved_in_cloud"
+    case offlineKeepPlan = "offline_keep_plan"
 
     public var message: String {
         switch self {
@@ -41,6 +45,8 @@ public enum RouteReason: String, Sendable, Codable, CaseIterable {
         case .offlineNoDeviceModel: return "No network and no on-device model: rule-based plan"
         case .offlineDeviceFailed: return "No network, and the on-device plans failed the validator: rule-based plan"
         case .offlinePhotoTemplate: return "No network: parts from the LiDAR faces"
+        case .improvedInCloud: return "Improved by Gemini in the cloud"
+        case .offlineKeepPlan: return "No network: keeping this plan"
         }
     }
 }
@@ -86,6 +92,10 @@ public enum HybridRouter {
             return conditions.online
                 ? Route(venue: .cloud, reason: .needsPhoto)
                 : Route(venue: .code, reason: .offlinePhotoTemplate)
+        case .improvePlan:
+            return conditions.online
+                ? Route(venue: .cloud, reason: .improvedInCloud)
+                : Route(venue: .code, reason: .offlineKeepPlan)
         case .planFromNumbers:
             let rejectedEnough = conditions.deviceRejections >= deviceAttempts
             let deviceSpent = rejectedEnough || conditions.deviceFinishedWithoutPlan
