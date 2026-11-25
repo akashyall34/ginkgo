@@ -151,6 +151,8 @@ private struct ScanScreen {
     }
 
     func drag(_ id: String, by offset: CGVector) {
+        // Under load a handle can still be drawing when the test reaches for it; wait until it can be grabbed.
+        _ = element(id).waitForExistence(timeout: 5)
         let start = element(id).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         start.press(forDuration: 0.1, thenDragTo: start.withOffset(offset))
     }
