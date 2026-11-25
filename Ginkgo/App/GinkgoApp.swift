@@ -1,5 +1,6 @@
 import FirebaseAppCheck
 import FirebaseCore
+import GoogleSignIn
 import GinkgoCore
 import SwiftUI
 
@@ -7,12 +8,14 @@ import SwiftUI
 struct GinkgoApp: App {
     init() {
         FirebaseSetup.configureIfAvailable()
+        // Offline test runs keep the built-in limits and models, so every run checks the same thing.
+        if !GeminiAgentModel.isDisabled { Task { await RemoteConfigLoader.load() } }
     }
 
     var body: some Scene {
         WindowGroup {
             let route = LaunchRoute(arguments: ProcessInfo.processInfo.arguments)
-            switch route {
+            Group { switch route {
             case .home:
                 HomeView()
             case .scan:
@@ -45,7 +48,9 @@ struct GinkgoApp: App {
                 NavigationStack { ExampleRecordedRunView() }
             case .walkAround:
                 NavigationStack { WalkAroundView() }
-            }
+            } }
+            // Google's sign-in page returns to the app through this link.
+            .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
         }
     }
 }

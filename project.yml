@@ -9,6 +9,9 @@ packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk
     from: 13.2.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: 10.1.0
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -34,6 +37,15 @@ targets:
         script: |
           if [ -f "$SRCROOT/GoogleService-Info.plist" ]; then
             cp "$SRCROOT/GoogleService-Info.plist" "$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/"
+            # Sign in with Google returns to the app through its reversed client id, also kept out of the repo.
+            REVERSED=$(/usr/libexec/PlistBuddy -c "Print :REVERSED_CLIENT_ID" "$SRCROOT/GoogleService-Info.plist" 2>/dev/null || true)
+            if [ -n "$REVERSED" ]; then
+              INFO="$BUILT_PRODUCTS_DIR/$INFOPLIST_PATH"
+              /usr/libexec/PlistBuddy -c "Delete :CFBundleURLTypes" "$INFO" 2>/dev/null || true
+              /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" -c "Add :CFBundleURLTypes:0 dict" \
+                -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" \
+                -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string $REVERSED" "$INFO"
+            fi
           fi
         basedOnDependencyAnalysis: false
     settings:
@@ -61,6 +73,10 @@ targets:
         product: FirebaseAuth
       - package: Firebase
         product: FirebaseFirestore
+      - package: Firebase
+        product: FirebaseRemoteConfig
+      - package: GoogleSignIn
+        product: GoogleSignIn
   GinkgoTests:
     type: bundle.unit-test
     platform: iOS
