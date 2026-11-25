@@ -136,7 +136,7 @@ final class DemoTourUITests: XCTestCase {
     private func launch(_ args: [String]) {
         app = XCUIApplication()
         app.launchArguments = args
-        app.launch()
+        app.launchSkippingFirstRun()
         start = Date()
         log("START")
     }

@@ -26,6 +26,8 @@ enum LaunchRoute: String, CaseIterable, Equatable {
     case takeApart = "take-apart"
     /// What the sample bench keeps out of landfill.
     case impact
+    /// The first-run guide itself, for tests and the screen audit.
+    case firstRun = "first-run"
     case recordedRun = "recorded-run"
     case walkAround = "walk-around"
 

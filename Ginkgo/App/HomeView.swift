@@ -7,7 +7,11 @@ struct HomeView: View {
     /// `initialTab`: 0 Home, 1 My items, 2 Guide (tests open a tab directly).
     init(initialTab: Int = 0) {
         _selectedTab = State(initialValue: initialTab)
+        let seen = UserDefaults.standard.bool(forKey: FirstRunGuide.seenKey)
+        _isFirstRunPresented = State(initialValue: FirstRunGuide.shouldShow(seen: seen, initialTab: initialTab))
     }
+    @State private var isFirstRunPresented: Bool
+    @AppStorage(FirstRunGuide.seenKey) private var hasSeenFirstRun = false
     /// The step number badge grows with the text inside it.
     @ScaledMetric(relativeTo: .caption2) private var badgeSize: CGFloat = 32
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -39,9 +43,23 @@ struct HomeView: View {
         .sheet(isPresented: $isAppearanceSettingsPresented) {
             AppearanceSettingsView()
         }
+        .fullScreenCover(isPresented: $isFirstRunPresented) {
+            FirstRunGuideView(
+                onFinish: { finishFirstRun() },
+                onTrySample: {
+                    selectedTab = 1
+                    finishFirstRun()
+                }
+            )
+        }
         .fullScreenCover(isPresented: $isDemoPresented) {
             DemoView(onClose: { isDemoPresented = false })
         }
+    }
+
+    private func finishFirstRun() {
+        hasSeenFirstRun = true
+        isFirstRunPresented = false
     }
 
     /// One tab: its own navigation, scrolling content on the app background.

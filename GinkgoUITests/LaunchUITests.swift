@@ -6,7 +6,7 @@ final class LaunchUITests: XCTestCase {
     @MainActor
     func testHomeShowsTheNameAndTagline() {
         let app = XCUIApplication()
-        app.launch()
+        app.launchSkippingFirstRun()
         XCTAssertTrue(app.staticTexts["appTitle"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.staticTexts["appTitle"].label, "Ginkgo")
         XCTAssertTrue(app.staticTexts["tagline"].waitForExistence(timeout: 5))
@@ -16,7 +16,7 @@ final class LaunchUITests: XCTestCase {
     func testHomeWorksAtTheLargestAccessibilityTextSize() {
         let app = XCUIApplication()
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
-        app.launch()
+        app.launchSkippingFirstRun()
         let tagline = app.staticTexts["tagline"]
         XCTAssertTrue(tagline.waitForExistence(timeout: 10))
         XCTAssertTrue(tagline.isHittable, "Tagline is cut off or off screen at the largest text size")
@@ -27,7 +27,7 @@ final class LaunchUITests: XCTestCase {
         XCUIDevice.shared.appearance = .dark
         addTeardownBlock { @MainActor in XCUIDevice.shared.appearance = .light }
         let app = XCUIApplication()
-        app.launch()
+        app.launchSkippingFirstRun()
         XCTAssertTrue(app.staticTexts["appTitle"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["snapFurniture"].waitForExistence(timeout: 5))
     }
@@ -36,7 +36,7 @@ final class LaunchUITests: XCTestCase {
     func testSnapFurnitureOpensScan() {
         let app = XCUIApplication()
         app.launchArguments += ["-demoScene"]
-        app.launch()
+        app.launchSkippingFirstRun()
         app.buttons["snapFurniture"].tap()
         XCTAssertTrue(app.navigationBars["Scan"].waitForExistence(timeout: 5))
     }
@@ -44,7 +44,7 @@ final class LaunchUITests: XCTestCase {
     @MainActor
     func testGuideTabShowsInstructions() {
         let app = XCUIApplication()
-        app.launch()
+        app.launchSkippingFirstRun()
         app.buttons["Guide"].tap()
         XCTAssertTrue(app.staticTexts["guideTitle"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Frame one flat face"].waitForExistence(timeout: 5))
@@ -54,7 +54,7 @@ final class LaunchUITests: XCTestCase {
     @MainActor
     func testMyItemsTabShowsPreviouslyScannedItemsPage() {
         let app = XCUIApplication()
-        app.launch()
+        app.launchSkippingFirstRun()
         app.buttons["My items"].tap()
         XCTAssertTrue(app.staticTexts["previouslyScannedTitle"].waitForExistence(timeout: 5))
     }
@@ -62,7 +62,7 @@ final class LaunchUITests: XCTestCase {
     @MainActor
     func testAppearanceSettingsOfferAllThreeChoices() {
         let app = XCUIApplication()
-        app.launch()
+        app.launchSkippingFirstRun()
         app.buttons["appearanceSettings"].tap()
 
         XCTAssertTrue(app.buttons["appearance-light"].waitForExistence(timeout: 5))
@@ -82,7 +82,7 @@ final class HomeEntryUITests: XCTestCase {
 
     func testHomeOpensTheExampleAndTheDemo() {
         let app = XCUIApplication()
-        app.launch()
+        app.launchSkippingFirstRun()
         app.buttons["exampleButton"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["verdict"].waitForExistence(timeout: 10))
         app.navigationBars.buttons.element(boundBy: 0).tap()

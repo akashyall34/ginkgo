@@ -20,7 +20,7 @@ final class MyItemsSettingsUITests: XCTestCase {
 
     func testTheGearOnEveryTab() {
         let app = XCUIApplication()
-        app.launch()
+        app.launchSkippingFirstRun()
         let home = gearOpens(nil, app)
         let guide = gearOpens("Guide", app)
         let items = gearOpens("My items", app)

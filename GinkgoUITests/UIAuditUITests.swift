@@ -6,7 +6,7 @@ import XCTest
 final class UIAuditUITests: XCTestCase {
     private static let screens = ["home", "scan", "panel", "example", "transform", "contrast", "demo", "parts", "my-items",
                                   "guide", "settings", "ideas", "planning", "verify", "cuts", "cut-check", "assembly", "take-apart",
-                                  "impact", "recorded-run", "walk-around"]
+                                  "impact", "first-run", "recorded-run", "walk-around"]
     private static let largestText = "UICTContentSizeCategoryAccessibilityXXXL"
 
     @MainActor
@@ -39,7 +39,7 @@ final class UIAuditUITests: XCTestCase {
     @MainActor
     private func audit(_ screen: String, appearance: XCUIDevice.Appearance, large: Bool) -> [String] {
         let app = XCUIApplication()
-        app.launchArguments += ["-demoScene", "-noGemini"]
+        app.launchArguments += ["-demoScene", "-noGemini", "-hasSeenFirstRunGuide", "YES"]
         if screen != "home" { app.launchArguments += ["-openScreen", screen] }
         if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", Self.largestText] }
         app.launch()

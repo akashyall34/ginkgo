@@ -44,6 +44,8 @@ struct GinkgoApp: App {
                 AppearanceSettingsView()
             case .ideas, .planning, .verify, .cuts, .cutCheck, .assembly, .takeApart, .impact:
                 SampleRouteView(route: route)
+            case .firstRun:
+                FirstRunGuideView(onFinish: {}, onTrySample: {})
             case .recordedRun:
                 NavigationStack { ExampleRecordedRunView() }
             case .walkAround:
