@@ -8,6 +8,7 @@ struct MyItemsView: View {
 
     @State private var items: [SavedScanItem] = []
     @State private var loadError: String?
+    private let samples = SamplePiece.all()
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.large) {
@@ -31,7 +32,8 @@ struct MyItemsView: View {
                 ContentUnavailableView(
                     "No saved scans yet",
                     systemImage: "tray",
-                    description: Text("Completed LiDAR measurements are saved here on this device.")
+                    description: Text("Your LiDAR measurements are saved here on this iPhone. "
+                                      + "Until then, try one of the samples below.")
                 )
             } else {
                 LazyVStack(alignment: .leading, spacing: Spacing.large) {
@@ -47,6 +49,8 @@ struct MyItemsView: View {
                     }
                 }
             }
+
+            if !samples.isEmpty { sampleSection }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 10)
@@ -69,6 +73,54 @@ struct MyItemsView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Appearance settings")
             .accessibilityIdentifier("appearanceSettings")
+        }
+    }
+
+    /// Ready-made pieces to try the flow with; each opens what it can become, like a scan does.
+    private var sampleSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.medium) {
+            Text("Try a sample")
+                .font(.title2.bold())
+                .foregroundStyle(Palette.brand)
+                .accessibilityAddTraits(.isHeader)
+            Text("Sample data, not your scan: sizes and materials are examples, and Ginkgo checks them as unconfirmed.")
+                .font(.footnote)
+                .foregroundStyle(Palette.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+            ForEach(samples) { sample in
+                NavigationLink {
+                    IdeasView(inventory: sample.inventory)
+                } label: {
+                    HStack(spacing: Spacing.medium) {
+                        Image(systemName: "shippingbox")
+                            .font(.title3)
+                            .foregroundStyle(Palette.brand)
+                            .frame(width: TapTarget.minimum, height: TapTarget.minimum)
+                            .background(Palette.brand.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: Spacing.xSmall) {
+                            Text(sample.name).font(.headline).foregroundStyle(.primary)
+                            Text(sample.summary)
+                                .font(.footnote)
+                                .foregroundStyle(Palette.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(Palette.secondaryText)
+                            .accessibilityHidden(true)
+                    }
+                    .padding(Spacing.medium)
+                    .frame(maxWidth: .infinity, minHeight: TapTarget.minimum, alignment: .leading)
+                    .background(Palette.brand.opacity(0.06), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityElement(children: .combine)
+                .accessibilityHint("Sample data. Shows what it can become.")
+                .accessibilityIdentifier("sample-\(sample.id)")
+            }
         }
     }
 
