@@ -107,7 +107,7 @@ struct PartsView: View {
                     rereadButton(result, inventory)
                 }
             }
-            Section("Confirm the parts") {
+            Section(titled: "Confirm the parts") {
                 ForEach(inventory.parts, id: \.id) { part in
                     partRow(part)
                     // Its own row: a list row treats a tap anywhere as a tap on its first control, so a second
@@ -116,6 +116,13 @@ struct PartsView: View {
                 }
             }
             Section {
+                NavigationLink {
+                    TakeApartView(inventory: inventory, photo: photo)
+                } label: {
+                    Label("How to take it apart", systemImage: "wrench.and.screwdriver")
+                        .frame(maxWidth: .infinity, minHeight: TapTarget.minimum, alignment: .leading)
+                }
+                .accessibilityIdentifier("takeApart")
                 NavigationLink {
                     IdeasView(inventory: inventory)
                 } label: {
