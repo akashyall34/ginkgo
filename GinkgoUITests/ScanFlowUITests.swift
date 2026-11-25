@@ -25,7 +25,7 @@ final class ScanFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["capture"].waitForExistence(timeout: 5))
         let scan = ScanScreen(app: app, test: self)
         scan.waitForResult(containing: "Lay the panel flat")
-        app.buttons["capture"].tap()
+        scan.capture()
         scan.tapFace()
         let thickness = scan.element("thickness")
         XCTAssertTrue(thickness.waitForExistence(timeout: 5))
@@ -35,7 +35,7 @@ final class ScanFlowUITests: XCTestCase {
 
     func testCaptureThenTapTheFaceMeasuresItsKnownSize() throws {
         let scan = openScan()
-        scan.app.buttons["capture"].tap()
+        scan.capture()
         scan.waitForResult(containing: "Tap the outlined face")
         scan.tapFace()
         let (w, h) = try scan.size()
@@ -46,7 +46,7 @@ final class ScanFlowUITests: XCTestCase {
 
     func testDraggingTheRightEdgeOutwardWidensTheFace() throws {
         let scan = openScan()
-        scan.app.buttons["capture"].tap()
+        scan.capture()
         scan.tapFace()
         let (before, _) = try scan.size()
         scan.drag("corner1", by: CGVector(dx: 25, dy: 0))
@@ -60,7 +60,7 @@ final class ScanFlowUITests: XCTestCase {
     /// the face's corners out from under the person's finger mid-adjustment.
     func testThePhotoKeepsItsSizeWhileAdjustingCorners() {
         let scan = openScan()
-        scan.app.buttons["capture"].tap()
+        scan.capture()
         let captured = scan.element("photo").frame
         scan.tapFace()
         XCTAssertEqual(scan.element("photo").frame, captured, "Photo moved when the measurement appeared")
@@ -70,7 +70,7 @@ final class ScanFlowUITests: XCTestCase {
 
     func testCrossedCornersShowAWarningInsteadOfANumber() {
         let scan = openScan()
-        scan.app.buttons["capture"].tap()
+        scan.capture()
         scan.tapFace()
         let bottomRight = scan.element("corner2").coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         scan.element("corner0").coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
@@ -81,14 +81,14 @@ final class ScanFlowUITests: XCTestCase {
 
     func testPlaceCornersGivesFourHandles() {
         let scan = openScan()
-        scan.app.buttons["capture"].tap()
+        scan.capture()
         scan.app.buttons["placeCorners"].tap()
         for i in 0..<4 { XCTAssertTrue(scan.element("corner\(i)").waitForExistence(timeout: 3)) }
     }
 
     func testRetakeReturnsToTheCamera() {
         let scan = openScan()
-        scan.app.buttons["capture"].tap()
+        scan.capture()
         scan.app.buttons["retake"].tap()
         XCTAssertTrue(scan.app.buttons["capture"].waitForExistence(timeout: 3))
         scan.waitForResult(containing: "Aim at")
@@ -98,7 +98,7 @@ final class ScanFlowUITests: XCTestCase {
         let scan = openScan(["-AppleInterfaceStyle", "Dark",
                              "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
         XCTAssertTrue(scan.app.buttons["capture"].isHittable, "Capture is off screen at the largest text size")
-        scan.app.buttons["capture"].tap()
+        scan.capture()
         scan.tapFace()
         XCTAssertTrue(scan.element("retake").isHittable, "Retake is off screen at the largest text size")
     }
@@ -128,6 +128,16 @@ private struct ScanScreen {
                                        timeout: 5)
         if outcome != .completed {
             XCTFail("Expected the result to contain \"\(text)\", but it says: \"\(result)\"", file: file, line: line)
+        }
+    }
+
+    /// Taps Capture until the frozen photo appears. Right after launch (slowest at the largest text size) a tap can
+    /// land while the screen is still laying out and be ignored; a person would simply tap again.
+    func capture() {
+        let button = app.buttons["capture"].firstMatch
+        for _ in 0..<3 where !element("photo").exists {
+            if button.exists { button.tap() }
+            _ = element("photo").waitForExistence(timeout: 3)
         }
     }
 
