@@ -14,15 +14,26 @@ struct AIRunner: Sendable {
     /// Injected so tests run instantly with a fake clock.
     var sleep: @Sendable (Duration) async throws -> Void
 
-    static let standard = AIRunner(
-        // Main model, then a lighter, faster one. One attempt each: a slow model is
-        // better abandoned for the backup than retried (measured Nov 21: overloaded
-        // requests took 40-60+ s, while 503 "high demand" errors fail fast).
-        models: ["gemini-3.8-flash", "gemini-3.5-flash-lite"],
+    /// Main model, then a lighter, faster one. Remote Config can replace the list (see `RemoteSettings`).
+    static let builtInModels = ["gemini-3.8-flash", "gemini-3.5-flash-lite"]
+
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var storedModels = builtInModels
+
+    /// The models in use: the built-in list, or a checked one from Remote Config.
+    static var models: [String] {
+        get { lock.withLock { storedModels } }
+        set { lock.withLock { storedModels = newValue } }
+    }
+
+    static var standard: AIRunner { AIRunner(
+        // One attempt each: a slow model is better abandoned for the backup than retried (measured Nov 21:
+        // overloaded requests took 40-60+ s, while 503 "high demand" errors fail fast).
+        models: models,
         attemptsPerModel: 1,
         backoff: { attempt in .milliseconds(800 * attempt) },
         sleep: { try await Task.sleep(for: $0) }
-    )
+    ) }
 
     /// The longest a full run can take if every attempt times out: every attempt's
     /// timeout plus every pause between attempts. Keeps the user's wait bounded.
