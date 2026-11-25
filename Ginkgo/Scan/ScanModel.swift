@@ -164,7 +164,9 @@ final class ScanModel {
         do {
             guard let photo = photoData ?? frame.image.heicData() else { throw ScanStoreError.unreadable("photo") }
             photoData = photo
-            try store.save(ScanCapture(photo: photo, snapshot: frame.snapshot, corners: corners, result: result), id: id, date: Date())
+            let saved = try store.save(ScanCapture(photo: photo, snapshot: frame.snapshot, corners: corners, result: result),
+                                       id: id, date: Date())
+            Task { await CloudBackup.shared.backUp(.piece(saved)) }
             savedScanID = id
             saveFailed = false
         } catch {

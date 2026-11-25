@@ -56,6 +56,8 @@ struct AppearanceSettingsView: View {
                 .font(.subheadline)
                 .foregroundStyle(Palette.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
+
+            BackupSettingsView(backup: CloudBackup.shared)
         }
         .padding(Spacing.large)
     }

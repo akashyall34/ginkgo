@@ -57,6 +57,10 @@ targets:
         product: FirebaseAILogic
       - package: Firebase
         product: FirebaseAppCheck
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFirestore
   GinkgoTests:
     type: bundle.unit-test
     platform: iOS

@@ -53,6 +53,7 @@ struct PlanningView: View {
             let online = Self.offlineTest ? false : await Connectivity.isOnline()
             await model.run(planner: Self.planner(), online: online, request: request)
             try? RoutingLogStore.standard().append(model.routing)
+            await backUpPlan()
         }
         // Keeps "Improve this plan" in step with the network: it appears when the connection comes back.
         .task {
@@ -74,6 +75,7 @@ struct PlanningView: View {
                     Task {
                         await model.improve(planner: Self.planner(), request: request)
                         if let last = model.routing.last { try? RoutingLogStore.standard().append([last]) }
+                        await backUpPlan()
                     }
                 } label: {
                     HStack(spacing: Spacing.small) {
@@ -94,6 +96,12 @@ struct PlanningView: View {
                      + "reuses more wood.")
             }
         }
+    }
+
+    /// A plan that passed is backed up, when the person has turned backup on.
+    private func backUpPlan() async {
+        guard let plan = model.outcome?.plan, let validation = model.outcome?.validation, validation.passes else { return }
+        await CloudBackup.shared.backUp(.plan(plan, validation: validation, route: model.route, date: Date()))
     }
 
     /// Offline test runs (-noGemini) switch off both models: no network, no on-device model.

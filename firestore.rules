@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// Cloud backup: each signed-in user (anonymous for now) reads and writes only their own records.
+// Records are small measurement and plan summaries; photos and depth maps never leave the phone.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{collection}/{doc} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && collection in ['pieces', 'plans']
+        && request.resource.data.size() <= 8;
+    }
+  }
+}

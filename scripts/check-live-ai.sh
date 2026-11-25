@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Makes one real Gemini call through Firebase from the app, on the simulator.
+# Makes one real Gemini call through Firebase from the app, on the simulator, and one real Firestore backup.
 # Separate from ci.sh so Google's server load never fails the normal build.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -17,7 +17,7 @@ mkdir -p build
 set +e
 TEST_RUNNER_GINKGO_LIVE_AI=1 xcodebuild test -project Ginkgo.xcodeproj -scheme Ginkgo \
   -destination "platform=iOS Simulator,name=${SIMULATOR:-iPhone 17}" \
-  -only-testing:GinkgoTests/LiveAITests > build/live-ai.log 2>&1
+  -only-testing:GinkgoTests/LiveAITests -only-testing:GinkgoTests/LiveFirestoreTests > build/live-ai.log 2>&1
 STATUS=$?
 set -e
 grep -E "error:|Test Case .*(passed|failed|skipped)|TEST (SUCCEEDED|FAILED)" build/live-ai.log | cut -c1-300
