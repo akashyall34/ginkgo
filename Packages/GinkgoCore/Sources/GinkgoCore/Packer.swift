@@ -54,7 +54,9 @@ public struct PackResult: Sendable, Equatable {
 /// Places rectangular cuts on a panel: greedy, bottom-left first, around keep-outs. Deterministic.
 public enum Packer {
     /// 3 mm saw kerf + 5 mm measurement margin, added to each dimension of every cut.
-    public static let margin = 8.0 // MUTANT:margin
+    public static let builtInMargin = 8.0 // MUTANT:margin
+    /// The margin in use: the built-in one, or a stricter one from Remote Config.
+    public static var margin: Double { ValidatorSettings.current.value(.marginMm, builtIn: builtInMargin) }
     /// A new part this close to the source size (in either orientation) is the whole part, reused uncut.
     public static let wholePartTolerance = 1.0
     static let hintStep = 10.0

@@ -28,8 +28,8 @@ public enum Sag {
     /// The design load in kg for a role, or nil when the role isn't sag-checked.
     public static func designLoadKg(for role: Role) -> Double? {
         switch role {
-        case .seat: return 100
-        case .shelf: return 30
+        case .seat: return ValidatorSettings.current.value(.seatLoadKg, builtIn: 100)
+        case .shelf: return ValidatorSettings.current.value(.shelfLoadKg, builtIn: 30)
         case .side, .support, .back, .other: return nil
         }
     }
@@ -49,7 +49,7 @@ public enum Sag {
 
     /// The largest deflection allowed for a span, in mm.
     public static func limit(spanMm: Double) -> Double {
-        spanMm / 600 // MUTANT:sag-limit
+        spanMm / ValidatorSettings.current.value(.sagSpanDivisor, builtIn: 600) // MUTANT:sag-limit
     }
 
     /// Checks one seat or shelf cut from `source` (its thickness and material set the stiffness).
