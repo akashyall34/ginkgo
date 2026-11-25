@@ -37,7 +37,7 @@ final class AccountModelTests: XCTestCase {
     func testSigningInShowsTheAccountAndSigningOutReturnsToAnonymous() async {
         let model = AccountModel(service: FakeAccount())
         await model.signIn()
-        XCTAssertEqual(model.line, "Signed in as maker@example.com. Your backup follows you to any iPhone.")
+        XCTAssertEqual(model.line, "Signed in as maker@example.com. New backups are saved to this account.")
         XCTAssertTrue(model.isSignedIn)
         await model.signOut()
         XCTAssertEqual(model.state, .anonymous)

@@ -36,7 +36,7 @@ final class AccountModel {
         switch state {
         case .anonymous: return "Not signed in. Backups stay with this iPhone."
         case .signingIn: return "Signing in with Google…"
-        case .signedIn(let email): return "Signed in as \(email). Your backup follows you to any iPhone."
+        case .signedIn(let email): return "Signed in as \(email). New backups are saved to this account."
         case .failed(let why): return "Couldn't sign in: \(why)"
         }
     }
