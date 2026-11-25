@@ -4,7 +4,7 @@
 
 <h3 align="center">Measure it with your phone. Get a plan that fits.</h3>
 
-Americans throw away 12.1 million tons of furniture a year, and 80% of it goes to landfill ([EPA, 2018 data](https://www.epa.gov/facts-and-figures-about-materials-waste-and-recycling/durable-goods-product-specific-data)). Most of it is still good wood. Ginkgo turns a piece of curbside furniture into a build plan that is **proven to fit**:
+In 2018 Americans generated 12.1 million tons of furniture waste, and 80% of it went to landfill ([EPA, 2018 data](https://www.epa.gov/facts-and-figures-about-materials-waste-and-recycling/durable-goods-product-specific-data)). Most of it is still good wood. Ginkgo turns a piece of curbside furniture into a build plan that is **proven to fit**:
 
 1. **Scan.** Point an iPhone's LiDAR sensor at the piece. Ginkgo measures it to the centimeter, each dimension with its ± error.
 2. **Parts.** AI reads the photo and lists the panels; you confirm them.

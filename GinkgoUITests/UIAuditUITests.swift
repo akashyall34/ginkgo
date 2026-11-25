@@ -6,7 +6,7 @@ import XCTest
 final class UIAuditUITests: XCTestCase {
     private static let screens = ["home", "scan", "panel", "example", "transform", "contrast", "demo", "parts", "my-items",
                                   "guide", "settings", "ideas", "planning", "verify", "cuts", "cut-check", "assembly", "take-apart",
-                                  "recorded-run", "walk-around"]
+                                  "impact", "recorded-run", "walk-around"]
     private static let largestText = "UICTContentSizeCategoryAccessibilityXXXL"
 
     @MainActor

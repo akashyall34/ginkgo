@@ -24,6 +24,8 @@ enum LaunchRoute: String, CaseIterable, Equatable {
     case assembly
     /// Step 2, the take-apart guide, on the sample nightstand (offline: the template).
     case takeApart = "take-apart"
+    /// What the sample bench keeps out of landfill.
+    case impact
     case recordedRun = "recorded-run"
     case walkAround = "walk-around"
 

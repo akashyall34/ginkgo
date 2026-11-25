@@ -56,6 +56,18 @@ struct ProofView: View {
                         .buttonStyle(.bordered)
                         .tint(Palette.brand)
                         .accessibilityIdentifier("verify")
+                        if let impact = ImpactSummary(plan: model.plan, validation: model.result, inventory: model.inventory) {
+                            NavigationLink {
+                                ImpactView(impact: impact)
+                            } label: {
+                                Label("What this keeps out of landfill", systemImage: "leaf")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(Palette.brand)
+                            .accessibilityIdentifier("seeImpact")
+                        }
                     }
                 }
             }

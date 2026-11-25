@@ -42,7 +42,7 @@ struct GinkgoApp: App {
                 HomeView(initialTab: 2)
             case .settings:
                 AppearanceSettingsView()
-            case .ideas, .planning, .verify, .cuts, .cutCheck, .assembly, .takeApart:
+            case .ideas, .planning, .verify, .cuts, .cutCheck, .assembly, .takeApart, .impact:
                 SampleRouteView(route: route)
             case .recordedRun:
                 NavigationStack { ExampleRecordedRunView() }
@@ -120,6 +120,10 @@ struct SampleRouteView: View {
                 case .cutCheck: CutCheckView(plan: bench.plan, result: bench.validation, inventory: inventory)
                 case .assembly: AssemblyView(plan: bench.plan, inventory: inventory)
                 case .takeApart: TakeApartView(inventory: inventory, photo: nil)
+                case .impact:
+                    if let impact = ImpactSummary(plan: bench.plan, validation: bench.validation, inventory: inventory) {
+                        ImpactView(impact: impact)
+                    }
                 default: PlanningView(inventory: inventory)
                 }
             }
