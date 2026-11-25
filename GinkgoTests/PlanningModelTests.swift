@@ -87,6 +87,58 @@ final class PlanningModelTests: XCTestCase {
         XCTAssertNotNil(model.proof)
     }
 
+    // MARK: - Improve this plan
+
+    private func onDevice(cloud: AgentOutcome) throws -> (PlanningModel, HybridPlanner) {
+        let inventory = try inventory()
+        let safe = try XCTUnwrap(RuleBasedPlanner.bench(inventory: inventory))
+        let device = StubDevice(result: DevicePlanResult(accepted: AcceptedPlan(plan: safe.plan, validation: safe.validation),
+                                                         trace: [], rejections: 0, model: "apple-on-device"))
+        let planner = HybridPlanner(device: device, cloud: { _, _, _ in cloud }, cloudModelName: "gemini")
+        return (PlanningModel(inventory: inventory), planner)
+    }
+
+    private func cloudPlan(reuse: Double) throws -> AgentOutcome {
+        let safe = try XCTUnwrap(RuleBasedPlanner.bench(inventory: try inventory()))
+        let validation = ValidationResult(passes: true, placements: safe.validation.placements, planID: safe.plan.id,
+                                          reusePercent: reuse, sag: safe.validation.sag, verify: safe.validation.verify,
+                                          violations: [])
+        return .accepted(plan: safe.plan, validation: validation,
+                         trace: [AgentStep(index: 0, reason: "", status: .accepted, summary: "accepted", tool: .submitPlan)])
+    }
+
+    func testImproveIsOfferedOnlyOnceTheNetworkIsBack() async throws {
+        let (model, planner) = try onDevice(cloud: try cloudPlan(reuse: 99))
+        await model.run(planner: planner, online: false)
+        XCTAssertFalse(model.canImprove, "Offline there's nothing to improve with")
+        model.online = true
+        XCTAssertTrue(model.canImprove)
+    }
+
+    func testABetterCloudPlanShowsTheNewBadgeAndProof() async throws {
+        let (model, planner) = try onDevice(cloud: try cloudPlan(reuse: 99))
+        await model.run(planner: planner, online: false)
+        model.online = true
+        await model.improve(planner: planner)
+        XCTAssertEqual(model.improvement?.choice, .improved)
+        XCTAssertEqual(model.route, Route(venue: .cloud, reason: .improvedInCloud))
+        XCTAssertEqual(model.proof?.result.reusePercent, 99)
+        XCTAssertEqual(model.routing.map(\.task), [.planFromNumbers, .improvePlan])
+        XCTAssertEqual(model.steps.map(\.index), Array(0..<model.steps.count), "Step numbers keep counting up")
+        XCTAssertFalse(model.canImprove, "Offered once")
+    }
+
+    func testAWorseCloudPlanKeepsTheOnDeviceBadgeAndPlan() async throws {
+        let (model, planner) = try onDevice(cloud: try cloudPlan(reuse: 1))
+        await model.run(planner: planner, online: true)
+        let before = model.proof?.result.reusePercent
+        await model.improve(planner: planner)
+        XCTAssertEqual(model.improvement?.choice, .original)
+        XCTAssertEqual(model.route, Route(venue: .device, reason: .numbersOnDevice))
+        XCTAssertEqual(model.proof?.result.reusePercent, before)
+        XCTAssertFalse(model.canImprove, "Offered once, even when the first plan stays")
+    }
+
     func testWhileTheDevicePlansTheHeadlineSaysSo() throws {
         let model = PlanningModel(inventory: try inventory())
         XCTAssertEqual(model.headline, "Gemini is planning, and Ginkgo checks every step…", "Before any route is known")

@@ -17,6 +17,7 @@ final class PartsUITests: XCTestCase {
                                         timeout: 5), .completed, any["partsSource"].firstMatch.label)
         XCTAssertTrue(any["partsFlag"].firstMatch.waitForExistence(timeout: 5), "Says the parts are an estimate to check")
         XCTAssertTrue(any["material-top"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["rereadParts"].exists, "Offline: no photo reading on offer")
         // Each material is a guess until the person confirms it; a guessed seat panel can't promise a bench.
         for id in ["top", "side_left", "side_right"] {
             let confirm = app.buttons["confirmMaterial-\(id)"].firstMatch
@@ -47,6 +48,7 @@ final class PartsUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: made, evaluatedWith: headline)], timeout: 30), .completed,
                        headline.label)
         XCTAssertTrue(any["fallbackReason"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["improvePlan"].exists, "Offline: nothing to improve with")
         app.buttons["seeProof"].firstMatch.tap()
         XCTAssertTrue(any["verdict"].waitForExistence(timeout: 10))
         XCTAssertTrue(any["verdict"].label.contains("Proven to fit"), any["verdict"].label)

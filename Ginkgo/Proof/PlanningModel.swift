@@ -13,6 +13,11 @@ final class PlanningModel {
     private(set) var route: Route?
     /// What the hybrid run recorded, for the routing log.
     private(set) var routing: [RoutingEntry] = []
+    /// "Improve this plan": what comparing the two plans found, once it's been run.
+    private(set) var improvement: PlanImprovement.Comparison?
+    private(set) var isImproving = false
+    /// Whether the phone has a network right now; the screen keeps it current so the offer appears when it returns.
+    var online = false
     let inventory: Inventory
 
     init(inventory: Inventory) { self.inventory = inventory }
@@ -43,6 +48,29 @@ final class PlanningModel {
         return nil
     }
 
+    /// Offered once, for a finished plan Gemini in the cloud didn't make, while online.
+    var canImprove: Bool {
+        improvement == nil && !isImproving && PlanImprovement.isOffered(route: route, outcome: outcome, online: online)
+    }
+
+    /// Gemini replans the same confirmed parts in the cloud; the better plan that passes is the one shown.
+    func improve(planner: HybridPlanner, request: String = Prompts.defaultRequest) async {
+        guard canImprove, let original = outcome else { return }
+        isImproving = true
+        let offset = original.trace.count
+        let result = await planner.improve(original: original, inventory: inventory, request: request) { step in
+            let shifted = AgentStep(index: offset + step.index, reason: step.reason, status: step.status,
+                                    summary: step.summary, tool: step.tool)
+            Task { @MainActor in self.steps.append(shifted) }
+        }
+        steps = result.outcome.trace
+        outcome = result.outcome
+        if result.comparison.choice == .improved { route = result.route }
+        routing.append(result.entry)
+        improvement = result.comparison
+        isImproving = false
+    }
+
     var proof: ProofModel? {
         guard let plan = outcome?.plan, let validation = outcome?.validation else { return nil }
         return ProofModel(plan: plan, result: validation, inventory: inventory)
@@ -53,6 +81,8 @@ final class PlanningModel {
         steps = []
         outcome = nil
         routing = []
+        improvement = nil
+        self.online = online
         let conditions = RouteConditions(deviceModelAvailable: planner.device.isAvailable, online: online)
         route = HybridRouter.route(.planFromNumbers, conditions)
         let result = await planner.run(inventory: inventory, request: request, online: online) { step in

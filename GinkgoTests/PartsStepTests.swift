@@ -62,6 +62,38 @@ final class PartsStepTests: XCTestCase {
         XCTAssertFalse(result.fromGemini)
     }
 
+    // MARK: - Reading the photo once the network is back
+
+    func testRereadIsOfferedOnlyForAnOfflineEstimateWithAPhotoWhileOnline() {
+        let estimate = PartsStep.estimate(box, scanID: "s")
+        XCTAssertTrue(PartsStep.canReread(estimate, hasPhoto: true, online: true))
+        XCTAssertFalse(PartsStep.canReread(estimate, hasPhoto: true, online: false))
+        XCTAssertFalse(PartsStep.canReread(estimate, hasPhoto: false, online: true))
+        let read = PartsResult(inventory: estimate.inventory, flags: [], fromGemini: true)
+        XCTAssertFalse(PartsStep.canReread(read, hasPhoto: true, online: true))
+    }
+
+    func testGeminisRereadReplacesTheEstimate() async {
+        let estimate = PartsStep.estimate(box, scanID: "s")
+        let attempt = await PartsStep.read(photo: photo, box: box, scanID: "s") { _, _ in self.answer }
+        let result = PartsStep.reread(edited: estimate.inventory, flags: estimate.flags, attempt: attempt)
+        XCTAssertTrue(result.fromGemini)
+        XCTAssertEqual(result.inventory.parts.filter(\.damaged).count, 1, "Gemini's reading, not the estimate")
+    }
+
+    func testAFailedRereadKeepsThePersonsChangesAndSaysSoOnce() async {
+        struct Offline: Error {}
+        let estimate = PartsStep.estimate(box, scanID: "s")
+        let edited = PartsStep.setting(.plywood, of: "top", in: estimate.inventory)
+        let attempt = await PartsStep.read(photo: photo, box: box, scanID: "s") { _, _ in throw Offline() }
+        let once = PartsStep.reread(edited: edited, flags: estimate.flags, attempt: attempt)
+        XCTAssertEqual(once.inventory, edited)
+        XCTAssertFalse(once.fromGemini)
+        XCTAssertEqual(once.flags.map(\.message), [PartsStep.offlineMessage, PartsStep.rereadFailed])
+        let twice = PartsStep.reread(edited: edited, flags: once.flags, attempt: attempt)
+        XCTAssertEqual(twice.flags.count, 2)
+    }
+
     func testPickingAMaterialChangesOnlyThatPart() {
         let inventory = LivePlan.inventory(from: box, scanID: "s")
         let changed = PartsStep.setting(.plywood, of: "top", in: inventory)

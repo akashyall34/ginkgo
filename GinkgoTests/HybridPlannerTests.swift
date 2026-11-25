@@ -156,4 +156,55 @@ final class HybridPlannerTests: XCTestCase {
         let result = await timed.run(inventory: try inventory(), request: "", online: true) { _ in }
         XCTAssertEqual(result.entries.first?.durationMs, 1500)
     }
+
+    // MARK: - Improve this plan
+
+    private func outcome(reuse: Double, passes: Bool = true, trace: [AgentStep]) throws -> AgentOutcome {
+        let plan = try bench().plan
+        let validation = ValidationResult(passes: passes, placements: [], planID: plan.id, reusePercent: reuse, sag: [],
+                                          verify: [], violations: [])
+        return .accepted(plan: plan, validation: validation, trace: trace)
+    }
+
+    private func device() throws -> FakeDevice {
+        FakeDevice(result: DevicePlanResult(accepted: nil, trace: [], rejections: 0, model: "m"))
+    }
+
+    func testABetterCloudPlanReplacesTheFirstAndKeepsBothRunsSteps() async throws {
+        let calls = CloudCalls()
+        let first = try outcome(reuse: 50, trace: [step(0, .accepted, .submitPlan)])
+        let better = try outcome(reuse: 70, trace: [step(0, .pass), step(1, .accepted, .submitPlan)])
+        let result = try await planner(device(), calls: calls, cloud: better)
+            .improve(original: first, inventory: try inventory(), request: "") { _ in }
+        XCTAssertEqual(calls.count, 1)
+        XCTAssertEqual(result.comparison.choice, .improved)
+        XCTAssertEqual(result.outcome.validation?.reusePercent, 70)
+        XCTAssertEqual(result.outcome.trace.map(\.index), [0, 1, 2])
+        XCTAssertEqual(result.route, Route(venue: .cloud, reason: .improvedInCloud))
+        XCTAssertEqual(result.entry.task, .improvePlan)
+        XCTAssertEqual(result.entry.model, "gemini-test")
+        XCTAssertEqual(result.entry.verdict, .passed)
+    }
+
+    func testAWorseCloudPlanKeepsTheFirstPlanButShowsTheAttempt() async throws {
+        let first = try outcome(reuse: 70, trace: [step(0, .accepted, .submitPlan)])
+        let worse = try outcome(reuse: 40, trace: [step(0, .accepted, .submitPlan)])
+        let result = try await planner(device(), cloud: worse)
+            .improve(original: first, inventory: try inventory(), request: "") { _ in }
+        XCTAssertEqual(result.comparison.choice, .original)
+        XCTAssertEqual(result.outcome.validation?.reusePercent, 70)
+        XCTAssertEqual(result.outcome.trace.count, 2)
+        XCTAssertEqual(result.entry.verdict, .passed, "Gemini's plan passed; it just wasn't better")
+    }
+
+    func testACloudRunThatFellBackIsLoggedAsFailedAndRuleBased() async throws {
+        let first = try outcome(reuse: 70, trace: [])
+        let fell = AgentOutcome.fallback(plan: try bench().plan, validation: try bench().validation, trace: [],
+                                         reason: "Gemini couldn't be reached.")
+        let result = try await planner(device(), cloud: fell)
+            .improve(original: first, inventory: try inventory(), request: "") { _ in }
+        XCTAssertEqual(result.comparison.choice, .original)
+        XCTAssertEqual(result.entry.verdict, .failed)
+        XCTAssertEqual(result.entry.model, "rule-based")
+    }
 }

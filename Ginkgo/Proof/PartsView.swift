@@ -10,6 +10,8 @@ struct PartsView: View {
     @State private var result: PartsResult?
     @State private var inventory: Inventory?
     @State private var markingHolesOf: String?
+    @State private var online = false
+    @State private var rereading = false
 
     /// Every material the validator knows. Only solid wood and plywood get cut; the rest are reused whole.
     private struct MarkedPart: Identifiable { let id: String }
@@ -40,13 +42,49 @@ struct PartsView: View {
         .background(Palette.background)
         .task {
             guard result == nil else { return }
-            let schema = GeminiSchema.firebase(PartsReader.responseSchema)
-            let read = await PartsStep.read(photo: photo, box: box, scanID: scanID) { prompt, image in
-                try await GeminiClient().json(prompt: prompt, image: image, schema: schema)
-            }
+            let read = await readPhoto()
             result = read
             inventory = read.inventory
         }
+        // Offers "Read the parts from the photo" when the network comes back after an offline estimate.
+        .task {
+            guard !GeminiAgentModel.isDisabled else { return }
+            for await isOnline in Connectivity.updates() { online = isOnline }
+        }
+    }
+
+    private func readPhoto() async -> PartsResult {
+        let schema = GeminiSchema.firebase(PartsReader.responseSchema)
+        return await PartsStep.read(photo: photo, box: box, scanID: scanID) { prompt, image in
+            try await GeminiClient().json(prompt: prompt, image: image, schema: schema)
+        }
+    }
+
+    private func reread(_ current: PartsResult, _ edited: Inventory) async {
+        rereading = true
+        let read = PartsStep.reread(edited: edited, flags: current.flags, attempt: await readPhoto())
+        result = read
+        inventory = read.inventory
+        rereading = false
+    }
+
+    private func rereadButton(_ result: PartsResult, _ inventory: Inventory) -> some View {
+        Button {
+            Task { await reread(result, inventory) }
+        } label: {
+            HStack(spacing: Spacing.small) {
+                if rereading { ProgressView() }
+                Label(rereading ? "Gemini is reading the photo…" : "You're online: read the parts from the photo",
+                      systemImage: "sparkles")
+                    .font(.subheadline.weight(.semibold))
+                    .multilineTextAlignment(.leading)
+            }
+            .frame(minHeight: TapTarget.minimum)
+            .accessibilityElement(children: .combine)
+        }
+        .disabled(rereading)
+        .accessibilityHint("Replaces the estimate with Gemini's reading, which you confirm again")
+        .accessibilityIdentifier("rereadParts")
     }
 
     private func confirm(_ result: PartsResult, _ inventory: Inventory) -> some View {
@@ -64,6 +102,9 @@ struct PartsView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("partsFlag")
+                }
+                if rereading || PartsStep.canReread(result, hasPhoto: photo != nil, online: online) {
+                    rereadButton(result, inventory)
                 }
             }
             Section("Confirm the parts") {

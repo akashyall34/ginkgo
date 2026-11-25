@@ -26,6 +26,15 @@ struct HybridOutcome: Sendable {
     var entries: [RoutingEntry]
 }
 
+/// What "Improve this plan" produced: the plan to show (the first one, unless the cloud's was better), why, and the
+/// log line.
+struct ImprovedOutcome: Sendable {
+    var outcome: AgentOutcome
+    var comparison: PlanImprovement.Comparison
+    var route: Route
+    var entry: RoutingEntry
+}
+
 /// Plans a build the hybrid way. Numbers go to the on-device model first; if it isn't available, or the validator
 /// rejects its plans `HybridRouter.deviceAttempts` times, the cloud (Gemini through Firebase AI Logic) takes over;
 /// with no network, tested rules make the plan. Every plan, from anywhere, has passed the same validator.
@@ -78,15 +87,46 @@ struct HybridPlanner: Sendable {
         return HybridOutcome(outcome: outcome, route: route, entries: entries)
     }
 
+    /// "Improve this plan": Gemini replans the same confirmed parts in the cloud; the validator has checked both plans,
+    /// and the cloud plan is used only when it passes and reuses more wood. The cloud's steps follow the first run's.
+    func improve(original: AgentOutcome, inventory: Inventory, request: String,
+                 onStep: @escaping @Sendable (AgentStep) -> Void) async -> ImprovedOutcome {
+        let route = HybridRouter.route(.improvePlan, RouteConditions(deviceModelAvailable: device.isAvailable, online: true))
+        let start = now()
+        let cloudOutcome = await cloud(inventory, request, onStep)
+        let comparison = PlanImprovement.compare(original: original, improved: cloudOutcome)
+        // Whether Gemini's own plan passed; a cloud run that fell back to the rules is a failed attempt.
+        var verdict = ValidatorVerdict.failed
+        if case let .accepted(_, validation, _) = cloudOutcome, validation.passes { verdict = .passed }
+        let logLine = entry(route, task: .improvePlan, model: Self.answered(by: cloudOutcome, cloudModel: cloudModelName), since: start,
+                          verdict: verdict)
+        let combined = Self.prefixed(cloudOutcome, with: original.trace)
+        let chosen: AgentOutcome
+        if comparison.choice == .improved {
+            chosen = combined
+        } else {
+            chosen = Self.replacingTrace(of: original, with: combined.trace)
+        }
+        return ImprovedOutcome(outcome: chosen, comparison: comparison, route: route, entry: logLine)
+    }
+
+    static func replacingTrace(of outcome: AgentOutcome, with trace: [AgentStep]) -> AgentOutcome {
+        switch outcome {
+        case let .accepted(plan, validation, _): return .accepted(plan: plan, validation: validation, trace: trace)
+        case let .fallback(plan, validation, _, reason):
+            return .fallback(plan: plan, validation: validation, trace: trace, reason: reason)
+        }
+    }
+
     private func conditions(online: Bool, rejections: Int) -> RouteConditions {
         RouteConditions(deviceModelAvailable: device.isAvailable, online: online, deviceRejections: rejections)
     }
 
-    private func entry(_ route: Route, model: String, since start: ContinuousClock.Instant,
+    private func entry(_ route: Route, task: AITask = .planFromNumbers, model: String, since start: ContinuousClock.Instant,
                        verdict: ValidatorVerdict) -> RoutingEntry {
         let elapsed = now() - start
         let ms = Int(elapsed.components.seconds * 1000 + elapsed.components.attoseconds / 1_000_000_000_000_000)
-        return RoutingEntry(task: .planFromNumbers, venue: route.venue, reason: route.reason, model: model,
+        return RoutingEntry(task: task, venue: route.venue, reason: route.reason, model: model,
                             durationMs: ms, verdict: verdict, date: date())
     }
 

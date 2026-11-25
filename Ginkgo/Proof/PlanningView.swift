@@ -25,6 +25,7 @@ struct PlanningView: View {
                     Text(reason).font(.footnote).foregroundStyle(Palette.secondaryText).accessibilityIdentifier("fallbackReason")
                 }
             }
+            if model.canImprove || model.isImproving || model.improvement != nil { improveSection }
             if !model.steps.isEmpty {
                 Section("Every step, checked") {
                     ForEach(model.steps, id: \.index) { AgentStepView(step: $0) }
@@ -49,19 +50,63 @@ struct PlanningView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             guard model.outcome == nil else { return }
-            // Offline test runs (-noGemini) switch off both models: no network, no on-device model.
-            let offlineTest = GeminiAgentModel.isDisabled
-            let online = offlineTest ? false : await Connectivity.isOnline()
-            let planner = HybridPlanner(
-                device: OnDevicePlanner(enabled: !offlineTest),
-                cloud: { inventory, request, onStep in
-                    await PlanAgent(model: GeminiAgentModel(), maxTurns: 6)
-                        .run(inventory: inventory, limits: nil, request: request, onStep: onStep)
-                },
-                cloudModelName: GeminiAgentModel().modelName)
-            await model.run(planner: planner, online: online, request: request)
+            let online = Self.offlineTest ? false : await Connectivity.isOnline()
+            await model.run(planner: Self.planner(), online: online, request: request)
             try? RoutingLogStore.standard().append(model.routing)
         }
+        // Keeps "Improve this plan" in step with the network: it appears when the connection comes back.
+        .task {
+            guard !Self.offlineTest else { return }
+            for await online in Connectivity.updates() { model.online = online }
+        }
+    }
+
+    @ViewBuilder private var improveSection: some View {
+        Section {
+            if let improvement = model.improvement {
+                Label(improvement.message, systemImage: improvement.choice == .improved ? "cloud" : "checkmark.shield")
+                    .font(.subheadline)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("improvementResult")
+            } else {
+                Button {
+                    Task {
+                        await model.improve(planner: Self.planner(), request: request)
+                        if let last = model.routing.last { try? RoutingLogStore.standard().append([last]) }
+                    }
+                } label: {
+                    HStack(spacing: Spacing.small) {
+                        if model.isImproving { ProgressView() }
+                        Label(model.isImproving ? "Gemini is replanning in the cloud…" : "Improve this plan",
+                              systemImage: "cloud")
+                            .font(.headline)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: TapTarget.minimum)
+                    .accessibilityElement(children: .combine)
+                }
+                .disabled(model.isImproving)
+                .accessibilityIdentifier("improvePlan")
+            }
+        } footer: {
+            if model.improvement == nil {
+                Text("You're online. Gemini replans the same parts; Ginkgo checks its plan and keeps the one that "
+                     + "reuses more wood.")
+            }
+        }
+    }
+
+    /// Offline test runs (-noGemini) switch off both models: no network, no on-device model.
+    static var offlineTest: Bool { GeminiAgentModel.isDisabled }
+
+    static func planner() -> HybridPlanner {
+        HybridPlanner(
+            device: OnDevicePlanner(enabled: !offlineTest),
+            cloud: { inventory, request, onStep in
+                await PlanAgent(model: GeminiAgentModel(), maxTurns: 6)
+                    .run(inventory: inventory, limits: nil, request: request, onStep: onStep)
+            },
+            cloudModelName: GeminiAgentModel().modelName)
     }
 
     static func icon(_ status: GinkgoCore.Status) -> String {

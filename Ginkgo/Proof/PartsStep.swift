@@ -45,6 +45,21 @@ enum PartsStep {
         }
     }
 
+    static let rereadFailed = "Gemini still couldn't read the photo, so the estimate and your changes stay."
+
+    /// "Read the parts from the photo": offered for parts estimated offline when there's a photo and the network is back.
+    static func canReread(_ result: PartsResult, hasPhoto: Bool, online: Bool) -> Bool {
+        !result.fromGemini && hasPhoto && online
+    }
+
+    /// Gemini's reading replaces the estimate only when it actually read the photo (its parts are new, so they need
+    /// confirming again). Otherwise the estimate, with the person's changes, stays, and says so.
+    static func reread(edited: Inventory, flags: [PartFlag], attempt: PartsResult) -> PartsResult {
+        if attempt.fromGemini { return attempt }
+        let note = PartFlag(message: rereadFailed, partID: "all")
+        return PartsResult(inventory: edited, flags: flags.contains(note) ? flags : flags + [note], fromGemini: false)
+    }
+
     static func estimate(_ box: FittedBox, scanID: String) -> PartsResult {
         PartsResult(inventory: LivePlan.inventory(from: box, scanID: scanID),
                     flags: [PartFlag(message: offlineMessage, partID: "all")], fromGemini: false)
