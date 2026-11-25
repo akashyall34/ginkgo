@@ -16,6 +16,7 @@ final class AssemblyModelTests: XCTestCase {
         XCTAssertEqual(m.title, "Step 1 of \(m.steps.count)")
         XCTAssertTrue(m.isFirst)
         XCTAssertTrue(m.visible.isEmpty, "Sanding comes first: nothing is in place yet")
+        XCTAssertEqual(m.preview.count, m.scene.pieces.count, "The finished build shows, so the view isn't empty")
     }
 
     func testEachStepShowsWhatsInPlaceWithTheNewestPieceHighlighted() throws {
@@ -23,6 +24,7 @@ final class AssemblyModelTests: XCTestCase {
         m.next()
         XCTAssertEqual(m.visible.map(\.piece.name), [m.current?.placed.first].compactMap { $0 })
         XCTAssertTrue(m.visible.allSatisfy(\.isNew), "The seat is new at this step")
+        XCTAssertTrue(m.preview.isEmpty, "Once a piece is in place, only the real pieces show")
         m.next()
         let names = m.visible.map(\.piece.name)
         XCTAssertEqual(Set(names), Set(m.current?.placed ?? []))

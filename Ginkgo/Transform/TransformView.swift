@@ -41,6 +41,10 @@ private final class Stage {
     }
 
     func build(_ scene: TransformScene) {
+        // Framed around the old furniture and the new build together, so neither leaves the view mid-animation.
+        let framing = StageFraming.fit(scene.pieces.flatMap { [$0.start, $0.end] } + Array(scene.unused.values))
+        root.scale = SIMD3(repeating: framing.scale)
+        root.position = framing.offset
         for piece in scene.pieces {
             let entity = Self.panel(piece.start, material: Self.wood)
             root.addChild(entity)
@@ -101,6 +105,9 @@ private struct TransformStage: View {
                 let light = DirectionalLight()
                 light.light.intensity = 2500
                 light.look(at: .zero, from: SIMD3(0.8, 1.5, 1.2), relativeTo: nil)
+            // A directional light only needs its direction. Left out at 1.5 m, it would count in the bounds the
+            // orbit camera fits to, and the build would be drawn tiny.
+            light.position = .zero
                 content.add(light)
             }
             .realityViewCameraControls(.orbit)

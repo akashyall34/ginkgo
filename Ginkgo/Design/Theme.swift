@@ -82,3 +82,20 @@ enum Contrast {
         return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
     }
 }
+
+/// A list section's title in the app's secondary text color: the system's default header gray falls just short of
+/// the contrast audit on the light background.
+struct SectionTitle: View {
+    let text: String
+    nonisolated init(_ text: String) { self.text = text }
+
+    var body: some View {
+        Text(text).foregroundStyle(Palette.secondaryText)
+    }
+}
+
+extension Section where Parent == SectionTitle, Content: View, Footer == EmptyView {
+    init(titled title: String, @ViewBuilder content: () -> Content) {
+        self.init(content: content, header: { SectionTitle(title) })
+    }
+}

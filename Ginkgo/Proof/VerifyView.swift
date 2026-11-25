@@ -15,7 +15,7 @@ struct VerifyView: View {
     var body: some View {
         List {
             Section { banner }
-            Section("Measure before cutting") {
+            Section(titled: "Measure before cutting") {
                 ForEach(model.checks.indices, id: \.self) { checkRow($0) }
             }
             if model.isBuildable {
@@ -30,7 +30,7 @@ struct VerifyView: View {
                 }
                 // Steps and hardware from tested rules (AssemblyGuide), never the AI's own text.
                 let assembly = AssemblyGuide.guide(for: model.plan, inventory: model.inventory)
-                Section("Steps") {
+                Section(titled: "Steps") {
                     ForEach(Array(assembly.steps.enumerated()), id: \.offset) { index, step in
                         Text("\(index + 1). \(step.text)").accessibilityIdentifier("step")
                     }
@@ -42,7 +42,7 @@ struct VerifyView: View {
                     }
                     .accessibilityIdentifier("assembleIn3D")
                 }
-                Section("Hardware") {
+                Section(titled: "Hardware") {
                     ForEach(assembly.hardware, id: \.item) { item in
                         Text("\(item.quantity) × \(item.item)").accessibilityIdentifier("hardware")
                     }

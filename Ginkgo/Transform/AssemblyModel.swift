@@ -26,6 +26,9 @@ struct AssemblyModel {
         return scene.pieces.filter { current.placed.contains($0.name) }.map { ($0, !before.contains($0.name)) }
     }
 
+    /// When nothing is in place yet (sanding, laying out), the finished build, so the view is never empty.
+    var preview: [TransformPiece] { visible.isEmpty ? scene.pieces : [] }
+
     mutating func next() { if !isLast { index += 1 } }
     mutating func previous() { if !isFirst { index -= 1 } }
 }

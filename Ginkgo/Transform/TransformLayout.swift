@@ -11,6 +11,36 @@ struct PanelPose: Equatable {
     let rotation: simd_quatf
 }
 
+extension PanelPose {
+    /// Half the size of the box around this pose once rotated, in metres.
+    var halfExtent: SIMD3<Float> {
+        let half = size / 2
+        let axes = [rotation.act(SIMD3(half.x, 0, 0)), rotation.act(SIMD3(0, half.y, 0)), rotation.act(SIMD3(0, 0, half.z))]
+        return axes.reduce(.zero) { $0 + abs($1) }
+    }
+}
+
+/// Scale and offset that center a build and draw it `size` metres across in a 3D view, whatever its real size: the
+/// default camera sits at a fixed distance, so a small stool would otherwise be a speck.
+enum StageFraming {
+    /// About 60% of the view's width at the default camera distance (measured on the iPhone 17 simulator).
+    static let size: Float = 1.3
+
+    static func fit(_ poses: [PanelPose], size: Float = StageFraming.size) -> (scale: Float, offset: SIMD3<Float>) {
+        guard let first = poses.first else { return (1, .zero) }
+        var lo = first.position - first.halfExtent
+        var hi = first.position + first.halfExtent
+        for pose in poses.dropFirst() {
+            lo = simd_min(lo, pose.position - pose.halfExtent)
+            hi = simd_max(hi, pose.position + pose.halfExtent)
+        }
+        let extent = (hi - lo).max()
+        guard extent > 0 else { return (1, .zero) }
+        let scale = size / extent
+        return (scale, -(lo + hi) / 2 * scale)
+    }
+}
+
 /// A piece of the new build: where it starts (inside the old furniture) and where it ends up.
 struct TransformPiece: Equatable {
     let name: String

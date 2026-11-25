@@ -31,14 +31,14 @@ struct AssemblyView: View {
                     .frame(minHeight: TapTarget.minimum)
                 }
                 if !model.guide.warnings.isEmpty {
-                    Section("Before you start") {
+                    Section(titled: "Before you start") {
                         ForEach(model.guide.warnings, id: \.self) {
                             Label($0, systemImage: "exclamationmark.triangle.fill").foregroundStyle(Palette.fails)
                                 .accessibilityElement(children: .combine)
                         }
                     }
                 }
-                Section("You'll need") {
+                Section(titled: "You'll need") {
                     ForEach(model.guide.hardware, id: \.item) {
                         Text("\($0.quantity) × \($0.item)").accessibilityIdentifier("assemblyHardware")
                     }
@@ -67,9 +67,23 @@ private struct AssemblyStage: View {
             let light = DirectionalLight()
             light.light.intensity = 2500
             light.look(at: .zero, from: SIMD3(0.8, 1.5, 1.2), relativeTo: nil)
+            // A directional light only needs its direction. Left out at 1.5 m, it would count in the bounds the
+            // orbit camera fits to, and the build would be drawn tiny.
+            light.position = .zero
             content.add(light)
         } update: { _ in
             root.children.removeAll()
+            let framing = StageFraming.fit(model.scene.pieces.map(\.end))
+            root.scale = SIMD3(repeating: framing.scale)
+            root.position = framing.offset
+            for piece in model.preview {
+                let pose = piece.end
+                let entity = ModelEntity(mesh: .generateBox(width: pose.size.x, height: pose.size.y, depth: pose.size.z,
+                                                            cornerRadius: 0.002),
+                                         materials: [Self.wood])
+                entity.transform = Transform(scale: .one, rotation: pose.rotation, translation: pose.position)
+                root.addChild(entity)
+            }
             for (piece, isNew) in model.visible {
                 let pose = piece.end
                 let entity = ModelEntity(mesh: .generateBox(width: pose.size.x, height: pose.size.y, depth: pose.size.z,

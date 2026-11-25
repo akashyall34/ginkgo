@@ -18,7 +18,7 @@ struct RecordedRunView: View {
                 Text(run.detail).font(.subheadline.monospacedDigit()).foregroundStyle(Palette.secondaryText)
                 if shown == run.trace.count { StepStoryView(trace: run.trace) }
             }
-            Section("Every step, checked") {
+            Section(titled: "Every step, checked") {
                 ForEach(run.trace.prefix(shown), id: \.index) { step in
                     AgentStepView(step: step)
                         .transition(.opacity.combined(with: .move(edge: .top)))

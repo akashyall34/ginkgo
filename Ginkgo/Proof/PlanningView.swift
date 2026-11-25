@@ -27,7 +27,7 @@ struct PlanningView: View {
             }
             if model.canImprove || model.isImproving || model.improvement != nil { improveSection }
             if !model.steps.isEmpty {
-                Section("Every step, checked") {
+                Section(titled: "Every step, checked") {
                     ForEach(model.steps, id: \.index) { AgentStepView(step: $0) }
                 }
             }

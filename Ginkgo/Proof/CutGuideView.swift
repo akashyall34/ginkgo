@@ -37,7 +37,7 @@ struct CutGuideView: View {
                 Text("Hold the panel the way it's drawn, with its bottom edge toward you.")
                     .font(.footnote).foregroundStyle(Palette.secondaryText)
             }
-            Section("Marks") {
+            Section(titled: "Marks") {
                 ForEach(Array(model.steps.enumerated()), id: \.offset) { number, step in
                     Text("\(number + 1). \(step)")
                         .fixedSize(horizontal: false, vertical: true)

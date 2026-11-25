@@ -24,11 +24,11 @@ struct CutCheckView: View {
                     .accessibilityIdentifier("assembleFromCheck")
                 }
             }
-            Section("Pieces") {
+            Section(titled: "Pieces") {
                 ForEach(model.pieces, id: \.self) { pieceRow($0) }
             }
             if !model.supportWarnings.isEmpty {
-                Section("Supports") {
+                Section(titled: "Supports") {
                     ForEach(model.supportWarnings, id: \.self) {
                         Label($0, systemImage: "exclamationmark.triangle.fill")
                             .foregroundStyle(Palette.fails)
