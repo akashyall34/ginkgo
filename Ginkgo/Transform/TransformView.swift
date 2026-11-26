@@ -105,9 +105,9 @@ private struct TransformStage: View {
                 let light = DirectionalLight()
                 light.light.intensity = 2500
                 light.look(at: .zero, from: SIMD3(0.8, 1.5, 1.2), relativeTo: nil)
-            // A directional light only needs its direction. Left out at 1.5 m, it would count in the bounds the
-            // orbit camera fits to, and the build would be drawn tiny.
-            light.position = .zero
+                // A directional light only needs its direction. Left out at 1.5 m, it would count in the bounds the
+                // orbit camera fits to, and the build would be drawn tiny.
+                light.position = .zero
                 content.add(light)
             }
             .realityViewCameraControls(.orbit)
@@ -147,9 +147,8 @@ private struct TransformStage: View {
             .padding(Spacing.medium)
             .background(Palette.background)
         }
-        .fullScreenCover(item: $arFile) { url in
-            ARQuickLook(url: url).ignoresSafeArea()
-        }
+        // Presented as a real modal, so Quick Look's own Done button works while the build is in the room.
+        .background(ARQuickLook(file: $arFile))
     }
 }
 
@@ -158,18 +157,37 @@ extension URL: @retroactive Identifiable {
 }
 
 /// Apple's AR Quick Look, at true size (no pinch-to-scale), so the build is shown as big as it really is.
+/// Quick Look must be presented modally: its Done button (the only way out of AR) lives in that presentation.
 private struct ARQuickLook: UIViewControllerRepresentable {
-    let url: URL
+    @Binding var file: URL?
 
-    func makeCoordinator() -> Source { Source(url: url) }
+    func makeCoordinator() -> Coordinator { Coordinator(file: $file) }
 
-    func makeUIViewController(context: Context) -> QLPreviewController {
+    func makeUIViewController(context: Context) -> UIViewController { UIViewController() }
+
+    func updateUIViewController(_ host: UIViewController, context: Context) {
+        guard let url = file, host.presentedViewController == nil else { return }
+        let source = Source(url: url)
+        context.coordinator.source = source
         let controller = QLPreviewController()
-        controller.dataSource = context.coordinator
-        return controller
+        controller.dataSource = source
+        controller.delegate = context.coordinator
+        host.present(controller, animated: true)
     }
 
-    func updateUIViewController(_ controller: QLPreviewController, context: Context) {}
+    /// Clears the file when the person taps Done, so the screen is ready to show it again.
+    @MainActor
+    final class Coordinator: NSObject, @preconcurrency QLPreviewControllerDelegate {
+        @Binding var file: URL?
+        var source: Source?
+
+        init(file: Binding<URL?>) { _file = file }
+
+        func previewControllerDidDismiss(_ controller: QLPreviewController) {
+            file = nil
+            source = nil
+        }
+    }
 
     final class Source: NSObject, QLPreviewControllerDataSource {
         let url: URL
