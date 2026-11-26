@@ -95,11 +95,11 @@ enum FirebaseSetup {
         FirebaseApp.configure()
     }
 
-    /// The simulator can't use Apple's DeviceCheck, so it uses App Check's debug
-    /// provider with a debug token registered in the Firebase console. Real devices
-    /// use DeviceCheck, so the same build keeps working if enforcement is turned on.
+    /// A build run from Xcode (the simulator, or a phone on a free Apple account) uses App Check's debug
+    /// provider with a debug token registered in the Firebase console: DeviceCheck needs a paid Apple developer
+    /// key. A release build uses DeviceCheck, so it keeps working once enforcement is on.
     static func appCheckProviderFactory() -> AppCheckProviderFactory {
-        #if targetEnvironment(simulator)
+        #if DEBUG
         return AppCheckDebugProviderFactory()
         #else
         return DeviceCheckProviderFactory()

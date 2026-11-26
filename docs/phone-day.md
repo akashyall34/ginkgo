@@ -15,8 +15,16 @@ the Mac and a cable. Results go in `docs/evidence/`.
 | Check | How | Pass |
 | --- | --- | --- |
 | The app installs and opens on the iPhone 17 Pro | Run from Xcode on the device | Opens to Home, first-run guide shows once |
-| Gemini works from a real iPhone | Parts screen on a scan, with the network on | The parts come back "Read by Gemini". If it fails with an App Check error, the simulator-style debug token has to be used on the phone too |
+| Gemini works from a real iPhone | First register the phone's App Check debug token (below), then open Parts on a scan with the network on | The parts come back "Read by Gemini" |
 | Anonymous backup and Sign in with Google work on the device | Settings → backup on → Sign in with Google | The Firestore console shows the record and the Authentication user |
+
+### Register the phone's App Check debug token (once per install)
+
+A build run from Xcode asks App Check for a debug token, not Apple's DeviceCheck (that needs a paid developer key).
+1. Run the app from Xcode on the iPhone 17 Pro and open any screen that calls Gemini (Parts).
+2. In Xcode's console, find the line `Firebase App Check Debug Token:` and copy the token after it.
+3. Firebase console → **App Check → Apps → Ginkgo (iOS)** → ⋮ → **Manage debug tokens** → **Add debug token**, paste it, save.
+4. Run the call again. It should now succeed. Deleting the app makes a new token, so repeat if you reinstall.
 
 ## 1. The Nov 25 gate
 
