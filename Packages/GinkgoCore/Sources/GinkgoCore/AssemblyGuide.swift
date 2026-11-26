@@ -64,7 +64,7 @@ public enum AssemblyGuide {
             return Guide(steps: [AssemblyStep(text: "Nothing to build: each panel is reused as it is.",
                                               placed: plan.newParts.map(\.name))], hardware: [], warnings: [])
         }
-        let parts = Dictionary(inventory.parts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let parts = inventory.partsByID
         let tops = plan.newParts.filter { $0.role == .seat || $0.role == .shelf }
         let uprights = plan.newParts.filter { $0.role == .support || $0.role == .side }
         guard let top = tops.first, !uprights.isEmpty else {

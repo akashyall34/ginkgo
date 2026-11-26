@@ -94,11 +94,9 @@ public struct RoutingLog: Sendable, Equatable {
     public func jsonLines() throws -> String {
         let encoder = Self.encoder()
         return try entries.map { entry in
-            // JSONEncoder always writes UTF-8, so this never fails in practice; if it did, the log isn't written.
-            guard let line = String(bytes: try encoder.encode(entry), encoding: .utf8) else {
-                throw CocoaError(.fileWriteInapplicableStringEncoding)
-            }
-            return line
+            // JSONEncoder always writes valid UTF-8, so the lossless conversion is exact.
+            // swiftlint:disable:next optional_data_string_conversion
+            String(decoding: try encoder.encode(entry), as: UTF8.self)
         }.joined(separator: "\n")
     }
 

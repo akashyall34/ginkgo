@@ -83,7 +83,11 @@ public struct PlanAgent: Sendable {
                     return .failed("cancelled")
                 }
             }
-            let first = await group.next() ?? .timedOut
+            var first = LoopEnd.timedOut
+            for await result in group {
+                first = result
+                break
+            }
             group.cancelAll()
             return first
         }
@@ -94,15 +98,15 @@ public struct PlanAgent: Sendable {
         var turn = try await session.send(text: user)
         var replies = 1
         var nudged = false
-        while true {
+        // Each pass handles one reply from the model; a new reply is asked for only while turns remain.
+        while replies <= max(maxTurns, 1) {
             if turn.calls.isEmpty {
                 if nudged { return .noPlan }
                 nudged = true
                 await recorder.record(AgentStep(
                     index: await recorder.count, reason: turn.text ?? "", status: .info,
                     summary: "Gemini answered without using the tools; reminded it to check and submit.", tool: .note))
-                guard replies < maxTurns else { return .outOfTurns }
-                turn = try await session.send(text: Prompts.nudge)
+                if replies < maxTurns { turn = try await session.send(text: Prompts.nudge) }
             } else {
                 var results: [ToolResult] = []
                 for call in turn.calls {
@@ -111,11 +115,11 @@ public struct PlanAgent: Sendable {
                     if outcome.step.status == .accepted, let accepted = outcome.accepted { return .accepted(accepted) } // MUTANT:accept
                     results.append(outcome.result)
                 }
-                guard replies < maxTurns else { return .outOfTurns }
-                turn = try await session.send(results: results)
+                if replies < maxTurns { turn = try await session.send(results: results) }
             }
             replies += 1
         }
+        return .outOfTurns
     }
 }
 

@@ -9,7 +9,7 @@ public enum Validator {
     public static let minSupportWidth = 150.0
 
     public static func validate(plan: Plan, inventory: Inventory, limits: SizeLimits?) -> ValidationResult {
-        let parts = Dictionary(inventory.parts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let parts = inventory.partsByID
         let packs = pack(plan, inventory: inventory)
         let sag = sagResults(plan, parts: parts, placements: packs.flatMap(\.placements))
         let empty = plan.newParts.isEmpty
@@ -113,10 +113,7 @@ public enum Validator {
         let failures = packs.flatMap { pack in pack.failures.map { (failure: $0, source: pack.sourcePartID) } }
         return failures
             .sorted { (order.firstIndex(of: $0.failure.name) ?? 0) < (order.firstIndex(of: $1.failure.name) ?? 0) }
-            .compactMap { item in
-                guard let part = parts[item.source] else { return nil }
-                return fitViolation(item.failure, part: part)
-            }
+            .compactMap { item in parts[item.source].map { fitViolation(item.failure, part: $0) } }
     }
 
     static func fitViolation(_ failure: PackFailure, part: Part) -> Violation {
@@ -155,22 +152,22 @@ public enum Validator {
                 // A guessed material is rated as the weakest wood product until the person confirms it.
                 // Across the grain (or grain unknown) solid wood gets its across-grain stiffness.
                 let factor = WoodGrain.stiffnessFactor(source: part, rotated: rotation[newPart.name])
-                guard let result = try Sag.check(newPart, source: part.ratedForStrength, stiffnessFactor: factor) else {
+                guard let load = Sag.designLoadKg(for: newPart.role),
+                      let result = try Sag.check(newPart, source: part.ratedForStrength, stiffnessFactor: factor) else {
                     continue
                 }
                 results.append(result)
                 if !result.passes {
-                    let load = Format.mm(Sag.designLoadKg(for: newPart.role) ?? 0)
                     violations.append(Violation(
                         code: .sags,
-                        message: "\(newPart.name): bends \(Format.mm(result.deflectionMm)) mm under \(load) kg; "
+                        message: "\(newPart.name): bends \(Format.mm(result.deflectionMm)) mm under \(Format.mm(load)) kg; "
                             + "at most \(Format.mm(result.limitMm)) mm is allowed. "
                             + "Use a shorter span, a deeper part or a stiffer part.",
                         newPart: newPart.name))
                 }
             } catch {
-                let message = (error as? SagError)?.message ?? "\(error)"
-                let prefix = error as? SagError == .notLoadBearing(message) ? "" : "can't check sag: "
+                let message = error.message
+                let prefix = error == .notLoadBearing(message) ? "" : "can't check sag: "
                 violations.append(Violation(code: .sags, message: "\(newPart.name): \(prefix)\(message).",
                                             newPart: newPart.name))
             }
@@ -253,11 +250,7 @@ public enum Validator {
                 VerifyItem(dimension: .width, marginMm: pack.spareWidthMm, sourcePartID: pack.sourcePartID),
                 VerifyItem(dimension: .height, marginMm: pack.spareHeightMm, sourcePartID: pack.sourcePartID),
             ] }
-            .sorted { lhs, rhs in
-                if lhs.marginMm != rhs.marginMm { return lhs.marginMm < rhs.marginMm }
-                if lhs.sourcePartID != rhs.sourcePartID { return lhs.sourcePartID < rhs.sourcePartID }
-                return lhs.dimension == .width && rhs.dimension == .height
-            }
+            .sorted { ($0.marginMm, $0.sourcePartID, $0.dimension.sortRank) < ($1.marginMm, $1.sourcePartID, $1.dimension.sortRank) }
             .prefix(verifyCount)
             .map { $0 }
     }
@@ -272,4 +265,9 @@ struct SizeCheck {
     var limit: Double?
     var word: String
     var value: (Vector3) -> Double
+}
+
+private extension Dimension {
+    /// Width lists before height when everything else is equal.
+    var sortRank: Int { self == .width ? 0 : 1 }
 }

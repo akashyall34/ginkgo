@@ -20,12 +20,14 @@ public enum Overhang {
     static func violations(_ plan: Plan, parts: [String: Part], placed: Set<String>) -> [Violation] {
         let uprights = plan.newParts.filter { $0.role == .support || $0.role == .side }
         let structural = plan.newParts.filter { $0.role == .seat } + uprights
-        guard plan.template != .noCut, !uprights.isEmpty,
+        let feet = uprights.map { footprint($0, parts: parts) }
+        guard plan.template != .noCut, let first = feet.first,
               structural.allSatisfy({ placed.contains($0.name) }),
               Set(structural.map(\.name)).count == structural.count else { return [] }
-        let feet = uprights.map { footprint($0, parts: parts) }
-        let base = Footprint(minX: feet.map(\.minX).min() ?? 0, maxX: feet.map(\.maxX).max() ?? 0,
-                             minZ: feet.map(\.minZ).min() ?? 0, maxZ: feet.map(\.maxZ).max() ?? 0)
+        let base = feet.dropFirst().reduce(first) { union, foot in
+            Footprint(minX: min(union.minX, foot.minX), maxX: max(union.maxX, foot.maxX),
+                      minZ: min(union.minZ, foot.minZ), maxZ: max(union.maxZ, foot.maxZ))
+        }
         return plan.newParts.filter { $0.role == .seat }.compactMap { seat in
             let top = footprint(seat, parts: parts)
             let overhangs: [(String, Double)] = [

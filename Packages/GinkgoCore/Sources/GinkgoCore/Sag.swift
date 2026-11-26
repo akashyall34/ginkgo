@@ -36,7 +36,7 @@ public enum Sag {
 
     /// Mid-span deflection in mm. Throws for any length that isn't a positive number.
     public static func deflection(loadKg: Double, spanMm: Double, depthMm: Double, thicknessMm: Double,
-                                  stiffness: Double) throws -> Double {
+                                  stiffness: Double) throws(SagError) -> Double {
         try requirePositive(spanMm, "span", unit: "mm")
         try requirePositive(depthMm, "depth", unit: "mm")
         try requirePositive(thicknessMm, "thickness", unit: "mm")
@@ -55,8 +55,15 @@ public enum Sag {
     /// Checks one seat or shelf cut from `source` (its thickness and material set the stiffness).
     /// Returns nil for roles that carry no load (side, support, back, other).
     public static func check(name: String, role: Role, spanMm: Double, depthMm: Double,
-                             source: Part, stiffnessFactor: Double = 1) throws -> SagResult? {
+                             source: Part, stiffnessFactor: Double = 1) throws(SagError) -> SagResult? {
         guard let loadKg = designLoadKg(for: role) else { return nil }
+        return try check(name: name, loadKg: loadKg, spanMm: spanMm, depthMm: depthMm, source: source,
+                         stiffnessFactor: stiffnessFactor)
+    }
+
+    /// The same check for a part whose design load is already known, so it always has a result.
+    public static func check(name: String, loadKg: Double, spanMm: Double, depthMm: Double,
+                             source: Part, stiffnessFactor: Double = 1) throws(SagError) -> SagResult {
         guard let material = stiffness(of: source.material) else {
             throw SagError.notLoadBearing("\(source.id) is \(source.material.displayName), which isn't load-bearing, "
                 + "so it can't be a seat or shelf")
@@ -69,12 +76,12 @@ public enum Sag {
     }
 
     /// Checks a part of a plan: span is `span_mm` (or the width when it's missing), depth is the part's height.
-    public static func check(_ part: NewPart, source: Part, stiffnessFactor: Double = 1) throws -> SagResult? {
+    public static func check(_ part: NewPart, source: Part, stiffnessFactor: Double = 1) throws(SagError) -> SagResult? {
         try check(name: part.name, role: part.role, spanMm: part.spanMm ?? part.widthMm,
                   depthMm: part.heightMm, source: source, stiffnessFactor: stiffnessFactor)
     }
 
-    static func requirePositive(_ value: Double, _ name: String, unit: String) throws {
+    static func requirePositive(_ value: Double, _ name: String, unit: String) throws(SagError) {
         guard value.isFinite, value > 0 else {
             throw SagError.invalidSize("\(name) must be more than 0 \(unit), got \(Format.mm(value))")
         }

@@ -96,15 +96,19 @@ public extension JSON {
     }
 
     /// The JSON text with sorted keys, so the same value always gives the same bytes.
-    func encodedData() throws -> Data {
+    func encodedData(using encoder: JSONEncoder = JSON.sortedEncoder()) throws -> Data {
+        try encoder.encode(self)
+    }
+
+    static func sortedEncoder() -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-        return try encoder.encode(self)
+        return encoder
     }
 
     /// The JSON text with sorted keys, for tests and logs.
-    func encodedString() -> String {
-        (try? encodedData()).flatMap { String(data: $0, encoding: .utf8) } ?? "null"
+    func encodedString(using encoder: JSONEncoder = JSON.sortedEncoder()) -> String {
+        (try? encodedData(using: encoder)).flatMap { String(data: $0, encoding: .utf8) } ?? "null"
     }
 }
 

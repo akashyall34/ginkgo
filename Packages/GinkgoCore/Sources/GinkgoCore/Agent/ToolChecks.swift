@@ -17,14 +17,15 @@ struct FitRequest {
 // MARK: - check_fit
 
 extension ToolExecutor {
-    func checkFit(_ args: JSON, index: Int, reason: String) throws -> ToolOutcome {
-        let requests = try args.list("placements").enumerated().map { number, item in
+    func checkFit(_ args: JSON, index: Int, reason: String) throws(ToolInputError) -> ToolOutcome {
+        var requests: [FitRequest] = []
+        for (number, item) in try args.list("placements").enumerated() {
             let context = "placements[\(number)]"
             let name = try item.string("new_part", in: context)
             let source = try item.string("source_part_id", in: context)
             let width = try item.number("width_mm", in: context)
             let height = try item.number("height_mm", in: context)
-            return FitRequest(name: name, source: source, width: width, height: height)
+            requests.append(FitRequest(name: name, source: source, width: width, height: height))
         }
         let rows = fitRows(requests)
         let allFit = rows.allSatisfy(\.passes)
@@ -82,29 +83,29 @@ extension ToolExecutor {
         case .blockedByKeepOuts: words = "blocked by screw holes or damage"
         case .noRoomLeft: words = "no room left after the other cuts"
         }
-        var row = blocked(request, by: failure.reason.rawValue, words: words, hint: failure.hint)
-        row.json = .object((row.json.objectValue ?? [:]).merging([
+        return blocked(request, by: failure.reason.rawValue, words: words, hint: failure.hint, extra: [
             "needed_mm": .array(failure.neededMm.map(Self.rounded)), "available_mm": .array(failure.availableMm.map(Self.rounded)),
             "short_by_mm": Self.rounded(failure.shortByMm),
-        ]) { _, new in new })
-        return row
+        ])
     }
 
-    func blocked(_ request: FitRequest, by reason: String, words: String, hint: String) -> CheckRow {
-        CheckRow(
-            json: ["new_part": .string(request.name), "source_part_id": .string(request.source), "fits": false,
-                   "blocked_by": .string(reason), "hint": .string(hint)],
-            summary: "\(request.name) from \(request.source): \(words)", passes: false)
+    func blocked(_ request: FitRequest, by reason: String, words: String, hint: String,
+                 extra: [String: JSON] = [:]) -> CheckRow {
+        var json: [String: JSON] = ["new_part": .string(request.name), "source_part_id": .string(request.source),
+                                    "fits": false, "blocked_by": .string(reason), "hint": .string(hint)]
+        for (key, value) in extra { json[key] = value }
+        return CheckRow(json: .object(json), summary: "\(request.name) from \(request.source): \(words)", passes: false)
     }
 }
 
 // MARK: - check_sag
 
 extension ToolExecutor {
-    func checkSag(_ args: JSON, index: Int, reason: String) throws -> ToolOutcome {
+    func checkSag(_ args: JSON, index: Int, reason: String) throws(ToolInputError) -> ToolOutcome {
         let parts = partsByID
-        let rows = try args.list("items").enumerated().map { number, item in
-            try sagRow(item, context: "items[\(number)]", parts: parts)
+        var rows: [CheckRow] = []
+        for (number, item) in try args.list("items").enumerated() {
+            rows.append(try sagRow(item, context: "items[\(number)]", parts: parts))
         }
         let allPass = rows.allSatisfy(\.passes)
         let response: JSON = ["all_pass": .bool(allPass), "results": .array(rows.map(\.json))]
@@ -115,11 +116,11 @@ extension ToolExecutor {
             accepted: nil)
     }
 
-    func sagRow(_ item: JSON, context: String, parts: [String: Part]) throws -> CheckRow {
+    func sagRow(_ item: JSON, context: String, parts: [String: Part]) throws(ToolInputError) -> CheckRow {
         let name = try item.string("new_part", in: context)
         let source = try item.string("source_part_id", in: context)
         let roleText = try item.string("role", in: context)
-        guard let role = Role(rawValue: roleText), role == .seat || role == .shelf else {
+        guard let role = Role(rawValue: roleText), let load = Sag.designLoadKg(for: role) else {
             throw ToolInputError("\(context).role must be seat or shelf")
         }
         let span = try item.number("span_mm", in: context)
@@ -130,16 +131,14 @@ extension ToolExecutor {
                             summary: "\(name): no such part \"\(source)\"", passes: false)
         }
         do {
-            // Seats and shelves always get a result; the guard only satisfies the optional.
-            let checked = try Sag.check(name: name, role: role, spanMm: span, depthMm: depth, source: part)
-            guard let result = checked else { throw ToolInputError("\(context).role must be seat or shelf") }
+            let result = try Sag.check(name: name, loadKg: load, spanMm: span, depthMm: depth, source: part)
             // Two decimals: sag values are small, and 0.1 mm rounding can make a failure look equal to its limit.
             let bend = String(format: "%.2f of %.2f mm allowed", result.deflectionMm, result.limitMm)
             return CheckRow(
                 json: ["new_part": .string(name), "deflection_mm": Self.rounded(result.deflectionMm),
                        "limit_mm": Self.rounded(result.limitMm), "passes": .bool(result.passes)],
                 summary: "\(name): bends \(bend)" + (result.passes ? "" : ", too much"), passes: result.passes)
-        } catch let error as SagError {
+        } catch {
             return CheckRow(json: ["new_part": .string(name), "passes": false, "error": .string(error.message)],
                             summary: "\(name): \(error.message)", passes: false)
         }

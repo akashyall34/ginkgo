@@ -33,13 +33,15 @@ public enum Layout {
         let rest = items.filter { placed[$0.index] == nil }
         let mainBounds = Bounds(items.compactMap { item in placed[item.index].map { item.box(at: $0) } })
         let startX = placed.isEmpty ? -rowLength(rest) / 2 : mainBounds.max.x + gap
-        placed.merge(row(rest, startX: startX)) { first, _ in first }
+        for (index, spot) in row(rest, startX: startX) { placed[index] = spot }
 
-        let newParts = items.map { item in
-            let spot = placed[item.index] ?? Placed(position: Vector3(x: 0, y: 0, z: 0), rotation: upright)
-            return NewPart(heightMm: item.part.heightMm, name: item.part.name, positionMm: spot.position,
-                           role: item.part.role, rotationDeg: spot.rotation, sourcePartID: item.part.sourcePartID,
-                           spanMm: item.part.spanMm, widthMm: item.part.widthMm)
+        // Every item is placed by now (the template places its own, the row takes the rest).
+        let newParts = items.compactMap { item in
+            placed[item.index].map { spot in
+                NewPart(heightMm: item.part.heightMm, name: item.part.name, positionMm: spot.position,
+                        role: item.part.role, rotationDeg: spot.rotation, sourcePartID: item.part.sourcePartID,
+                        spanMm: item.part.spanMm, widthMm: item.part.widthMm)
+            }
         }
         let overall = Bounds(items.compactMap { item in placed[item.index].map { item.box(at: $0) } }).size
         return Plan(hardware: draft.hardware, id: id, newParts: newParts, overallMm: overall, scanID: inventory.scanID,

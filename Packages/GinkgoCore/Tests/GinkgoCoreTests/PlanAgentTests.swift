@@ -184,6 +184,11 @@ final class PlanAgentTests: XCTestCase {
         XCTAssertEqual(sent.last, .text(Prompts.nudge))
     }
 
+    func testAnEmptyFirstReplyIsNudgedWithABlankReason() async throws {
+        let outcome = try await run(ScriptedModel([.turn(ModelTurn(calls: [])), turn(try submit())]))
+        XCTAssertEqual(outcome.trace.first?.reason, "")
+    }
+
     // MARK: - Fallback
 
     func testTextTwiceFallsBack() async throws {

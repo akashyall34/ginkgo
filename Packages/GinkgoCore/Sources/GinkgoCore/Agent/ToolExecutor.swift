@@ -31,7 +31,7 @@ public struct ToolExecutor: Sendable {
 
     public func run(_ call: ToolCall, index: Int) -> ToolOutcome {
         let reason = call.args["reason"]?.stringValue ?? ""
-        do {
+        do throws(ToolInputError) {
             switch call.name {
             case Tool.checkFit.rawValue: return try checkFit(call.args, index: index, reason: reason)
             case Tool.checkSag.rawValue: return try checkSag(call.args, index: index, reason: reason)
@@ -39,7 +39,7 @@ public struct ToolExecutor: Sendable {
             default: throw ToolInputError("There is no tool \"\(call.name)\". Use check_fit, check_sag or submit_plan.")
             }
         } catch {
-            let message = (error as? ToolInputError)?.message ?? "\(error)"
+            let message = error.message
             return ToolOutcome(
                 result: ToolResult(name: call.name, response: ["error": .string(message)]),
                 step: AgentStep(index: index, reason: reason, status: .error, summary: "error: \(message)",
@@ -50,7 +50,7 @@ public struct ToolExecutor: Sendable {
 
     // MARK: - submit_plan
 
-    func submitPlan(_ args: JSON, index: Int, reason: String) throws -> ToolOutcome {
+    func submitPlan(_ args: JSON, index: Int, reason: String) throws(ToolInputError) -> ToolOutcome {
         let planJSON = try args.field("plan", in: "arguments")
         let draft: PlanDraft
         do {
@@ -82,9 +82,7 @@ public struct ToolExecutor: Sendable {
 
     // MARK: - Shared
 
-    var partsByID: [String: Part] {
-        Dictionary(inventory.parts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-    }
+    var partsByID: [String: Part] { inventory.partsByID }
 
     var validIDs: String {
         inventory.parts.map(\.id).joined(separator: ", ")

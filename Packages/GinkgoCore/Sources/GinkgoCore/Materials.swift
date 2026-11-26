@@ -61,8 +61,16 @@ public enum MaterialCatalog {
                      checked: "Rule, not a number (team trust audit, 2026-11-21)", typicalThicknessMm: 4),
     ]
 
+    /// The entry for a material. The switch has no default, so a new material can't be left without one; a test
+    /// checks that each entry sits where its case says.
     public static func info(_ material: Material) -> MaterialInfo {
-        all.first { $0.material == material } ?? all[0]
+        switch material {
+        case .solidWood: return all[0]
+        case .plywood: return all[1]
+        case .particleboardMDF: return all[2]
+        case .plastic: return all[3]
+        case .cardboard: return all[4]
+        }
     }
 
     /// The materials section of Gemini's prompts, generated from this table.

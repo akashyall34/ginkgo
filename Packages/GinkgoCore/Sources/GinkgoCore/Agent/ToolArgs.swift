@@ -11,27 +11,27 @@ struct ToolInputError: Error, Equatable {
 
 /// Reading tool arguments with plain error messages, for example `placements[1].width_mm must be a number`.
 extension JSON {
-    func field(_ key: String, in context: String) throws -> JSON {
+    func field(_ key: String, in context: String) throws(ToolInputError) -> JSON {
         guard objectValue != nil else { throw ToolInputError("\(context.isEmpty ? "the arguments" : context) must be an object") }
         guard let value = self[key], value != .null else { throw ToolInputError("\(label(key, context)) is missing") }
         return value
     }
 
-    func string(_ key: String, in context: String = "") throws -> String {
+    func string(_ key: String, in context: String = "") throws(ToolInputError) -> String {
         guard let value = try field(key, in: context).stringValue else {
             throw ToolInputError("\(label(key, context)) must be text")
         }
         return value
     }
 
-    func number(_ key: String, in context: String = "") throws -> Double {
+    func number(_ key: String, in context: String = "") throws(ToolInputError) -> Double {
         guard let value = try field(key, in: context).numberValue, value.isFinite else {
             throw ToolInputError("\(label(key, context)) must be a number")
         }
         return value
     }
 
-    func list(_ key: String, in context: String = "") throws -> [JSON] {
+    func list(_ key: String, in context: String = "") throws(ToolInputError) -> [JSON] {
         guard let value = try field(key, in: context).arrayValue else {
             throw ToolInputError("\(label(key, context)) must be a list")
         }
