@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1610 1010" width="1610" height="1010" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">Ginkgo architecture</title>
+  <desc id="d">The iPhone app: SwiftUI screens, app services and the GinkgoCore package, with Apple's on-device model and local storage. Google Firebase: App Check, Gemini through Firebase AI Logic, Authentication, Firestore and Remote Config. Every plan passes the validator before it is shown.</desc>
+  <defs>
+    <marker id="aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2E6B2E"/></marker>
+    <marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2F6FDE"/></marker>
+    <marker id="aA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#C98A00"/></marker>
+    <marker id="aK" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5C5C63"/></marker>
+    <filter id="sh" x="-5%" y="-5%" width="110%" height="115%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#1D2A1D" flood-opacity="0.12"/></filter>
+  </defs>
+
+  <rect width="1610" height="1010" fill="#FFFFFF"/>
+
+  <!-- Title -->
+  <text x="40" y="52" font-size="30" font-weight="700" fill="#1D2A1D">Ginkgo architecture</text>
+  <text x="40" y="80" font-size="16" fill="#5A6A5A">On the iPhone first, the cloud when it helps. No server of our own.</text>
+
+  <!-- ============ iPhone ============ -->
+  <rect x="40" y="100" width="1000" height="750" rx="22" fill="#F6F8F5" stroke="#C5D1C1" stroke-width="1.5"/>
+  <text x="66" y="132" font-size="14" font-weight="700" letter-spacing="1.5" fill="#2E6B2E">ON THE IPHONE</text>
+
+  <!-- Column 1: screens -->
+  <rect x="70" y="150" width="450" height="140" rx="14" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="90" y="182" font-size="18" font-weight="700" fill="#1D2A1D">SwiftUI screens</text>
+  <text x="90" y="210" font-size="14" fill="#3C4C3C">Scan · Parts · Take it apart · Plan and Proof</text>
+  <text x="90" y="232" font-size="14" fill="#3C4C3C">Cut in AR · Check the cut · Assemble in 3D</text>
+  <text x="90" y="254" font-size="14" fill="#3C4C3C">Impact · My items · Settings · First-run guide</text>
+  <text x="90" y="276" font-size="12" fill="#5A6A5A">Native SwiftUI · Dynamic Type · light and dark</text>
+
+  <!-- screens -> core -->
+  <line x1="295" y1="290" x2="295" y2="314" stroke="#2E6B2E" stroke-width="2" marker-end="url(#aG)"/>
+
+  <!-- Column 1: GinkgoCore -->
+  <rect x="70" y="316" width="450" height="384" rx="14" fill="#FFFFFF" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="90" y="346" font-size="18" font-weight="700" fill="#1D2A1D">GinkgoCore</text>
+  <text x="238" y="346" font-size="13" fill="#5A6A5A">Swift package · no UI · 330 tests</text>
+
+  <rect x="86" y="362" width="202" height="62" rx="10" fill="#E8F1E4" stroke="#9DBB97"/>
+  <text x="98" y="388" font-size="14" font-weight="700" fill="#1D2A1D">Packer</text>
+  <text x="98" y="408" font-size="12" fill="#3C4C3C">cuts panels, 8 mm margin</text>
+
+  <rect x="302" y="362" width="202" height="62" rx="10" fill="#2E6B2E"/>
+  <text x="314" y="388" font-size="14" font-weight="700" fill="#FFFFFF">Validator</text>
+  <text x="314" y="408" font-size="12" fill="#E8F1E4">fit · holes · sag · grain · tip-over</text>
+
+  <rect x="86" y="436" width="202" height="62" rx="10" fill="#E8F1E4" stroke="#9DBB97"/>
+  <text x="98" y="462" font-size="14" font-weight="700" fill="#1D2A1D">Sag and materials</text>
+  <text x="98" y="482" font-size="12" fill="#3C4C3C">span ÷ 600, Wood Handbook</text>
+
+  <rect x="302" y="436" width="202" height="62" rx="10" fill="#E8F1E4" stroke="#9DBB97"/>
+  <text x="314" y="462" font-size="14" font-weight="700" fill="#1D2A1D">Rule-based planner</text>
+  <text x="314" y="482" font-size="12" fill="#3C4C3C">the offline fallback bench</text>
+
+  <rect x="86" y="510" width="202" height="62" rx="10" fill="#E8F1E4" stroke="#9DBB97"/>
+  <text x="98" y="536" font-size="14" font-weight="700" fill="#1D2A1D">Cut guide, cut check</text>
+  <text x="98" y="556" font-size="12" fill="#3C4C3C">marks in mm, good · trim · recut</text>
+
+  <rect x="302" y="510" width="202" height="62" rx="10" fill="#E8F1E4" stroke="#9DBB97"/>
+  <text x="314" y="536" font-size="14" font-weight="700" fill="#1D2A1D">Assembly guide</text>
+  <text x="314" y="556" font-size="12" fill="#3C4C3C">screws, brackets, pilot holes</text>
+
+  <rect x="86" y="584" width="202" height="62" rx="10" fill="#E8F1E4" stroke="#9DBB97"/>
+  <text x="98" y="610" font-size="14" font-weight="700" fill="#1D2A1D">Router and log</text>
+  <text x="98" y="630" font-size="12" fill="#3C4C3C">where each task runs, and why</text>
+
+  <rect x="302" y="584" width="202" height="62" rx="10" fill="#E8F1E4" stroke="#9DBB97"/>
+  <text x="314" y="610" font-size="14" font-weight="700" fill="#1D2A1D">Parts and take-apart</text>
+  <text x="314" y="630" font-size="12" fill="#3C4C3C">checks what Gemini returns</text>
+
+  <text x="90" y="680" font-size="12" fill="#5A6A5A">Pure logic, tested with planted bugs and an 85% coverage gate</text>
+
+  <!-- Column 1: local storage -->
+  <rect x="70" y="726" width="450" height="96" rx="14" fill="#FFF6E3" stroke="#C98A00" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="90" y="758" font-size="18" font-weight="700" fill="#1D2A1D">Local storage</text>
+  <text x="90" y="784" font-size="14" fill="#5A4A1D">Scans: photo and depth map, kept on the phone</text>
+  <text x="90" y="806" font-size="14" fill="#5A4A1D">routing-log.jsonl: every AI request and its verdict</text>
+
+  <!-- Column 2: app services -->
+  <rect x="580" y="150" width="430" height="90" rx="14" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="600" y="182" font-size="17" font-weight="700" fill="#1D2A1D">Remote settings</text>
+  <text x="600" y="206" font-size="13" fill="#3C4C3C">Limits can only get stricter; model names are checked</text>
+  <text x="600" y="224" font-size="13" fill="#3C4C3C">Built-in values apply when offline</text>
+
+  <rect x="580" y="266" width="430" height="90" rx="14" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="600" y="298" font-size="17" font-weight="700" fill="#1D2A1D">Hybrid planner</text>
+  <text x="600" y="322" font-size="13" fill="#3C4C3C">Device first. Gemini after 3 rejected plans or 60 s.</text>
+  <text x="600" y="340" font-size="13" fill="#3C4C3C">No network: rules. "Improve this plan" when back online.</text>
+
+  <rect x="580" y="382" width="430" height="90" rx="14" fill="#F1F1F3" stroke="#5C5C63" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="600" y="414" font-size="17" font-weight="700" fill="#1D2A1D">Apple Foundation Models</text>
+  <text x="600" y="438" font-size="13" fill="#3C4C3C">On-device model with tools: check_fit, check_sag,</text>
+  <text x="600" y="456" font-size="13" fill="#3C4C3C">submit_plan. Numbers only: no image input.</text>
+
+  <rect x="580" y="498" width="430" height="90" rx="14" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="600" y="530" font-size="17" font-weight="700" fill="#1D2A1D">Parts and take-apart reader</text>
+  <text x="600" y="554" font-size="13" fill="#3C4C3C">Sends the photo and the measured size to Gemini.</text>
+  <text x="600" y="572" font-size="13" fill="#3C4C3C">Offline: parts from the LiDAR faces, standard order.</text>
+
+  <rect x="580" y="614" width="430" height="90" rx="14" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="600" y="646" font-size="17" font-weight="700" fill="#1D2A1D">Backup and account</text>
+  <text x="600" y="670" font-size="13" fill="#3C4C3C">Opt-in. Only sizes and plans leave the phone.</text>
+  <text x="600" y="688" font-size="13" fill="#3C4C3C">Anonymous sign-in, or Sign in with Google.</text>
+
+  <rect x="580" y="730" width="430" height="92" rx="14" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="600" y="762" font-size="17" font-weight="700" fill="#1D2A1D">Capture and 3D</text>
+  <text x="600" y="786" font-size="13" fill="#3C4C3C">ARKit LiDAR depth, plane fitting, Apple Vision,</text>
+  <text x="600" y="804" font-size="13" fill="#3C4C3C">RealityKit, AR Quick Look. Needs an iPhone Pro.</text>
+
+  <!-- on-device arrows (green / gray) -->
+  <line x1="580" y1="332" x2="522" y2="332" stroke="#2E6B2E" stroke-width="2" marker-end="url(#aG)"/>
+  <line x1="580" y1="548" x2="522" y2="548" stroke="#2E6B2E" stroke-width="2" marker-end="url(#aG)"/>
+  <line x1="795" y1="356" x2="795" y2="380" stroke="#5C5C63" stroke-width="2" marker-end="url(#aK)"/>
+  <line x1="580" y1="776" x2="522" y2="776" stroke="#C98A00" stroke-width="2" marker-end="url(#aA)"/>
+
+  <!-- ============ App Check ============ -->
+  <rect x="1062" y="130" width="36" height="640" rx="10" fill="#E8F0FE" stroke="#2F6FDE" stroke-width="1.5"/>
+  <text transform="translate(1086 430) rotate(-90)" text-anchor="middle" font-size="14" font-weight="700" letter-spacing="1.5" fill="#2F6FDE">APP CHECK</text>
+
+  <!-- ============ Google Firebase ============ -->
+  <rect x="1130" y="100" width="440" height="750" rx="22" fill="#F4F8FF" stroke="#B9D0F7" stroke-width="1.5"/>
+  <text x="1156" y="132" font-size="14" font-weight="700" letter-spacing="1.5" fill="#2F6FDE">GOOGLE FIREBASE</text>
+
+  <rect x="1160" y="150" width="380" height="90" rx="14" fill="#E8F0FE" stroke="#2F6FDE" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="1180" y="182" font-size="17" font-weight="700" fill="#1D2A1D">Remote Config</text>
+  <text x="1180" y="206" font-size="13" fill="#2A3E66">Validator margin, sag divisor, design loads</text>
+  <text x="1180" y="224" font-size="13" fill="#2A3E66">and the Gemini model list</text>
+
+  <rect x="1160" y="266" width="380" height="322" rx="14" fill="#E8F0FE" stroke="#2F6FDE" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="1180" y="298" font-size="17" font-weight="700" fill="#1D2A1D">Firebase AI Logic</text>
+  <text x="1180" y="320" font-size="13" fill="#2A3E66">No server, and no API key in the app</text>
+  <rect x="1180" y="338" width="340" height="230" rx="10" fill="#FFFFFF" stroke="#9DBAEE"/>
+  <text x="1198" y="368" font-size="17" font-weight="700" fill="#1D2A1D">Gemini</text>
+  <text x="1198" y="392" font-size="13" fill="#2A3E66">gemini-3.8-flash</text>
+  <text x="1198" y="412" font-size="13" fill="#2A3E66">gemini-3.5-flash-lite as the backup</text>
+  <line x1="1198" y1="430" x2="1502" y2="430" stroke="#D3E0F8"/>
+  <text x="1198" y="456" font-size="13" fill="#1D2A1D">Plans from numbers, and Improve this plan</text>
+  <text x="1198" y="482" font-size="13" fill="#1D2A1D">Parts read from a photo</text>
+  <text x="1198" y="508" font-size="13" fill="#1D2A1D">Take-apart steps from a photo</text>
+  <text x="1198" y="542" font-size="12" fill="#5A6A8A">Answers are JSON; code checks every one</text>
+
+  <rect x="1160" y="614" width="380" height="42" rx="12" fill="#E8F0FE" stroke="#2F6FDE" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="1180" y="640" font-size="15" font-weight="700" fill="#1D2A1D">Authentication <tspan font-weight="400" font-size="13" fill="#2A3E66">· Anonymous · Google</tspan></text>
+
+  <rect x="1160" y="666" width="380" height="82" rx="14" fill="#E8F0FE" stroke="#2F6FDE" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="1180" y="694" font-size="17" font-weight="700" fill="#1D2A1D">Cloud Firestore</text>
+  <text x="1180" y="716" font-size="13" fill="#2A3E66">users/{uid}/pieces and plans</text>
+  <text x="1180" y="734" font-size="13" fill="#2A3E66">Rules: each user reaches only their own records</text>
+
+  <text x="1160" y="796" font-size="13" fill="#2A3E66">Every Firebase call carries an App Check token:</text>
+  <text x="1160" y="816" font-size="13" fill="#2A3E66">the debug provider on the simulator, DeviceCheck on a device.</text>
+
+  <!-- cloud arrows (blue) -->
+  <line x1="1160" y1="196" x2="1012" y2="196" stroke="#2F6FDE" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#aB)"/>
+  <line x1="1012" y1="312" x2="1158" y2="312" stroke="#2F6FDE" stroke-width="2" marker-end="url(#aB)"/>
+  <line x1="1012" y1="544" x2="1158" y2="544" stroke="#2F6FDE" stroke-width="2" marker-end="url(#aB)"/>
+  <line x1="1012" y1="636" x2="1158" y2="636" stroke="#2F6FDE" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#aB)"/>
+  <line x1="1012" y1="690" x2="1158" y2="690" stroke="#2F6FDE" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#aB)"/>
+
+  <!-- ============ Gate banner ============ -->
+  <rect x="40" y="868" width="1530" height="50" rx="14" fill="#2E6B2E"/>
+  <circle cx="74" cy="893" r="14" fill="#FFFFFF"/>
+  <path d="M67 893 l5 5 l9 -10" fill="none" stroke="#2E6B2E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="102" y="899" font-size="17" font-weight="700" fill="#FFFFFF">AI suggests, code decides.<tspan font-weight="400"> A plan from the on-device model, Gemini or the rules is shown only after the validator accepts it.</tspan></text>
+
+  <!-- ============ Legend ============ -->
+  <g font-size="13" fill="#3C4C3C">
+    <rect x="40" y="948" width="16" height="16" rx="4" fill="#E8F1E4" stroke="#2E6B2E"/>
+    <text x="64" y="961">Ginkgo code</text>
+    <rect x="170" y="948" width="16" height="16" rx="4" fill="#F1F1F3" stroke="#5C5C63"/>
+    <text x="194" y="961">Apple, on the device</text>
+    <rect x="340" y="948" width="16" height="16" rx="4" fill="#FFF6E3" stroke="#C98A00"/>
+    <text x="364" y="961">Stored on the phone</text>
+    <rect x="510" y="948" width="16" height="16" rx="4" fill="#E8F0FE" stroke="#2F6FDE"/>
+    <text x="534" y="961">Google Firebase</text>
+    <line x1="660" y1="956" x2="702" y2="956" stroke="#2F6FDE" stroke-width="2" marker-end="url(#aB)"/>
+    <text x="712" y="961">Request to the cloud</text>
+    <line x1="880" y1="956" x2="922" y2="956" stroke="#2F6FDE" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#aB)"/>
+    <text x="932" y="961">Opt-in backup, or settings coming in</text>
+  </g>
+  <text x="40" y="996" font-size="12" fill="#7A877A">Swift 6 · SwiftUI · ARKit · RealityKit · Apple Foundation Models · Gemini through Firebase AI Logic · Firebase Auth, Firestore, Remote Config, App Check</text>
+</svg>

@@ -24,6 +24,10 @@ you what to build from its panels, from measuring to the last screw, using only 
 
 No LiDAR? **My items** has sample pieces, so the whole flow works on any iPhone.
 
+## Architecture
+
+![Ginkgo architecture: the iPhone app and GinkgoCore on one side, Google Firebase on the other, every plan gated by the validator](docs/architecture.svg)
+
 ## How the AI is used
 
 **AI suggests, code decides.** The models propose; sizes, fits, strength and stability are
@@ -38,6 +42,8 @@ tested Swift code. A plan the validator rejects is never shown. Details: [docs/A
 | No network, no usable plan | Ginkgo's rule-based planner | Always produces a valid plan |
 
 Every plan screen says where it was made, and every run is logged (`routing-log.jsonl`).
+
+![How a plan is made: on-device model first, Gemini after 3 rejected plans or 60 seconds, rules offline, and one validator for every route](docs/planning-flow.svg)
 
 ## What the validator checks
 
@@ -94,8 +100,9 @@ committed) next to `project.yml`, then in the console:
 
 ## Tests
 
-- 819 unit tests and 45 UI tests. The live-network tests and the full UI audit run only on request.
-- Every logic file must have at least 85% coverage, or CI fails.
+- 884 unit tests and 45 UI tests. The live-network tests and the full UI audit run only on request.
+- Every logic file must have at least 85% coverage, or CI fails. Today every logic file is at 100%; the glue that needs a real
+  model, network or sensor is listed in `scripts/coverage-gate.py` with the reason, and checked on a device or by a live run.
 - `scripts/prove-tests-core.sh` plants 8 bugs in the validator and checks the tests catch each.
 - A UI accessibility audit covers every screen in light and dark mode at the largest text size.
 - `scripts/check-live-ai.sh` makes one real Gemini call and one real Firestore backup.

@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1610 790" width="1610" height="790" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">How a plan is made</title>
+  <desc id="d">A plan is proposed by the on-device model, by Gemini or by the rule-based planner. Each route ends at the same validator. A rejected on-device plan after 3 tries or 60 seconds goes to Gemini when online, or to the rules when offline. A plan shown from the device or the rules can be improved by Gemini when the network is back.</desc>
+  <defs>
+    <marker id="aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2E6B2E"/></marker>
+    <marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2F6FDE"/></marker>
+    <marker id="aR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#B3382C"/></marker>
+    <filter id="sh" x="-5%" y="-5%" width="110%" height="115%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#1D2A1D" flood-opacity="0.12"/></filter>
+  </defs>
+  <rect width="1610" height="790" fill="#FFFFFF"/>
+  <text x="40" y="52" font-size="30" font-weight="700" fill="#1D2A1D">How a plan is made</text>
+  <text x="40" y="80" font-size="16" fill="#5A6A5A">Three ways to propose a plan, one way to accept it.</text>
+
+  <!-- lanes -->
+  <rect x="300" y="110" width="970" height="140" rx="16" fill="#F6F8F5" stroke="#C5D1C1"/>
+  <text x="1250" y="134" text-anchor="end" font-size="13" font-weight="700" letter-spacing="1.2" fill="#2E6B2E">ON THIS IPHONE <tspan font-weight="400" letter-spacing="0" fill="#5A6A5A">· first choice, when the model is available</tspan></text>
+  <rect x="300" y="300" width="970" height="140" rx="16" fill="#F4F8FF" stroke="#B9D0F7"/>
+  <text x="1250" y="324" text-anchor="end" font-size="13" font-weight="700" letter-spacing="1.2" fill="#2F6FDE">IN THE CLOUD <tspan font-weight="400" letter-spacing="0" fill="#5A6A5A">· no on-device model, or the device failed, and online</tspan></text>
+  <rect x="300" y="490" width="970" height="140" rx="16" fill="#F6F8F5" stroke="#C5D1C1"/>
+  <text x="1250" y="514" text-anchor="end" font-size="13" font-weight="700" letter-spacing="1.2" fill="#2E6B2E">RULES <tspan font-weight="400" letter-spacing="0" fill="#5A6A5A">· offline, or nothing valid yet</tspan></text>
+
+  <!-- start -->
+  <rect x="40" y="325" width="200" height="90" rx="14" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="58" y="358" font-size="17" font-weight="700" fill="#1D2A1D">Confirmed parts</text>
+  <text x="58" y="380" font-size="13" fill="#3C4C3C">measured sizes, materials,</text>
+  <text x="58" y="398" font-size="13" fill="#3C4C3C">grain, screw holes</text>
+  <path d="M240 370 H290 V195 H338" fill="none" stroke="#2E6B2E" stroke-width="2" marker-end="url(#aG)"/>
+  <path d="M240 370 H338" fill="none" stroke="#2F6FDE" stroke-width="2" marker-end="url(#aB)"/>
+  <path d="M240 370 H290 V575 H338" fill="none" stroke="#2E6B2E" stroke-width="2" marker-end="url(#aG)"/>
+
+  <!-- proposers -->
+  <rect x="340" y="155" width="300" height="80" rx="12" fill="#F1F1F3" stroke="#5C5C63" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="358" y="185" font-size="16" font-weight="700" fill="#1D2A1D">Apple on-device model</text>
+  <text x="358" y="206" font-size="13" fill="#3C4C3C">proposes a plan, using check_fit,</text>
+  <text x="358" y="223" font-size="13" fill="#3C4C3C">check_sag and submit_plan</text>
+
+  <rect x="340" y="345" width="300" height="80" rx="12" fill="#E8F0FE" stroke="#2F6FDE" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="358" y="375" font-size="16" font-weight="700" fill="#1D2A1D">Gemini</text>
+  <text x="358" y="396" font-size="13" fill="#2A3E66">proposes a plan through</text>
+  <text x="358" y="413" font-size="13" fill="#2A3E66">Firebase AI Logic</text>
+
+  <rect x="340" y="535" width="300" height="80" rx="12" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="358" y="565" font-size="16" font-weight="700" fill="#1D2A1D">Rule-based planner</text>
+  <text x="358" y="586" font-size="13" fill="#3C4C3C">tested code makes a bench from</text>
+  <text x="358" y="603" font-size="13" fill="#3C4C3C">the panels; needs no network</text>
+
+  <!-- validators -->
+  <g>
+    <path d="M700 195 L800 145 L900 195 L800 245 Z" fill="#2E6B2E"/>
+    <text x="800" y="191" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Validator</text>
+    <text x="800" y="209" text-anchor="middle" font-size="13" fill="#E8F1E4">accepts?</text>
+    <path d="M700 385 L800 335 L900 385 L800 435 Z" fill="#2E6B2E"/>
+    <text x="800" y="381" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Validator</text>
+    <text x="800" y="399" text-anchor="middle" font-size="13" fill="#E8F1E4">accepts?</text>
+    <path d="M700 575 L800 525 L900 575 L800 625 Z" fill="#2E6B2E"/>
+    <text x="800" y="571" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Validator</text>
+    <text x="800" y="589" text-anchor="middle" font-size="13" fill="#E8F1E4">accepts?</text>
+  </g>
+  <line x1="640" y1="195" x2="698" y2="195" stroke="#2E6B2E" stroke-width="2" marker-end="url(#aG)"/>
+  <line x1="640" y1="385" x2="698" y2="385" stroke="#2F6FDE" stroke-width="2" marker-end="url(#aB)"/>
+  <line x1="640" y1="575" x2="698" y2="575" stroke="#2E6B2E" stroke-width="2" marker-end="url(#aG)"/>
+
+  <!-- results -->
+  <rect x="980" y="155" width="260" height="80" rx="12" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="998" y="190" font-size="16" font-weight="700" fill="#1D2A1D">Plan is shown</text>
+  <text x="998" y="212" font-size="13" fill="#3C4C3C">"Planned on this iPhone"</text>
+  <rect x="980" y="345" width="260" height="80" rx="12" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="998" y="380" font-size="16" font-weight="700" fill="#1D2A1D">Plan is shown</text>
+  <text x="998" y="402" font-size="13" fill="#3C4C3C">"Sent to Gemini: " and why</text>
+  <rect x="980" y="535" width="260" height="80" rx="12" fill="#E8F1E4" stroke="#2E6B2E" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="998" y="570" font-size="16" font-weight="700" fill="#1D2A1D">Plan is shown</text>
+  <text x="998" y="592" font-size="13" fill="#3C4C3C">Ginkgo's rule-based plan</text>
+  <line x1="900" y1="195" x2="978" y2="195" stroke="#2E6B2E" stroke-width="2" marker-end="url(#aG)"/>
+  <line x1="900" y1="385" x2="978" y2="385" stroke="#2E6B2E" stroke-width="2" marker-end="url(#aG)"/>
+  <line x1="900" y1="575" x2="978" y2="575" stroke="#2E6B2E" stroke-width="2" marker-end="url(#aG)"/>
+  <g font-size="12" font-weight="700" fill="#2E6B2E" text-anchor="middle">
+    <text x="940" y="186">yes</text><text x="940" y="376">yes</text><text x="940" y="566">yes</text>
+  </g>
+
+  <!-- rejections -->
+  <path d="M800 245 V275 H490 V343" fill="none" stroke="#B3382C" stroke-width="2" marker-end="url(#aR)"/>
+  <text x="506" y="269" font-size="12" font-weight="700" fill="#B3382C">no: 3 rejected plans or 60 s, and online</text>
+  <path d="M800 275 H318 V545 H338" fill="none" stroke="#B3382C" stroke-width="2" marker-end="url(#aR)"/>
+  <text x="326" y="268" font-size="12" font-weight="700" fill="#B3382C">no, and offline</text>
+  <path d="M800 435 V465 H490 V533" fill="none" stroke="#B3382C" stroke-width="2" marker-end="url(#aR)"/>
+  <text x="506" y="459" font-size="12" font-weight="700" fill="#B3382C">no, or Gemini can't be reached</text>
+  <path d="M800 625 V655" fill="none" stroke="#B3382C" stroke-width="2" marker-end="url(#aR)"/>
+  <rect x="640" y="657" width="320" height="54" rx="12" fill="#FDECEA" stroke="#B3382C" stroke-width="1.5"/>
+  <text x="800" y="680" text-anchor="middle" font-size="14" font-weight="700" fill="#1D2A1D">No plan is shown</text>
+  <text x="800" y="699" text-anchor="middle" font-size="12" fill="#5A3A36">"No safe plan can be made from these parts"</text>
+
+  <!-- improve -->
+  <rect x="1310" y="315" width="260" height="110" rx="14" fill="#E8F0FE" stroke="#2F6FDE" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="1328" y="348" font-size="16" font-weight="700" fill="#1D2A1D">Improve this plan</text>
+  <text x="1328" y="372" font-size="13" fill="#2A3E66">Back online, Gemini replans.</text>
+  <text x="1328" y="392" font-size="13" fill="#2A3E66">Kept only if it passes and</text>
+  <text x="1328" y="410" font-size="13" fill="#2A3E66">reuses more wood.</text>
+  <path d="M1240 195 H1440 V313" fill="none" stroke="#2F6FDE" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#aB)"/>
+  <path d="M1240 575 H1440 V427" fill="none" stroke="#2F6FDE" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#aB)"/>
+
+  <!-- banner -->
+  <rect x="40" y="732" width="1530" height="40" rx="12" fill="#2E6B2E"/>
+  <text x="64" y="758" font-size="15" font-weight="700" fill="#FFFFFF">AI suggests, code decides.<tspan font-weight="400"> Every route ends at the same validator, and a plan that fails it is never shown.</tspan></text>
+</svg>
