@@ -75,8 +75,8 @@ enum PartsStep {
     /// and for materials a guess can't make weaker.
     static func materialNote(_ part: Part) -> String? {
         guard !part.materialIsConfirmed, part.ratedForStrength.material != part.material else { return nil }
-        let name = PartsView.materials.first { $0.0 == part.material }?.1 ?? part.material.rawValue
-        return "Guessed. Rated as particleboard until you confirm. Tap if it's \(name.lowercased())."
+        let name = MaterialCatalog.info(part.material).displayName
+        return "Guessed. Rated as particleboard until you confirm. Tap if it's \(name)."
     }
 
     /// For solid wood whose wood lines haven't been checked: the warning shown under the grain picker.

@@ -131,4 +131,139 @@ final class OnDevicePlannerTests: XCTestCase {
     func testAvailabilityFollowsTheSystemModel() {
         XCTAssertEqual(OnDevicePlanner().isAvailable, SystemLanguageModel.default.isAvailable)
     }
+
+    // MARK: - The repair loop, with a scripted model
+
+    /// A real tool answer from the real executor: a bench the validator accepts.
+    private func accepted() throws -> ToolOutcome {
+        func part(_ name: String, _ source: String, _ width: Double, _ height: Double, _ role: String,
+                  span: Double? = nil) -> GinkgoCore.JSON {
+            var fields: [String: GinkgoCore.JSON] = ["name": .string(name), "source_part_id": .string(source),
+                                                     "width_mm": .number(width), "height_mm": .number(height),
+                                                     "role": .string(role)]
+            if let span { fields["span_mm"] = .number(span) }
+            return .object(fields)
+        }
+        let plan: GinkgoCore.JSON = .object([
+            "template": .string("bench"),
+            "new_parts": .array([part("seat", "top", 400, 300, "seat", span: 362),
+                                 part("leg_left", "side_left", 300, 380, "support"),
+                                 part("leg_right", "side_right", 300, 380, "support")]),
+            "steps": .array([.string("Cut the seat."), .string("Cut the legs."), .string("Screw them together.")]),
+            "hardware": .array([.object(["item": .string("wood screw, 40 mm"), "quantity": .number(8)])]),
+        ])
+        let call = ToolCall(name: "submit_plan", args: .object(["reason": .string("A bench."), "plan": plan]))
+        let outcome = ToolExecutor(inventory: try inventory(), limits: nil).run(call, index: 0)
+        XCTAssertNotNil(outcome.accepted, "The helper's bench must pass the validator")
+        return outcome
+    }
+
+    /// A real rejection: a seat far bigger than any panel, so the validator says it doesn't fit.
+    private func rejection() throws -> ToolOutcome {
+        let placements: GinkgoCore.JSON = .array([.object(["new_part": .string("seat"), "source_part_id": .string("top"),
+                                                           "width_mm": .number(9999), "height_mm": .number(300)])])
+        let call = ToolCall(name: "check_fit", args: .object(["reason": .string("Try it."), "placements": placements]))
+        let outcome = ToolExecutor(inventory: try inventory(), limits: nil).run(call, index: 0)
+        XCTAssertEqual(outcome.step.status, .fail)
+        return outcome
+    }
+
+    func testAPlanAcceptedOnTheFirstAnswerEndsTheLoopAtOnce() async throws {
+        let recorder = PlanRecorder { _ in }
+        let outcome = try accepted()
+        var asked: [String] = []
+        let stop = await OnDevicePlanner.repair(firstPrompt: "plan it", recorder: recorder) { prompt in
+            asked.append(prompt)
+            await recorder.record(outcome)
+        }
+        XCTAssertNil(stop)
+        XCTAssertEqual(asked, ["plan it"])
+    }
+
+    func testARejectedPlanGetsTheValidatorsComplaintUntilTheAttemptsRunOut() async throws {
+        let recorder = PlanRecorder { _ in }
+        var asked: [String] = []
+        let rejected = try rejection()
+        let stop = await OnDevicePlanner.repair(firstPrompt: "plan it", recorder: recorder) { prompt in
+            asked.append(prompt)
+            await recorder.record(rejected)
+        }
+        XCTAssertNil(stop, "Running out of attempts isn't an error: the cloud takes over")
+        XCTAssertEqual(asked.count, HybridRouter.deviceAttempts + 1)
+        XCTAssertEqual(asked.first, "plan it")
+        XCTAssertTrue(asked.dropFirst().allSatisfy { $0.contains(rejected.step.summary) })
+    }
+
+    func testAModelThatStopsWithoutAnyCheckIsToldNoPlanWasSubmitted() async {
+        var asked: [String] = []
+        _ = await OnDevicePlanner.repair(firstPrompt: "plan it", recorder: PlanRecorder { _ in }) { asked.append($0) }
+        XCTAssertTrue(asked[1].contains("No plan was submitted."), asked[1])
+    }
+
+    func testAModelErrorEndsTheLoopWithItsMessage() async {
+        struct Busy: Error, CustomStringConvertible { var description: String { "model busy" } }
+        let stop = await OnDevicePlanner.repair(firstPrompt: "plan it", recorder: PlanRecorder { _ in }) { _ in throw Busy() }
+        XCTAssertEqual(stop, "model busy")
+    }
+
+    func testACancelledRunStopsBeforeAskingTheModel() async {
+        let task = Task { () -> (String?, Int) in
+            try? await Task.sleep(for: .seconds(5))
+            var asked = 0
+            let stop = await OnDevicePlanner.repair(firstPrompt: "p", recorder: PlanRecorder { _ in }) { _ in asked += 1 }
+            return (stop, asked)
+        }
+        task.cancel()
+        let (stop, asked) = await task.value
+        XCTAssertEqual(stop, "cancelled")
+        XCTAssertEqual(asked, 0)
+    }
+
+    func testAToolThatCantBecomeASchemaStopsTheRunWithAReason() async throws {
+        let clash = ToolSpec(name: "bad", description: "d", parameters: .object([
+            ParamProperty(name: "a", schema: .string("x")), ParamProperty(name: "a", schema: .number("y")),
+        ], "Args."))
+        let stop = await OnDevicePlanner.converse(inventory: try inventory(), request: "", recorder: PlanRecorder { _ in },
+                                                  specs: [clash])
+        XCTAssertTrue(stop?.hasPrefix("tool schema:") ?? false, String(describing: stop))
+    }
+
+    // MARK: - The race against the clock, and the stand-in
+
+    func testWorkThatFinishesInTimeDecidesTheResult() async {
+        let reason = await OnDevicePlanner.race(limit: .seconds(30)) { "stopped early" }
+        XCTAssertEqual(reason, "stopped early")
+        let normal = await OnDevicePlanner.race(limit: .seconds(30)) { nil }
+        XCTAssertNil(normal, "Work that ends normally in time reports no problem")
+    }
+
+    func testWorkThatTakesTooLongIsStoppedWithTheLimit() async {
+        let reason = await OnDevicePlanner.race(limit: .milliseconds(20)) {
+            try? await Task.sleep(for: .seconds(30))
+            return nil
+        }
+        XCTAssertTrue(reason?.hasPrefix("took longer than") ?? false, String(describing: reason))
+    }
+
+    func testAToolCallWithoutAValidObjectIsRefusedNotInvented() async throws {
+        let recorder = PlanRecorder { _ in }
+        let tool = try PlannerTool(spec: AgentTools.checkFit, executor: ToolExecutor(inventory: try inventory(), limits: nil),
+                                   recorder: recorder)
+        let answer = try await tool.call(arguments: try GeneratedContent(json: "{}"))
+        XCTAssertFalse(answer.isEmpty)
+    }
+}
+
+/// Before iOS 26 there's no on-device model: the stand-in is never available and plans nothing.
+final class NoDevicePlannerTests: XCTestCase {
+    func testTheStandInIsNeverAvailableAndPlansNothing() async throws {
+        let planner = NoDevicePlanner()
+        XCTAssertFalse(planner.isAvailable)
+        let url = try XCTUnwrap(Bundle.main.url(forResource: "inventory", withExtension: "json"))
+        let inventory = try JSONDecoder().decode(Inventory.self, from: Data(contentsOf: url))
+        let result = await planner.plan(inventory: inventory, request: "") { _ in }
+        XCTAssertNil(result.accepted)
+        XCTAssertEqual(result.trace, [])
+        XCTAssertEqual(result.model, DeviceModel.name)
+    }
 }

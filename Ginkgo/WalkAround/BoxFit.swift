@@ -37,7 +37,7 @@ enum BoxFit {
     static let searchSample = 4000
 
     /// Fits the smallest upright box (by footprint area) around the points, standing on the floor.
-    static func fit(_ points: [SIMD3<Float>], floorY: Float) throws -> FittedBox {
+    static func fit(_ points: [SIMD3<Float>], floorY: Float) throws(BoxFitError) -> FittedBox {
         guard points.count >= minimumPoints else { throw BoxFitError.tooFewPoints(points.count) }
         let stride = max(1, points.count / searchSample)
         let sample = Swift.stride(from: 0, to: points.count, by: stride).map { SIMD2(points[$0].x, points[$0].z) }
@@ -57,25 +57,38 @@ enum BoxFit {
 
         let all = points.map { SIMD2($0.x, $0.z) }
         let box = refined(footprint(all, angle: best.angle), points: all, angle: best.angle)
-        let heights = points.map(\.y)
-        let roughTop = percentile(heights, 1 - trim)
-        let topFace = heights.filter { abs($0 - roughTop) <= faceBand }
-        let top = topFace.isEmpty ? roughTop : percentile(topFace, 0.5)
-        let height = top - floorY
+        let height = topHeight(of: points.map(\.y)) - floorY
         let (cosA, sinA) = (cos(best.angle), sin(best.angle))
         // Back from the rotated frame to world x/z.
         let centerX = box.midU * cosA - box.midV * sinA
         let centerZ = box.midU * sinA + box.midV * cosA
 
         let longIsU = box.sizeU >= box.sizeV
-        var yaw = longIsU ? best.angle : best.angle + .pi / 2
-        yaw = yaw.truncatingRemainder(dividingBy: .pi)
-        if yaw < 0 { yaw += .pi }
+        let yaw = normalizedYaw(longIsU ? best.angle : best.angle + .pi / 2)
 
         let fitted = FittedBox(length: max(box.sizeU, box.sizeV), width: min(box.sizeU, box.sizeV), height: height,
                                baseCenter: SIMD3(centerX, floorY, centerZ), yaw: yaw, uncertainty: 0, pointCount: points.count)
         return FittedBox(length: fitted.length, width: fitted.width, height: fitted.height, baseCenter: fitted.baseCenter,
                          yaw: fitted.yaw, uncertainty: residual(points, box: fitted), pointCount: points.count)
+    }
+
+    /// Where the top face is: the median of the heights within `faceBand` of the near-top height, so a few stray
+    /// points above the furniture don't raise it. The near-top height is one of the heights, so the band is never empty.
+    static func topHeight(of heights: [Float]) -> Float {
+        let roughTop = percentile(heights, 1 - trim)
+        return percentile(heights.filter { abs($0 - roughTop) <= faceBand }, 0.5)
+    }
+
+    /// The box's turn as an angle from 0 up to a half turn (a box looks the same turned 180°).
+    static func normalizedYaw(_ angle: Float) -> Float {
+        let yaw = angle.truncatingRemainder(dividingBy: .pi)
+        return yaw < 0 ? yaw + .pi : yaw
+    }
+
+    /// Where a side really is: the median of the points within `faceBand` of the rough edge, or the edge itself.
+    static func settledFace(_ values: [Float], at edge: Float) -> Float {
+        let near = values.filter { abs($0 - edge) <= faceBand }
+        return near.isEmpty ? edge : percentile(near, 0.5)
     }
 
     private struct Footprint {
@@ -96,12 +109,8 @@ enum BoxFit {
         let (cosA, sinA) = (cos(angle), sin(angle))
         let u = points.map { $0.x * cosA + $0.y * sinA }
         let v = points.map { -$0.x * sinA + $0.y * cosA }
-        func face(_ values: [Float], at edge: Float) -> Float {
-            let near = values.filter { abs($0 - edge) <= faceBand }
-            return near.isEmpty ? edge : percentile(near, 0.5)
-        }
-        return Footprint(minU: face(u, at: rough.minU), maxU: face(u, at: rough.maxU),
-                         minV: face(v, at: rough.minV), maxV: face(v, at: rough.maxV))
+        return Footprint(minU: settledFace(u, at: rough.minU), maxU: settledFace(u, at: rough.maxU),
+                         minV: settledFace(v, at: rough.minV), maxV: settledFace(v, at: rough.maxV))
     }
 
     /// Trimmed extents of the points in a frame rotated by `angle`.
@@ -164,6 +173,6 @@ enum FurnitureIsolation {
                 }
             }
         }
-        return seen.flatMap { cells[$0] ?? [] }.map { raised[$0] }
+        return cells.filter { seen.contains($0.key) }.flatMap(\.value).map { raised[$0] }
     }
 }

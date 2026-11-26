@@ -107,9 +107,15 @@ struct PlanningView: View {
     /// Offline test runs (-noGemini) switch off both models: no network, no on-device model.
     static var offlineTest: Bool { GeminiAgentModel.isDisabled }
 
+    /// Apple's on-device model from iOS 26; before that, a stand-in that is never available.
+    static func devicePlanner() -> any DevicePlanning {
+        if #available(iOS 26.0, *) { return OnDevicePlanner(enabled: !offlineTest) }
+        return NoDevicePlanner()
+    }
+
     static func planner() -> HybridPlanner {
         HybridPlanner(
-            device: OnDevicePlanner(enabled: !offlineTest),
+            device: devicePlanner(),
             cloud: { inventory, request, onStep in
                 await PlanAgent(model: GeminiAgentModel(), maxTurns: 6)
                     .run(inventory: inventory, limits: nil, request: request, onStep: onStep)

@@ -19,6 +19,8 @@ struct DistanceResult: Equatable {
 
 enum PlaneMeasureError: Error, Equatable {
     case samePoint
+    /// A face is measured from exactly four corners.
+    case needsFourCorners
     case outsideImage
     /// Too few reliable depth points on the surface between the two taps.
     case notEnoughSurface(usable: Int, needed: Int)
@@ -131,6 +133,8 @@ extension PlaneMeasureError {
         switch self {
         case .samePoint:
             return "Those are the same point. Tap two different points."
+        case .needsFourCorners:
+            return "A face needs four corners."
         case .outsideImage:
             return "A point is outside the photo."
         case .notEnoughSurface(let usable, let needed):

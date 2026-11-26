@@ -85,13 +85,17 @@ final class ScanModel {
     /// Picks the smallest outlined face under the tap, so an inner face wins over an outer one.
     func selectFace(at point: CGPoint) {
         guard frame != nil, corners == nil else { return }
-        let hits = faces.filter { $0.contains(point) }
-        guard let face = hits.min(by: { RectangleDetector.area($0) < RectangleDetector.area($1) }) else {
+        guard let face = Self.smallestFace(under: point, in: faces) else {
             liftFace(at: point)
             return
         }
         corners = face.corners
         measure()
+    }
+
+    /// The smallest outlined face under a tap, so an inner face wins over an outer one.
+    static func smallestFace(under point: CGPoint, in faces: [DetectedQuad]) -> DetectedQuad? {
+        faces.filter { $0.contains(point) }.min { RectangleDetector.area($0) < RectangleDetector.area($1) }
     }
 
     /// One tap: the subject under the finger is lifted out and its outline becomes the corners.

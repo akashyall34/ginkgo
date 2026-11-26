@@ -36,10 +36,8 @@ final class WalkAroundModel {
         do {
             let coarse = try BoxFit.fit(furniture, floorY: floorY)
             status = .measured(BoxFit.refine(coarse, cloud: cloud) ?? coarse)
-        } catch let error as BoxFitError {
-            status = .problem(error.explanation)
         } catch {
-            status = .problem(Self.nothingThereMessage)
+            status = .problem(error.explanation)
         }
     }
 

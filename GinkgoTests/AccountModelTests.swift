@@ -5,6 +5,7 @@ import XCTest
 private final class FakeAccount: AccountService, @unchecked Sendable {
     var email: String?
     var failure: Error?
+    var signOutFailure: Error?
     var signIns = 0
     func currentEmail() async -> String? { email }
     func signInWithGoogle() async throws -> String {
@@ -13,7 +14,10 @@ private final class FakeAccount: AccountService, @unchecked Sendable {
         email = "maker@example.com"
         return "maker@example.com"
     }
-    func signOut() async throws { email = nil }
+    func signOut() async throws {
+        if let signOutFailure { throw signOutFailure }
+        email = nil
+    }
 }
 
 @MainActor
@@ -58,6 +62,17 @@ final class AccountModelTests: XCTestCase {
         let model = AccountModel(service: fake)
         await model.signIn()
         XCTAssertEqual(model.line, "Couldn't sign in: the network is offline")
+    }
+
+    func testASignOutThatFailsSaysWhyAndStaysSignedIn() async {
+        struct Offline: LocalizedError { var errorDescription: String? { "the network is offline" } }
+        let fake = FakeAccount()
+        let model = AccountModel(service: fake)
+        await model.signIn()
+        fake.signOutFailure = Offline()
+        await model.signOut()
+        XCTAssertEqual(model.line, "Couldn't sign in: the network is offline")
+        XCTAssertFalse(model.isSignedIn)
     }
 
     func testWithoutFirebaseThereIsNoAccountToSignInTo() async {

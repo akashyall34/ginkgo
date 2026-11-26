@@ -43,6 +43,12 @@ struct Plane: Equatable {
 }
 
 enum SymmetricEigen {
+    /// Which of three values is smallest: 0, 1 or 2, taking the first on a tie.
+    static func indexOfSmallest(_ x: Float, _ y: Float, _ z: Float) -> Int {
+        if y < x { return z < y ? 2 : 1 }
+        return z < x ? 2 : 0
+    }
+
     /// The unit eigenvector of a symmetric 3×3 matrix with the smallest eigenvalue,
     /// found with the Jacobi rotation method.
     static func smallestEigenvector(_ m: simd_float3x3) -> SIMD3<Float> {
@@ -79,8 +85,7 @@ enum SymmetricEigen {
             }
         }
 
-        // The smallest of the three diagonal entries; the range is never empty.
-        let i = (0..<3).min { a[$0][$0] < a[$1][$1] } ?? 0
+        let i = indexOfSmallest(a[0][0], a[1][1], a[2][2])
         return simd_normalize(SIMD3(v[0][i], v[1][i], v[2][i]))
     }
 }
@@ -112,11 +117,11 @@ struct RansacPlaneFitter {
             let inliers = points.filter { candidate.distance(to: $0) < inlierThreshold }
             if inliers.count > best.count { best = inliers }
         }
-        guard best.count >= 3, let refined = Plane.leastSquares(best) else { return nil }
-
-        // Re-collect inliers against the refined plane.
-        let final = points.filter { refined.distance(to: $0) < inlierThreshold }
-        guard final.count >= 3 else { return nil }
+        // Re-collect the inliers against the refined plane; fewer than three means there is no plane to speak of.
+        guard best.count >= 3, let refined = Plane.leastSquares(best),
+              case let final = points.filter({ refined.distance(to: $0) < inlierThreshold }), final.count >= 3 else {
+            return nil
+        }
         let sumSquares = final.reduce(Float(0)) { sum, p in
             let d = refined.distance(to: p)
             return sum + d * d

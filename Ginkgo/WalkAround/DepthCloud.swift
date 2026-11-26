@@ -14,6 +14,11 @@ struct DepthCloud {
     private struct Sum {
         var total: SIMD3<Float>
         var count: Float
+
+        mutating func add(_ point: SIMD3<Float>) {
+            total += point
+            count += 1
+        }
     }
 
     private var sums: [SIMD3<Int32>: Sum] = [:]
@@ -35,8 +40,7 @@ struct DepthCloud {
                 let world = cameraToWorld * SIMD4(camera, 1)
                 let point = SIMD3(world.x, world.y, world.z)
                 let key = SIMD3<Int32>((point / Self.cell).rounded(.down))
-                sums[key, default: Sum(total: .zero, count: 0)].total += point
-                sums[key, default: Sum(total: .zero, count: 0)].count += 1
+                sums[key, default: Sum(total: .zero, count: 0)].add(point)
             }
         }
     }

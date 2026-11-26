@@ -117,6 +117,26 @@ final class ProofModelTests: XCTestCase {
         XCTAssertEqual(ProofModel.displayName("left"), "Left", "A lone side word stays put")
     }
 
+    func testAThicknessCheckForAnUnknownPanelSaysItUsedNothing() throws {
+        let base = try proven()
+        let check = VerifyItem(dimension: .thickness, marginMm: 0, sourcePartID: "ghost")
+        let result = ValidationResult(passes: true, placements: [], planID: base.plan.id, reusePercent: 0, sag: [],
+                                      verify: [check], violations: [])
+        let model = ProofModel(plan: base.plan, result: result, inventory: base.inventory)
+        XCTAssertEqual(model.checksBeforeCutting, ["Measure the ghost's thickness: the sag check used 0 mm, an estimate."])
+    }
+
+    func testTheChatbotExampleNeedsItsOwnPlanFile() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("proof-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let inventory = try XCTUnwrap(Bundle.main.url(forResource: "inventory", withExtension: "json"))
+        try FileManager.default.copyItem(at: inventory, to: folder.appendingPathComponent("inventory.json"))
+        let bundle = try XCTUnwrap(Bundle(url: folder))
+        XCTAssertNotNil(ProofModel.example(bundle: bundle), "The folder's inventory is found")
+        XCTAssertNil(ProofModel.example(chatbot: true, bundle: bundle), "But there's no chatbot plan beside it")
+    }
+
     func testExampleIsMissingFromABundleWithoutTheFiles() {
         XCTAssertNil(ProofModel.example(bundle: Bundle(for: ProofModelTests.self)))
     }

@@ -95,6 +95,16 @@ final class ScanStoreTests: XCTestCase {
         XCTAssertThrowsError(try store.load(gone.id)) { XCTAssertEqual($0 as? ScanStoreError, .notFound) }
     }
 
+    func testASaveThatCantBeEncodedLeavesNothingBehindAndAnUnknownPreviewIsNotFound() throws {
+        let broken = QuadResult(width: .nan, height: 0.12, uncertainty: 0.002, surfacePoints: 900, viewAngleDegrees: 12,
+                                widthEdgeGap: 0, heightEdgeGap: 0)
+        XCTAssertThrowsError(try store.save(ScanCapture(photo: photo, snapshot: snapshot, corners: corners, result: broken),
+                                            id: UUID(), date: Date()))
+        let left = try FileManager.default.contentsOfDirectory(atPath: store.root.path)
+        XCTAssertEqual(left, [], "The half-written scan's folder is removed")
+        XCTAssertThrowsError(try store.preview(UUID())) { XCTAssertEqual($0 as? ScanStoreError, .notFound) }
+    }
+
     func testDeleteOrLoadOfAnUnknownScanIsNotFound() {
         XCTAssertThrowsError(try store.delete(UUID())) { XCTAssertEqual($0 as? ScanStoreError, .notFound) }
         XCTAssertThrowsError(try store.load(UUID())) { XCTAssertEqual($0 as? ScanStoreError, .notFound) }

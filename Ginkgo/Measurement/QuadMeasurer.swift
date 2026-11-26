@@ -62,7 +62,7 @@ enum QuadMeasurer {
     static func measure(corners: [ImagePoint], in s: DepthSnapshot,
                         fitter: RansacPlaneFitter = RansacPlaneFitter())
         -> Result<QuadResult, PlaneMeasureError> {
-        precondition(corners.count == 4, "A face needs exactly four corners")
+        guard corners.count == 4 else { return .failure(.needsFourCorners) }
         guard corners.allSatisfy(\.isInside) else { return .failure(.outsideImage) }
 
         let poly = Polygon.inset(corners.map { SIMD2($0.u * Float(s.width), $0.v * Float(s.height)) },
@@ -77,17 +77,14 @@ enum QuadMeasurer {
         }
 
         var corners3D: [SIMD3<Float>] = []
-        var cosines: [Float] = []
+        // The worst-case corner (the most edge-on one) sets the angle and noise check.
+        var worst: Float = 1
         for (i, c) in corners.enumerated() {
             let ray = Geometry.unproject(c, depth: 1, intrinsics: s.intrinsics)
             guard let t = fit.plane.hit(direction: ray) else { return .failure(.missesSurface(point: i + 1)) }
             corners3D.append(ray * t)
-            cosines.append(abs(simd_dot(fit.plane.normal, simd_normalize(ray))))
+            worst = min(worst, abs(simd_dot(fit.plane.normal, simd_normalize(ray))))
         }
-
-        // Worst-case corner for the angle and noise check.
-        // Four corners were just measured, so there is always a minimum.
-        let worst = cosines.min() ?? 0
         let planePart: Float
         let angle: Float
         switch PlaneMeasurer.assess(noise: fit.rms, cosA: worst, cosB: worst) {

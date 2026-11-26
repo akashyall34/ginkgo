@@ -174,6 +174,18 @@ final class ScanModelTests: XCTestCase {
 
     // MARK: retake and messages
 
+    func testAPhotoThatCantBeSavedIsReportedNotLost() throws {
+        let demo = try demoFrame()
+        let bare = CapturedFrame(image: UIImage(), confidenceOverlay: demo.confidenceOverlay, snapshot: demo.snapshot)
+        let store = ScanStore(root: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        defer { try? FileManager.default.removeItem(at: store.root) }
+        let model = ScanModel(source: ScriptedSource(.success(bare)), store: store)
+        model.capture()
+        model.placeCornersManually()
+        XCTAssertTrue(model.saveFailed, "The measurement still shows, and the screen says it wasn't saved")
+        XCTAssertNil(model.savedScanID)
+    }
+
     func testRetakeClearsEverything() {
         let model = ScanModel(source: DemoFrameSource())
         model.capture()

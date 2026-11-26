@@ -139,6 +139,29 @@ final class PlanningModelTests: XCTestCase {
         XCTAssertFalse(model.canImprove, "Offered once, even when the first plan stays")
     }
 
+    func testStepsFromTheDeviceAndTheCloudReachTheScreenAsTheyHappen() async throws {
+        let inventory = try inventory()
+        let safe = try XCTUnwrap(RuleBasedPlanner.bench(inventory: inventory))
+        let live = AgentStep(index: 0, reason: "", status: .pass, summary: "seat fits", tool: .checkFit)
+        let device = StepDevice(step: live, result: DevicePlanResult(
+            accepted: AcceptedPlan(plan: safe.plan, validation: safe.validation), trace: [live], rejections: 0,
+            model: "apple-on-device"))
+        let better = try cloudPlan(reuse: 99)
+        let planner = HybridPlanner(device: device, cloud: { _, _, onStep in
+            onStep(live)
+            return better
+        }, cloudModelName: "gemini")
+        let model = PlanningModel(inventory: inventory)
+        await model.run(planner: planner, online: true)
+        await Task.yield()
+        XCTAssertNotNil(model.proof)
+        model.online = true
+        await model.improve(planner: planner)
+        await Task.yield()
+        XCTAssertEqual(model.improvement?.choice, .improved)
+        XCTAssertFalse(model.steps.isEmpty)
+    }
+
     func testWhileTheDevicePlansTheHeadlineSaysSo() throws {
         let model = PlanningModel(inventory: try inventory())
         XCTAssertEqual(model.headline, "Gemini is planning, and Ginkgo checks every step…", "Before any route is known")
@@ -187,5 +210,16 @@ private struct StubDevice: DevicePlanning {
     var result: DevicePlanResult
     func plan(inventory: Inventory, request: String, onStep: @escaping @Sendable (AgentStep) -> Void) async -> DevicePlanResult {
         result
+    }
+}
+
+/// A device that reports a step while it plans, as the real one does.
+private struct StepDevice: DevicePlanning {
+    var isAvailable = true
+    var step: AgentStep
+    var result: DevicePlanResult
+    func plan(inventory: Inventory, request: String, onStep: @escaping @Sendable (AgentStep) -> Void) async -> DevicePlanResult {
+        onStep(step)
+        return result
     }
 }

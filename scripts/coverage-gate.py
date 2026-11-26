@@ -17,6 +17,7 @@ EXEMPT_FILES = {
     "GeminiClient.swift": "network glue; covered by scripts/check-live-ai.sh",
     "RemoteConfigLoader.swift": "Remote Config fetch glue; the checks it calls are unit-tested in RemoteSettings",
     "FirebaseAccount.swift": "Google sign-in UI and Firebase Auth glue; needs a person at the Google screen",
+    "AppleModelSession.swift": "calls Apple's on-device model; needs the real model, exercised by the phone-day planning runs",
     "FirestoreDocuments.swift": "Firebase Auth and Firestore glue; covered by scripts/check-live-ai.sh",
     "DepthCapture.swift": "ARKit session glue; needs LiDAR, checked on a real iPhone",
     "MeshCapture.swift": "ARKit mesh glue; needs LiDAR, checked on a real iPhone",

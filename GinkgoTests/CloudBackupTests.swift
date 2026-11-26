@@ -93,6 +93,30 @@ final class CloudBackupTests: XCTestCase {
         XCTAssertLessThanOrEqual(fields.count, 8, "Within the Firestore rule's field limit")
     }
 
+    func testARecordThatCantBeWrittenIsAnEmptyOneNotACrash() {
+        let broken = SavedScan(id: UUID(), date: Date(timeIntervalSince1970: 0), corners: [],
+                               result: QuadResult(width: .nan, height: 0.3, uncertainty: 0.002, surfacePoints: 900,
+                                                  viewAngleDegrees: 12, widthEdgeGap: 0, heightEdgeGap: 0),
+                               intrinsics: Intrinsics(fx: 1, fy: 1, cx: 0, cy: 0, imageWidth: 1, imageHeight: 1),
+                               depthWidth: 1, depthHeight: 1)
+        XCTAssertEqual(String(bytes: BackupRecord.piece(broken).json, encoding: .utf8), "{}")
+    }
+
+    func testTheStatusLineFollowsTheCountAndTheSwitch() async {
+        let fake = FakeDocuments()
+        let backup = CloudBackup(documents: fake, defaults: defaults)
+        await backup.setEnabled(true)
+        XCTAssertEqual(backup.statusLine, "On. New measurements and plans are backed up.")
+        await backup.backUp(.piece(scan()))
+        await backup.backUp(.piece(scan()))
+        XCTAssertEqual(backup.statusLine, "Backed up 2 items.")
+    }
+
+    func testAnErrorWithNoWordsSaysThereIsNoConnection() {
+        struct Silent: LocalizedError { var errorDescription: String? { "" } }
+        XCTAssertEqual(CloudBackup.plain(Silent()), "no connection")
+    }
+
     func testAPlanRecordSaysWhereItWasMadeAndThatItPassed() throws {
         let url = try XCTUnwrap(Bundle.main.url(forResource: "inventory", withExtension: "json"))
         let inventory = try JSONDecoder().decode(Inventory.self, from: Data(contentsOf: url))

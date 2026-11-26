@@ -61,6 +61,10 @@ final class TakeApartModelTests: XCTestCase {
         XCTAssertEqual(model.entry?.model, "template")
     }
 
+    func testBeforeTheGuideLoadsNothingIsDone() throws {
+        XCTAssertEqual(TakeApartModel(inventory: try inventory(), photo: nil).progress, "0 of 0 done")
+    }
+
     func testTickingStepsCountsProgressAndUnticks() async throws {
         let model = TakeApartModel(inventory: try inventory(), photo: nil)
         XCTAssertTrue(model.isLoading)

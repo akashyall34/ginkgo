@@ -207,4 +207,32 @@ final class HybridPlannerTests: XCTestCase {
         XCTAssertEqual(result.entry.verdict, .failed)
         XCTAssertEqual(result.entry.model, "rule-based")
     }
+
+    // MARK: - No safe plan, and fallback outcomes
+
+    func testNoSafePlanAtAllIsLoggedAsAFailedRun() async throws {
+        let none = FakeDevice(isAvailable: false,
+                              result: DevicePlanResult(accepted: nil, trace: [], rejections: 0, model: "m"))
+        let result = try await planner(none).run(inventory: Inventory(parts: [], scanID: "s"), request: "",
+                                                 online: false) { _ in }
+        XCTAssertNil(result.outcome.plan)
+        XCTAssertEqual(result.entries.last?.verdict, .failed)
+        XCTAssertEqual(result.entries.last?.model, "rule-based")
+    }
+
+    func testAFallbackKeepsItsPlanAndReasonWhenTheTraceIsReplacedOrPrefixed() throws {
+        let made = try bench()
+        let fallback = AgentOutcome.fallback(plan: made.plan, validation: made.validation, trace: [step(0, .info, .fallback)],
+                                             reason: "Gemini couldn't be reached.")
+        let replaced = HybridPlanner.replacingTrace(of: fallback, with: [step(0, .pass), step(1, .pass)])
+        guard case let .fallback(plan, _, trace, reason) = replaced else { return XCTFail("still a fallback") }
+        XCTAssertEqual(plan, made.plan)
+        XCTAssertEqual(trace.count, 2)
+        XCTAssertEqual(reason, "Gemini couldn't be reached.")
+
+        let prefixed = HybridPlanner.prefixed(fallback, with: [step(0, .pass)])
+        guard case let .fallback(_, _, joined, why) = prefixed else { return XCTFail("still a fallback") }
+        XCTAssertEqual(joined.map(\.index), [0, 1], "The earlier steps come first, the later ones renumbered")
+        XCTAssertEqual(why, "Gemini couldn't be reached.")
+    }
 }
